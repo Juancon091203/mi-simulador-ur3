@@ -26,8 +26,7 @@
         .buttons-container {
             flex: 5%;
             display: grid;
-            grid-template-columns: 20% 20% 20% 20% 20%;
-            /* Grid with 5 columns each taking 20% */
+            grid-template-columns: repeat(6, 1fr); /* Grid with 6 columns */
             align-items: center;
         }
 
@@ -46,6 +45,13 @@
 <body>
     <!-- Buttons Container -->
     <div class="buttons-container">
+        <!-- Selector de Robot -->
+        <select id="robotSelector" class="form-select form-select-lg m-2" style="width: 80%; margin: auto;">
+            <option value="UR3" selected>UR3</option>
+            <option value="UR5">UR5</option>
+            <option value="UR10">UR10</option>
+        </select>
+
         <!-- Button to open Connect modal -->
         <button id="connect" type="button" class="btn btn-primary btn-lg m-2" data-bs-toggle="modal"
             data-bs-target="#exampleModal2">Connect</button>
@@ -208,7 +214,7 @@
     <!-- Script files for Three.js and project functionality -->
     <script type="module" src="t_connection.js"></script>
     <script type="module" src="t_control.js"></script>
-    <script type="module" src="t_visualize.js"></script>
+    <script type="module" src="t_visualize.js?v=2"></script>
 
 </body>
 
