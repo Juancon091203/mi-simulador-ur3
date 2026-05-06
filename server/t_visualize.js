@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 // Create scene, camera and renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
@@ -25,44 +26,51 @@ var container = document.getElementById('threejs-container');
 // Append the renderer's DOM element to the div
 container.appendChild(renderer.domElement);
 
+// --- INICIO MULTIMODELO ---
 
-
-
-// // Configuración de calibración para cada robot
-// const robotConfig = {
-//     "UR3": {
-//         // El UR3 original venía perfecto, sin offsets y girando en Y.
-//         axis: ['y', 'y', 'y', 'y', 'y', 'y'],
-//         offsets: [0, 0, 0, 0, 0, 0]
-//     },
-//     "UR5": {
-//         // Ejes de rotación en tu Blender. Si alguno gira mal, cambia 'y' por 'x' o 'z'.
-//         axis: ['y', 'y', 'y', 'y', 'y', 'y'],
-//         // Offsets en radianes. Sumamos 90º (Math.PI/2) o restamos para cuadrar la postura.
-//         offsets: [0, Math.PI / 2, 0, Math.PI / 2, 0, 0]
-//     },
-//     "UR10": {
-//         axis: ['y', 'y', 'y', 'y', 'y', 'y'],
-//         offsets: [0, 0, 0, 0, 0, 0]
-//     }
-// };
+// Configuración para que cada robot doble la articulación en el eje que toca
+const robotConfig = {
+    "UR3": {
+        // Orden:  [Base, Hombro, Codo, Muñeca 1, Muñeca 2, Muñeca 3]
+        axis: ['y', 'y', 'y', 'y', 'y', 'y'],
+        dir: [1, 1, 1, 1, 1, 1]
+    },
+    "UR5": {
+        // Orden:  [Base, Hombro, Codo, Muñeca 1, Muñeca 2, Muñeca 3]
+        axis: ['y', 'x', 'x', 'x', 'y', 'z'],
+        dir: [1, 1, 1, 1, 1, 1]
+    },
+    "UR10": {
+        axis: ['y', 'x', 'x', 'x', 'y', 'z'],
+        dir: [1, 1, 1, 1, 1, 1]
+    }
+};
 
 let currentRobotName = "UR3";
 let currentRobot = null;
 let links = [];
+let initialQuaternions = []; // <-- VITAL: La "foto" de la postura base de cada pieza
 const get_data = new EventSource("http://localhost:5000/digital");
+
+// Escuchar cambios en el menú desplegable de la web
+document.getElementById("robotSelector").addEventListener("change", function (e) {
+    const selectedRobot = e.target.value;
+    loadRobot(selectedRobot);
+});
 
 // Función para cargar un modelo de robot dinámicamente
 function loadRobot(modelName) {
     currentRobotName = modelName;
-    // Si ya hay un robot cargado, lo quitamos de la escena
+
+    // Si ya hay un robot en pantalla, lo borramos
     if (currentRobot) {
         scene.remove(currentRobot);
         links = [];
+        initialQuaternions = [];
     }
 
     if (modelName === "UR3") {
-        // Carga legacy para el UR3 (formato JSON de Three.js)
+        // Carga original para el UR3 (formato scene.json)
         const loader = new THREE.ObjectLoader();
         loader.load('/scenes/scene.json', (object) => {
             currentRobot = object;
@@ -72,56 +80,71 @@ function loadRobot(modelName) {
     } else {
         // Carga para UR5 y UR10 (Formato GLB exportado desde CAD/Blender)
         const loader = new GLTFLoader();
-        loader.load(`/scenes/${modelName.toLowerCase()}.glb`, (gltf) => {
+        // Usamos un ?v= aleatorio para saltarnos la caché de Chrome
+        loader.load(`/scenes/${modelName.toLowerCase()}.glb?v=${new Date().getTime()}`, (gltf) => {
             currentRobot = gltf.scene;
             scene.add(currentRobot);
-            // Si has agrupado los joints bajo un padre llamado "UR5" o "UR10", lo busca. Si no, usa la escena base.
             let robotBase = currentRobot.getObjectByName(modelName) || currentRobot;
             setupLinks(robotBase);
         }, undefined, (error) => {
             console.log(`Error cargando ${modelName}:`, error);
-            alert(`No se ha encontrado el archivo /scenes/${modelName.toLowerCase()}.glb. ¡Asegúrate de haber exportado tu STEP a GLB con ese nombre exacto!`);
         });
     }
 }
 
-// Función auxiliar para mapear los 6 motores
+// Función auxiliar para buscar las 6 articulaciones en el archivo
 function setupLinks(robotObject) {
     if (!robotObject) return;
 
-    const joint1 = robotObject.getObjectByName("Joint_1");
-    const joint2 = robotObject.getObjectByName("Joint_2");
-    const joint3 = robotObject.getObjectByName("Joint_3");
-    const joint4 = robotObject.getObjectByName("Joint_4");
-    const joint5 = robotObject.getObjectByName("Joint_5");
-    const joint6 = robotObject.getObjectByName("Joint_6");
+    links = [];
+    initialQuaternions = [];
 
-    if (joint1 && joint2 && joint3 && joint4 && joint5 && joint6) {
-        links = [joint1, joint2, joint3, joint4, joint5, joint6];
-        console.log("Articulaciones (Joints) mapeadas correctamente.");
-    } else {
-        console.warn("No se encontraron los objetos Joint_1 a Joint_6. Revisa los nombres en FreeCAD/Blender.");
+    for (let i = 1; i <= 6; i++) {
+        const joint = robotObject.getObjectByName("Joint_" + i);
+        if (joint) {
+            links.push(joint);
+            initialQuaternions.push(joint.quaternion.clone());
+
+            // --- ESTO ES LO QUE NECESITAMOS VER ---
+            // Añade flechas: ROJO = X, VERDE = Y, AZUL = Z
+            const axesHelper = new THREE.AxesHelper(0.5);
+            joint.add(axesHelper);
+
+            console.log(`Joint_${i} cargado. Ejes visuales añadidos.`);
+        }
     }
 }
 
-// Evento para recibir datos de rotación en vivo
-get_data.onmessage = function (event) {
-    if (links.length !== 6) return; // Esperar a que el robot esté cargado y mapeado
 
-    const jointPositions = JSON.parse(event.data);
+// Bucle de animación (se llama 60 veces por segundo)
+function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+}
+
+// Evento que se dispara cada vez que el simulador envía un dato de posición
+get_data.onmessage = function (event) {
+    // Si todavía se está cargando el archivo, no hacemos nada
+    if (links.length !== 6 || initialQuaternions.length !== 6) return;
+
     const config = robotConfig[currentRobotName] || robotConfig["UR3"];
+    const jointPositions = JSON.parse(event.data);
 
     for (let i = 0; i < links.length; i++) {
-        // Ángulo recibido del simulador + el offset de compensación de Blender
-        const finalAngle = jointPositions[i] + config.offsets[i];
-
-        // Aplicar la rotación en el eje que toque (x, y o z)
+        // Multiplicamos el ángulo por dir (1 o -1) para invertirlo si hace falta
+        const finalAngle = jointPositions[i] * config.dir[i];
         const axis = config.axis[i];
 
-        // Ponemos los demás ejes a 0 para que no arrastre rotaciones raras, y asignamos el finalAngle al eje correcto
-        links[i].rotation.set(0, 0, 0);
-        links[i].rotation[axis] = finalAngle;
-        // Actualizar los textos del modal
+        // 1. Restaurar la "foto" base para no destrozar la postura original (protege al UR3)
+        links[i].quaternion.copy(initialQuaternions[i]);
+
+        // 2. Aplicar el ángulo del simulador en el eje configurado
+        if (axis === 'x') links[i].rotateX(finalAngle);
+        else if (axis === 'y') links[i].rotateY(finalAngle);
+        else if (axis === 'z') links[i].rotateZ(finalAngle);
+
+        // 3. Actualizar los números del panel "Robot info"
         const textElement = document.getElementById("j" + String(i));
         if (textElement) {
             textElement.innerHTML = String(Math.floor(jointPositions[i] * (180 / Math.PI))) + "°";
@@ -129,19 +152,6 @@ get_data.onmessage = function (event) {
     }
 };
 
-// Bucle de animación principal
-function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-}
-
-// Cargar el robot por defecto (UR3) al iniciar
+// Arrancar por defecto con el UR3
 loadRobot("UR3");
 animate();
-
-// Escuchar cambios en el menú desplegable (Selector)
-document.getElementById("robotSelector").addEventListener("change", function (e) {
-    const selectedRobot = e.target.value;
-    loadRobot(selectedRobot);
-});
