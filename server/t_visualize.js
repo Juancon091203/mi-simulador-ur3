@@ -6,6 +6,17 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
 
+// --- AÑADIR LUCES PARA QUE EL UR5 SE VEA ---
+// 1. Luz Ambiental: Una luz suave que viene de todas partes para que nada sea 100% negro
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.1);
+scene.add(ambientLight);
+
+// 2. Luz Direccional: Como si fuera el sol, para dar volumen y sombras
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+directionalLight.position.set(5, 10, 7);
+scene.add(directionalLight);
+
+
 // Set camera position and rotation for top-down view
 camera.position.set(0, 3, 0); // Adjust the Y value to set the height of the camera
 camera.rotation.set(-Math.PI / 2, 0, 0);
@@ -37,8 +48,8 @@ const robotConfig = {
     },
     "UR5": {
         // Orden:  [Base, Hombro, Codo, Muñeca 1, Muñeca 2, Muñeca 3]
-        axis: ['y', 'x', 'x', 'x', 'y', 'z'],
-        dir: [1, 1, 1, 1, 1, 1]
+        axis: ['y', 'x', 'x', 'x', 'y', 'y'],
+        dir: [1, 1, 1, 1, -1, 1]
     },
     "UR10": {
         axis: ['y', 'x', 'x', 'x', 'y', 'z'],
@@ -105,7 +116,7 @@ function setupLinks(robotObject) {
             links.push(joint);
             initialQuaternions.push(joint.quaternion.clone());
 
-            // --- ESTO ES LO QUE NECESITAMOS VER ---
+            // --- ESTO ES UNA AYUDA VISUAL PARA SABER LA ORIENTACIÓN DE CADA EJE ---
             // Añade flechas: ROJO = X, VERDE = Y, AZUL = Z
             const axesHelper = new THREE.AxesHelper(0.5);
             joint.add(axesHelper);
