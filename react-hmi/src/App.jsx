@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
 import RobotViewer from './components/three/RobotViewer';
 import { useRobotConnection } from './hooks/useRobotConnection';
+import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 
 const App = () => {
   const [modelType, setModelType] = useState('UR3');
-  const [ipAddress, setIpAddress] = useState('192.168.3.5');
-  const { jointAngles, isConnected, statusMessage, connect, disconnect } = useRobotConnection();
+  const [connectionMode, setConnectionMode] = useState('websocket');
+  const [ipAddress, setIpAddress] = useState('192.168.3.41:7000/ws');
+  
+  const sseConn = useRobotConnection();
+  const wsConn = useRobotWebSocket();
+  
+  const activeConn = connectionMode === 'websocket' ? wsConn : sseConn;
 
   const handleConnect = () => {
-    if (isConnected) {
-      disconnect();
+    if (activeConn.isConnected) {
+      activeConn.disconnect();
     } else {
-      connect(ipAddress);
+      if (connectionMode === 'websocket') {
+        const url = ipAddress.startsWith('ws://') || ipAddress.startsWith('wss://')
+          ? ipAddress
+          : `ws://${ipAddress}`;
+        activeConn.connect(url);
+      } else {
+        activeConn.connect(ipAddress);
+      }
     }
   };
 
@@ -34,11 +47,35 @@ const App = () => {
             <option value="UR3">Universal Robots UR3</option>
             <option value="UR5">Universal Robots UR5</option>
             {/* <option value="UR10">Universal Robots UR10</option> */}
+            <option value="UR20">Universal Robots UR20</option>
           </select>
         </section>
 
         <section style={styles.section}>
-          <label style={styles.label}>ROBOT IP</label>
+          <label style={styles.label}>CONNECTION TYPE</label>
+          <select
+            value={connectionMode}
+            onChange={(e) => {
+              if (activeConn.isConnected) {
+                activeConn.disconnect();
+              }
+              const newMode = e.target.value;
+              setConnectionMode(newMode);
+              if (newMode === 'websocket') {
+                setIpAddress('192.168.3.41:7000/ws');
+              } else {
+                setIpAddress('192.168.3.5');
+              }
+            }}
+            style={styles.select}
+          >
+            <option value="websocket">Partner WebSocket</option>
+            <option value="sse">Local Flask (SSE)</option>
+          </select>
+        </section>
+
+        <section style={styles.section}>
+          <label style={styles.label}>{connectionMode === 'websocket' ? 'WEBSOCKET URL' : 'ROBOT IP'}</label>
           <input
             type="text"
             value={ipAddress}
@@ -49,23 +86,23 @@ const App = () => {
             onClick={handleConnect}
             style={{
               ...styles.button,
-              backgroundColor: isConnected ? '#ff4b2b' : '#00d2ff',
-              boxShadow: isConnected ? '0 0 15px rgba(255, 75, 43, 0.4)' : '0 0 15px rgba(0, 210, 255, 0.4)'
+              backgroundColor: activeConn.isConnected ? '#ff4b2b' : '#00d2ff',
+              boxShadow: activeConn.isConnected ? '0 0 15px rgba(255, 75, 43, 0.4)' : '0 0 15px rgba(0, 210, 255, 0.4)'
             }}
           >
-            {isConnected ? 'DISCONNECT' : 'CONNECT'}
+            {activeConn.isConnected ? 'DISCONNECT' : 'CONNECT'}
           </button>
         </section>
 
         <div style={styles.statusBox}>
-          <div style={{ ...styles.statusDot, backgroundColor: isConnected ? '#00ff88' : '#ff4b2b' }} />
-          <span style={styles.statusText}>{statusMessage}</span>
+          <div style={{ ...styles.statusDot, backgroundColor: activeConn.isConnected ? '#00ff88' : '#ff4b2b' }} />
+          <span style={styles.statusText}>{activeConn.statusMessage}</span>
         </div>
 
         <footer style={styles.footer}>
           <label style={styles.label}>JOINT DATA</label>
           <div style={styles.jointGrid}>
-            {jointAngles.map((angle, i) => (
+            {activeConn.jointAngles.map((angle, i) => (
               <div key={i} style={styles.jointItem}>
                 <span style={styles.jointLabel}>J{i}</span>
                 <span style={styles.jointValue}>{(angle * 180 / Math.PI).toFixed(1)}°</span>
@@ -77,7 +114,7 @@ const App = () => {
 
       {/* Viewport 3D Principal */}
       <main className="main-viewport" style={styles.main}>
-        <RobotViewer modelType={modelType} jointAngles={jointAngles} />
+        <RobotViewer modelType={modelType} jointAngles={activeConn.jointAngles} />
       </main>
     </div>
   );

@@ -16,20 +16,24 @@ const robotConfig = {
   "UR10": {
     axis: ['y', 'x', 'x', 'x', 'y', 'z'],
     dir: [1, 1, 1, 1, 1, 1]
+  },
+  "UR20": {
+    axis: ['z', 'y', 'y', 'y', 'z', 'y'],
+    dir: [-1, -1, -1, -1, -1, -1]
   }
 };
 
 const RobotModel = ({ modelType, jointAngles }) => {
   const group = useRef();
-  
+
   // Nota: En un entorno real, las escenas estarían en public/scenes/
   // Para que funcione en este proyecto, asumimos que están en la carpeta del servidor flask
   // o que el proxy/docker las sirve.
   const path = modelType === 'UR3' ? '/scenes/scene.json' : `/scenes/${modelType.toLowerCase()}.glb`;
-  
+
   // Cargador universal
   const result = useLoader(
-    modelType === 'UR3' ? THREE.ObjectLoader : GLTFLoader, 
+    modelType === 'UR3' ? THREE.ObjectLoader : GLTFLoader,
     path
   );
 
@@ -46,12 +50,26 @@ const RobotModel = ({ modelType, jointAngles }) => {
 
     const newLinks = [];
     const newQuats = [];
-    
+
     // El UR3 tiene una estructura distinta (objeto UR3 arriba)
     const root = scene.getObjectByName(modelType) || scene;
 
+    // Buscar las articulaciones por coincidencia parcial de texto (ej. "Joint_1", "Joint_1.001", "Joint_1_Tenedor")
+    const jointsMap = {};
+    root.traverse((child) => {
+      if (child.name) {
+        for (let i = 1; i <= 6; i++) {
+          // Busca "joint_x" (insensible a mayusculas/minusculas) seguido de cualquier caracter que no sea digito
+          const regex = new RegExp(`joint_${i}(\\D|$)`, 'i');
+          if (regex.test(child.name) && !jointsMap[i]) {
+            jointsMap[i] = child;
+          }
+        }
+      }
+    });
+
     for (let i = 1; i <= 6; i++) {
-      const joint = root.getObjectByName(`Joint_${i}`);
+      const joint = jointsMap[i];
       if (joint) {
         newLinks.push(joint);
         newQuats.push(joint.quaternion.clone());

@@ -54,6 +54,10 @@ const robotConfig = {
     "UR10": {
         axis: ['y', 'x', 'x', 'x', 'y', 'z'],
         dir: [1, 1, 1, 1, 1, 1]
+    },
+    "UR20": {
+        axis: ['z', 'y', 'y', 'y', 'z', 'y'],
+        dir: [-1, -1, -1, -1, -1, -1]
     }
 };
 
@@ -110,8 +114,20 @@ function setupLinks(robotObject) {
     links = [];
     initialQuaternions = [];
 
+    const jointsMap = {};
+    robotObject.traverse((child) => {
+        if (child.name) {
+            for (let i = 1; i <= 6; i++) {
+                const regex = new RegExp(`joint_${i}(\\D|$)`, 'i');
+                if (regex.test(child.name) && !jointsMap[i]) {
+                    jointsMap[i] = child;
+                }
+            }
+        }
+    });
+
     for (let i = 1; i <= 6; i++) {
-        const joint = robotObject.getObjectByName("Joint_" + i);
+        const joint = jointsMap[i];
         if (joint) {
             links.push(joint);
             initialQuaternions.push(joint.quaternion.clone());
@@ -121,7 +137,7 @@ function setupLinks(robotObject) {
             const axesHelper = new THREE.AxesHelper(0.5);
             joint.add(axesHelper);
 
-            console.log(`Joint_${i} cargado. Ejes visuales añadidos.`);
+            console.log(`Joint_${i} cargado ("${joint.name}"). Ejes visuales añadidos.`);
         }
     }
 }
