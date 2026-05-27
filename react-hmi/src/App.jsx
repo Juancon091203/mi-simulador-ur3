@@ -26,26 +26,26 @@ const App = () => {
 
         <section style={styles.section}>
           <label style={styles.label}>ROBOT MODEL</label>
-          <select 
-            value={modelType} 
+          <select
+            value={modelType}
             onChange={(e) => setModelType(e.target.value)}
             style={styles.select}
           >
             <option value="UR3">Universal Robots UR3</option>
             <option value="UR5">Universal Robots UR5</option>
-            <option value="UR10">Universal Robots UR10</option>
+            {/* <option value="UR10">Universal Robots UR10</option> */}
           </select>
         </section>
 
         <section style={styles.section}>
           <label style={styles.label}>ROBOT IP</label>
-          <input 
-            type="text" 
-            value={ipAddress} 
+          <input
+            type="text"
+            value={ipAddress}
             onChange={(e) => setIpAddress(e.target.value)}
             style={styles.input}
           />
-          <button 
+          <button
             onClick={handleConnect}
             style={{
               ...styles.button,
@@ -58,7 +58,7 @@ const App = () => {
         </section>
 
         <div style={styles.statusBox}>
-          <div style={{...styles.statusDot, backgroundColor: isConnected ? '#00ff88' : '#ff4b2b'}} />
+          <div style={{ ...styles.statusDot, backgroundColor: isConnected ? '#00ff88' : '#ff4b2b' }} />
           <span style={styles.statusText}>{statusMessage}</span>
         </div>
 

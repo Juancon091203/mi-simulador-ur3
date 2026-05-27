@@ -1,0 +1,50 @@
+{
+    "type": "state",
+    "data": {
+        "leftPallet": {
+            "active": false,
+            "currentBox": 0,
+            "currentLayer": 0,
+            "currentLayerWithoutSep": 0,
+            "currentZ": 0,
+            "finished": false,
+            "palletPresent": false,
+            "pendingBoxes": [],
+            "pendingSeparator": null,
+            "startTime": null
+        },
+        "palletizerId": 1,
+        "rightPallet": {
+            "active": false,
+            "currentBox": 0,
+            "currentLayer": 0,
+            "currentLayerWithoutSep": 0,
+            "currentZ": 0,
+            "finished": false,
+            "palletPresent": false,
+            "pendingBoxes": [],
+            "pendingSeparator": null,
+            "startTime": null
+        },
+        "robot_state": {
+            "brand": "",
+            "joints": [
+                -3.127254,
+                -2.050663,
+                2.571899,
+                -2.08751,
+                -1.608921,
+                3.596826
+            ],
+            "model": "",
+            "tcp": [
+                0.389206,
+                0.19926,
+                0.482331,
+                2.62565,
+                1.664753,
+                -0.040011
+            ]
+        }
+    }
+}

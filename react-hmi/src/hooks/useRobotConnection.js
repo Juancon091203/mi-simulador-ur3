@@ -13,11 +13,11 @@ export const useRobotConnection = (serverUrl = 'http://localhost:5000') => {
     try {
       const response = await fetch(`${serverUrl}/publish_ip/${ipAddress}`);
       const data = await response.json();
-      
+
       if (data.status === 'success') {
         setIsConnected(true);
         setStatusMessage('Connected to Robot');
-        
+
         // Iniciar el stream de datos si no existe
         if (!eventSourceRef.current) {
           startDataStream();
