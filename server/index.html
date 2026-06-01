@@ -52,6 +52,7 @@
             <option value="UR5">UR5</option>
             <!-- <option value="UR10">UR10</option> -->
             <option value="UR20">UR20</option>
+            <option value="iER15-1430-MI">ESTUN iER15-1430-MI</option>
         </select>
 
         <!-- Button to open Connect modal -->
@@ -84,37 +85,86 @@
     <!-- Modal for Control Panel -->
     <div class="modal fade" id="controlpanel" data-bs-backdrop="false" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" style="position: absolute; bottom: 0; left: 0; margin: 0;">
+        <div class="modal-dialog modal-lg" style="position: absolute; bottom: 0; left: 0; margin: 0; width: 600px; max-width: 90vw;">
             <div class="modal-content">
                 <!-- Modal Header -->
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Control Panel</h1>
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Control Panel & Test Override</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <!-- Modal Footer with control buttons -->
+                <!-- Modal Footer with control buttons and manual sliders -->
                 <div class="modal-footer d-flex align-items-center">
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-4 text-center">
+                                <h6 style="font-size: 0.8rem; color: #6c757d; font-weight: bold; margin-bottom: 10px;">Translation</h6>
                                 <!-- X, Y, Z control buttons -->
                                 <div class="d-grid">
-                                    <button id="x+" class="btn btn-outline-primary btn-lg m-2">X+</button>
-                                    <button id="x-" class="btn btn-outline-primary btn-lg m-2">X-</button>
-                                    <button id="y+" class="btn btn-outline-primary btn-lg m-2">Y+</button>
-                                    <button id="y-" class="btn btn-outline-primary btn-lg m-2">Y-</button>
-                                    <button id="z+" class="btn btn-outline-primary btn-lg m-2">Z+</button>
-                                    <button id="z-" class="btn btn-outline-primary btn-lg m-2">Z-</button>
+                                    <button id="x+" class="btn btn-outline-primary btn-sm m-1">X+</button>
+                                    <button id="x-" class="btn btn-outline-primary btn-sm m-1">X-</button>
+                                    <button id="y+" class="btn btn-outline-primary btn-sm m-1">Y+</button>
+                                    <button id="y-" class="btn btn-outline-primary btn-sm m-1">Y-</button>
+                                    <button id="z+" class="btn btn-outline-primary btn-sm m-1">Z+</button>
+                                    <button id="z-" class="btn btn-outline-primary btn-sm m-1">Z-</button>
                                 </div>
                             </div>
                             <div class="col-4 text-center">
+                                <h6 style="font-size: 0.8rem; color: #6c757d; font-weight: bold; margin-bottom: 10px;">Rotation</h6>
                                 <!-- RX, RY, RZ control buttons -->
                                 <div class="d-grid">
-                                    <button id="rx+" class="btn btn-outline-primary btn-lg m-2">RX+</button>
-                                    <button id="rx-" class="btn btn-outline-primary btn-lg m-2">RX-</button>
-                                    <button id="ry+" class="btn btn-outline-primary btn-lg m-2">RY+</button>
-                                    <button id="ry-" class="btn btn-outline-primary btn-lg m-2">RY-</button>
-                                    <button id="rz+" class="btn btn-outline-primary btn-lg m-2">RZ+</button>
-                                    <button id="rz-" class="btn btn-outline-primary btn-lg m-2">RZ-</button>
+                                    <button id="rx+" class="btn btn-outline-primary btn-sm m-1">RX+</button>
+                                    <button id="rx-" class="btn btn-outline-primary btn-sm m-1">RX-</button>
+                                    <button id="ry+" class="btn btn-outline-primary btn-sm m-1">RY+</button>
+                                    <button id="ry-" class="btn btn-outline-primary btn-sm m-1">RY-</button>
+                                    <button id="rz+" class="btn btn-outline-primary btn-sm m-1">RZ+</button>
+                                    <button id="rz-" class="btn btn-outline-primary btn-sm m-1">RZ-</button>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <h6 style="font-size: 0.8rem; color: #6c757d; font-weight: bold; margin-bottom: 10px;">Offline Test</h6>
+                                <div class="d-grid gap-1">
+                                    <div class="form-check form-switch m-1">
+                                        <input class="form-check-input" type="checkbox" id="manualOverrideCheck" style="cursor: pointer;">
+                                        <label class="form-check-label" for="manualOverrideCheck" style="font-size: 0.75rem; font-weight: bold; cursor: pointer;">MANUAL MODE</label>
+                                    </div>
+                                    <div id="manualSliders" style="opacity: 0.5; pointer-events: none; transition: all 0.3s ease;">
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J1 (Base)</span><span id="val-j0">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j0" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J2 (Shoulder)</span><span id="val-j1">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j1" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J3 (Elbow)</span><span id="val-j2">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j2" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J4 (Wrist 1)</span><span id="val-j3">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j3" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J5 (Wrist 2)</span><span id="val-j4">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j4" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="font-size: 0.7rem; display: flex; justify-content: space-between; font-weight: 500;">
+                                                <span>J6 (Wrist 3)</span><span id="val-j5">0°</span>
+                                            </div>
+                                            <input type="range" class="form-range" id="slider-j5" min="-180" max="180" value="0" style="height: 1.2rem;">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

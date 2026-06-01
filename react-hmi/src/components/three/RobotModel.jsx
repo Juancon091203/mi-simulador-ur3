@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useRef, useState, useMemo } from 'react';
-import { useLoader } from '@react-three/fiber';
+import React, { useLayoutEffect, useRef, useState, useEffect, useMemo } from 'react';
+import { useThree, useLoader } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 
@@ -20,15 +20,16 @@ const robotConfig = {
   "UR20": {
     axis: ['z', 'y', 'y', 'y', 'z', 'y'],
     dir: [-1, -1, -1, -1, -1, -1]
+  },
+  "iER15-1430-MI": {
+    axis: ['z', 'y', 'y', 'x', 'y', 'x'],
+    dir: [-1, -1, -1, -1, -1, 1]
   }
 };
 
 const RobotModel = ({ modelType, jointAngles }) => {
-  const group = useRef();
+  const { scene: globalScene } = useThree(); // Referencia a la escena general de Three.js
 
-  // Nota: En un entorno real, las escenas estarían en public/scenes/
-  // Para que funcione en este proyecto, asumimos que están en la carpeta del servidor flask
-  // o que el proxy/docker las sirve.
   const path = modelType === 'UR3' ? '/scenes/scene.json' : `/scenes/${modelType.toLowerCase()}.glb`;
 
   // Cargador universal
@@ -37,29 +38,31 @@ const RobotModel = ({ modelType, jointAngles }) => {
     path
   );
 
-  const scene = useMemo(() => {
+  const robotScene = useMemo(() => {
     return modelType === 'UR3' ? result : result.scene;
   }, [result, modelType]);
 
   const [links, setLinks] = useState([]);
   const [initialQuaternions, setInitialQuaternions] = useState([]);
 
-  // Setup de articulaciones nada más cargar el modelo
-  useLayoutEffect(() => {
-    if (!scene) return;
+  // Añadir/Remover el modelo imperativamente en la escena general (madre)
+  useEffect(() => {
+    if (!robotScene || !globalScene) return;
+
+    // Añadir el robot cargado a la escena general
+    globalScene.add(robotScene);
 
     const newLinks = [];
     const newQuats = [];
 
     // El UR3 tiene una estructura distinta (objeto UR3 arriba)
-    const root = scene.getObjectByName(modelType) || scene;
+    const root = robotScene.getObjectByName(modelType) || robotScene;
 
     // Buscar las articulaciones por coincidencia parcial de texto (ej. "Joint_1", "Joint_1.001", "Joint_1_Tenedor")
     const jointsMap = {};
     root.traverse((child) => {
       if (child.name) {
         for (let i = 1; i <= 6; i++) {
-          // Busca "joint_x" (insensible a mayusculas/minusculas) seguido de cualquier caracter que no sea digito
           const regex = new RegExp(`joint_${i}(\\D|$)`, 'i');
           if (regex.test(child.name) && !jointsMap[i]) {
             jointsMap[i] = child;
@@ -73,12 +76,26 @@ const RobotModel = ({ modelType, jointAngles }) => {
       if (joint) {
         newLinks.push(joint);
         newQuats.push(joint.quaternion.clone());
+
+        // Agregar ayuda visual de ejes (Rojo: X, Verde: Y, Azul: Z) para facilitar la calibración
+        const hasAxesHelper = joint.children.some(child => child instanceof THREE.AxesHelper);
+        if (!hasAxesHelper) {
+          const axesHelper = new THREE.AxesHelper(0.5);
+          joint.add(axesHelper);
+        }
       }
     }
 
     setLinks(newLinks);
     setInitialQuaternions(newQuats);
-  }, [scene, modelType]);
+
+    // Limpieza al cambiar de modelo o desmontar
+    return () => {
+      globalScene.remove(robotScene);
+      setLinks([]);
+      setInitialQuaternions([]);
+    };
+  }, [robotScene, globalScene, modelType]);
 
   // Aplicar rotaciones en cada frame/cambio de ángulo
   useLayoutEffect(() => {
@@ -100,7 +117,8 @@ const RobotModel = ({ modelType, jointAngles }) => {
     });
   }, [jointAngles, links, initialQuaternions, modelType]);
 
-  return <primitive object={scene} ref={group} />;
+  // Retornamos null ya que añadimos el robot directamente a la escena general
+  return null;
 };
 
 export default RobotModel;

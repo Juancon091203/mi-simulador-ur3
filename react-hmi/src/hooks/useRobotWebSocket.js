@@ -29,10 +29,10 @@ export const useRobotWebSocket = (defaultUrl = 'ws://192.168.3.41:7000/ws') => {
     ws.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        
+
         // Comprobar la estructura según ejemploWebSocket.json
-        if (payload.type === 'state' && payload.data && payload.data.robot_state) {
-          const joints = payload.data.robot_state.joints;
+        if (payload.type === 'robot_state' && payload.data && payload.data) {
+          const joints = payload.data.joints;
           if (Array.isArray(joints) && joints.length === 6) {
             setJointAngles(joints);
           }

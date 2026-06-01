@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import RobotViewer from './components/three/RobotViewer';
+import React, { useState, Suspense } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls, Stage, PerspectiveCamera } from '@react-three/drei';
+import RobotModel from './components/three/RobotModel';
 import { useRobotConnection } from './hooks/useRobotConnection';
 import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 
@@ -8,10 +10,17 @@ const App = () => {
   const [connectionMode, setConnectionMode] = useState('websocket');
   const [ipAddress, setIpAddress] = useState('192.168.3.41:7000/ws');
   
+  const [manualMode, setManualMode] = useState(false);
+  const [manualJoints, setManualJoints] = useState([0, 0, 0, 0, 0, 0]);
+  
   const sseConn = useRobotConnection();
   const wsConn = useRobotWebSocket();
   
   const activeConn = connectionMode === 'websocket' ? wsConn : sseConn;
+  
+  const currentJointAngles = manualMode
+    ? manualJoints.map(deg => deg * Math.PI / 180)
+    : activeConn.jointAngles;
 
   const handleConnect = () => {
     if (activeConn.isConnected) {
@@ -48,7 +57,49 @@ const App = () => {
             <option value="UR5">Universal Robots UR5</option>
             {/* <option value="UR10">Universal Robots UR10</option> */}
             <option value="UR20">Universal Robots UR20</option>
+            <option value="iER15-1430-MI">ESTUN iER15-1430-MI</option>
           </select>
+        </section>
+
+        {/* Control Manual para Pruebas offline */}
+        <section style={styles.section}>
+          <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <input 
+              type="checkbox" 
+              checked={manualMode} 
+              onChange={(e) => setManualMode(e.target.checked)} 
+              style={{ cursor: 'pointer' }}
+            />
+            MANUAL OVERRIDE (TEST)
+          </label>
+          
+          {manualMode && (
+            <div style={styles.sliderContainer}>
+              {manualJoints.map((val, i) => (
+                <div key={i} style={styles.sliderItem}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px' }}>
+                    <span>Joint {i + 1}</span>
+                    <span>{val.toFixed(0)}°</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="-180"
+                    max="180"
+                    value={val}
+                    onChange={(e) => {
+                      const newVal = parseFloat(e.target.value);
+                      setManualJoints(prev => {
+                        const next = [...prev];
+                        next[i] = newVal;
+                        return next;
+                      });
+                    }}
+                    style={{ width: '100%', accentColor: '#00d2ff', cursor: 'pointer' }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section style={styles.section}>
@@ -102,9 +153,9 @@ const App = () => {
         <footer style={styles.footer}>
           <label style={styles.label}>JOINT DATA</label>
           <div style={styles.jointGrid}>
-            {activeConn.jointAngles.map((angle, i) => (
+            {currentJointAngles.map((angle, i) => (
               <div key={i} style={styles.jointItem}>
-                <span style={styles.jointLabel}>J{i}</span>
+                <span style={styles.jointLabel}>J{i + 1}</span>
                 <span style={styles.jointValue}>{(angle * 180 / Math.PI).toFixed(1)}°</span>
               </div>
             ))}
@@ -113,8 +164,25 @@ const App = () => {
       </aside>
 
       {/* Viewport 3D Principal */}
-      <main className="main-viewport" style={styles.main}>
-        <RobotViewer modelType={modelType} jointAngles={activeConn.jointAngles} />
+      <main className="main-viewport" style={{ ...styles.main, position: 'relative' }}>
+        <Canvas shadows dpr={[1, 2]}>
+          <PerspectiveCamera makeDefault position={[0, 2, 4]} fov={50} />
+
+          <Suspense fallback={null}>
+            <Stage environment="city" intensity={0.5} contactShadow={false}>
+              <RobotModel modelType={modelType} jointAngles={currentJointAngles} />
+            </Stage>
+          </Suspense>
+
+          <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />
+        </Canvas>
+
+        {/* Overlay opcional para mostrar información del modelo */}
+        <div style={{ position: 'absolute', bottom: 20, right: 20, pointerEvents: 'none' }}>
+          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.2)' }}>
+            Rendering: {modelType} Baseline Active
+          </span>
+        </div>
       </main>
     </div>
   );
@@ -235,6 +303,21 @@ const styles = {
     fontSize: '0.8rem',
     fontWeight: '600',
     color: '#00d2ff',
+  },
+  sliderContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    padding: '15px',
+    background: 'rgba(255,255,255,0.03)',
+    borderRadius: '8px',
+    maxHeight: '220px',
+    overflowY: 'auto',
+  },
+  sliderItem: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
   }
 };
 

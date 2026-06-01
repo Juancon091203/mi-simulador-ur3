@@ -58,6 +58,10 @@ const robotConfig = {
     "UR20": {
         axis: ['z', 'y', 'y', 'y', 'z', 'y'],
         dir: [-1, -1, -1, -1, -1, -1]
+    },
+    "iER15-1430-MI": {
+        axis: ['z', 'y', 'y', 'x', 'y', 'x'],
+        dir: [-1, -1, -1, -1, -1, 1]
     }
 };
 
@@ -140,7 +144,13 @@ function setupLinks(robotObject) {
             console.log(`Joint_${i} cargado ("${joint.name}"). Ejes visuales añadidos.`);
         }
     }
+
+    // Si está en modo manual, aplicar la posición actual de los sliders
+    if (manualMode) {
+        updateManualJoints();
+    }
 }
+
 
 
 // Bucle de animación (se llama 60 veces por segundo)
@@ -150,13 +160,11 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-// Evento que se dispara cada vez que el simulador envía un dato de posición
-get_data.onmessage = function (event) {
-    // Si todavía se está cargando el archivo, no hacemos nada
+// Función común para actualizar las articulaciones del robot
+function updateRobotJoints(jointPositions) {
     if (links.length !== 6 || initialQuaternions.length !== 6) return;
 
     const config = robotConfig[currentRobotName] || robotConfig["UR3"];
-    const jointPositions = JSON.parse(event.data);
 
     for (let i = 0; i < links.length; i++) {
         // Multiplicamos el ángulo por dir (1 o -1) para invertirlo si hace falta
@@ -166,7 +174,7 @@ get_data.onmessage = function (event) {
         // 1. Restaurar la "foto" base para no destrozar la postura original (protege al UR3)
         links[i].quaternion.copy(initialQuaternions[i]);
 
-        // 2. Aplicar el ángulo del simulador en el eje configurado
+        // 2. Aplicar el ángulo en el eje configurado
         if (axis === 'x') links[i].rotateX(finalAngle);
         else if (axis === 'y') links[i].rotateY(finalAngle);
         else if (axis === 'z') links[i].rotateZ(finalAngle);
@@ -177,6 +185,77 @@ get_data.onmessage = function (event) {
             textElement.innerHTML = String(Math.floor(jointPositions[i] * (180 / Math.PI))) + "°";
         }
     }
+}
+
+// --- LOGICA DE CONTROL MANUAL (TEST OFFLINE) ---
+let manualMode = false;
+let manualJoints = [0, 0, 0, 0, 0, 0];
+
+const manualOverrideCheck = document.getElementById('manualOverrideCheck');
+const manualSlidersContainer = document.getElementById('manualSliders');
+
+if (manualOverrideCheck) {
+    manualOverrideCheck.addEventListener('change', (e) => {
+        manualMode = e.target.checked;
+        if (manualMode) {
+            if (manualSlidersContainer) {
+                manualSlidersContainer.style.opacity = '1';
+                manualSlidersContainer.style.pointerEvents = 'auto';
+            }
+            updateManualJoints();
+        } else {
+            if (manualSlidersContainer) {
+                manualSlidersContainer.style.opacity = '0.5';
+                manualSlidersContainer.style.pointerEvents = 'none';
+            }
+        }
+    });
+}
+
+function updateManualJoints() {
+    const radAngles = manualJoints.map(deg => deg * Math.PI / 180);
+    updateRobotJoints(radAngles);
+}
+
+// Configurar los 6 sliders manuales
+for (let i = 0; i < 6; i++) {
+    const slider = document.getElementById(`slider-j${i}`);
+    const valText = document.getElementById(`val-j${i}`);
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            manualJoints[i] = val;
+            if (valText) {
+                valText.innerText = `${val.toFixed(0)}°`;
+            }
+            updateManualJoints();
+        });
+    }
+}
+
+// Restablecer los sliders a 0 cuando cambia el robot
+document.getElementById("robotSelector").addEventListener("change", function () {
+    if (manualOverrideCheck) {
+        manualJoints = [0, 0, 0, 0, 0, 0];
+        for (let i = 0; i < 6; i++) {
+            const slider = document.getElementById(`slider-j${i}`);
+            const valText = document.getElementById(`val-j${i}`);
+            if (slider) slider.value = 0;
+            if (valText) valText.innerText = '0°';
+        }
+    }
+});
+
+// Evento que se dispara cada vez que el simulador envía un dato de posición
+get_data.onmessage = function (event) {
+    // Si está activado el modo manual, ignoramos los datos recibidos
+    if (manualMode) return;
+
+    // Si todavía se está cargando el archivo, no hacemos nada
+    if (links.length !== 6 || initialQuaternions.length !== 6) return;
+
+    const jointPositions = JSON.parse(event.data);
+    updateRobotJoints(jointPositions);
 };
 
 // Arrancar por defecto con el UR3
