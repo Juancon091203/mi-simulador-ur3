@@ -258,6 +258,20 @@ get_data.onmessage = function (event) {
     updateRobotJoints(jointPositions);
 };
 
-// Arrancar por defecto con el UR3
+// Función para cargar el entorno de la cinta transportadora
+function loadEnvironment() {
+    const loader = new GLTFLoader();
+    loader.load('/scenes/entornoCinta.glb', (gltf) => {
+        const entorno = gltf.scene;
+        entorno.position.set(0, 0, 0);
+        scene.add(entorno);
+        console.log("Entorno de la cinta transportadora cargado correctamente en (0,0,0).");
+    }, undefined, (error) => {
+        console.error("Error al cargar entornoCinta.glb:", error);
+    });
+}
+
+// Arrancar por defecto con el UR3 y el entorno
 loadRobot("UR3");
+loadEnvironment();
 animate();

@@ -1,7 +1,14 @@
 import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls, Stage, PerspectiveCamera } from '@react-three/drei';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import RobotModel from './RobotModel';
+
+// Componente para cargar y renderizar el entorno de la cinta
+const ConveyorBelt = () => {
+  const gltf = useLoader(GLTFLoader, '/scenes/entornoCinta.glb');
+  return <primitive object={gltf.scene} position={[0, 0, 0]} />;
+};
 
 /**
  * RobotViewer - Un componente modular para visualizar robots UR.
@@ -21,6 +28,7 @@ const RobotViewer = ({ modelType = 'UR3', jointAngles = [0, 0, 0, 0, 0, 0] }) =>
               jointAngles={jointAngles}
             />
           </Stage>
+          <ConveyorBelt />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />
