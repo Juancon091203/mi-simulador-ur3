@@ -1,12 +1,13 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Canvas, useLoader } from '@react-three/fiber';
 import { OrbitControls, Stage, PerspectiveCamera } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import RobotModel from './RobotModel';
 
 // Componente para cargar y renderizar el entorno de la cinta
+// Componente para cargar y renderizar el entorno de la cinta
 const ConveyorBelt = () => {
-  const gltf = useLoader(GLTFLoader, '/scenes/entornoCinta.glb');
+  const gltf = useLoader(GLTFLoader, '/scenes/entornoCinta.glb?v=3');
   return <primitive object={gltf.scene} position={[0, 0, 0]} />;
 };
 
@@ -20,6 +21,9 @@ const RobotViewer = ({ modelType = 'UR3', jointAngles = [0, 0, 0, 0, 0, 0] }) =>
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas shadows dpr={[1, 2]}>
         <PerspectiveCamera makeDefault position={[0, 2, 4]} fov={50} />
+
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[10, 15, 10]} intensity={1.0} castShadow />
 
         <Suspense fallback={null}>
           <Stage environment="city" intensity={0.5} contactShadow={false}>

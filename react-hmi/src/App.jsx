@@ -1,7 +1,5 @@
 import React, { useState, Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stage, PerspectiveCamera } from '@react-three/drei';
-import RobotModel from './components/three/RobotModel';
+import RobotViewer from './components/three/RobotViewer';
 import { useRobotConnection } from './hooks/useRobotConnection';
 import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 
@@ -165,24 +163,7 @@ const App = () => {
 
       {/* Viewport 3D Principal */}
       <main className="main-viewport" style={{ ...styles.main, position: 'relative' }}>
-        <Canvas shadows dpr={[1, 2]}>
-          <PerspectiveCamera makeDefault position={[0, 2, 4]} fov={50} />
-
-          <Suspense fallback={null}>
-            <Stage environment="city" intensity={0.5} contactShadow={false}>
-              <RobotModel modelType={modelType} jointAngles={currentJointAngles} />
-            </Stage>
-          </Suspense>
-
-          <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />
-        </Canvas>
-
-        {/* Overlay opcional para mostrar información del modelo */}
-        <div style={{ position: 'absolute', bottom: 20, right: 20, pointerEvents: 'none' }}>
-          <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.2)' }}>
-            Rendering: {modelType} Baseline Active
-          </span>
-        </div>
+        <RobotViewer modelType={modelType} jointAngles={currentJointAngles} />
       </main>
     </div>
   );

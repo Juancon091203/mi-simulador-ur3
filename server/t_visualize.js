@@ -261,7 +261,7 @@ get_data.onmessage = function (event) {
 // Función para cargar el entorno de la cinta transportadora
 function loadEnvironment() {
     const loader = new GLTFLoader();
-    loader.load('/scenes/entornoCinta.glb', (gltf) => {
+    loader.load('/scenes/entornoCinta.glb?v=3', (gltf) => {
         const entorno = gltf.scene;
         entorno.position.set(0, 0, 0);
         scene.add(entorno);

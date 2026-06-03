@@ -62,6 +62,12 @@ const RobotModel = ({ modelType, jointAngles }) => {
     const jointsMap = {};
     root.traverse((child) => {
       if (child.name) {
+        // Ocultar pedestal/mesa antigua si existe en el modelo del robot para que no choque con la de la cinta
+        const nameLower = child.name.toLowerCase();
+        if (nameLower === 'cube' || nameLower === 'table' || nameLower === 'base_table' || nameLower === 'pedestal') {
+          child.visible = false;
+        }
+
         for (let i = 1; i <= 6; i++) {
           const regex = new RegExp(`joint_${i}(\\D|$)`, 'i');
           if (regex.test(child.name) && !jointsMap[i]) {
