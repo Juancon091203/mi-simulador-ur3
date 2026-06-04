@@ -84,11 +84,11 @@ const RobotModel = ({ modelType, jointAngles }) => {
         newQuats.push(joint.quaternion.clone());
 
         // Agregar ayuda visual de ejes (Rojo: X, Verde: Y, Azul: Z) para facilitar la calibración
-        const hasAxesHelper = joint.children.some(child => child instanceof THREE.AxesHelper);
-        if (!hasAxesHelper) {
-          const axesHelper = new THREE.AxesHelper(0.5);
-          joint.add(axesHelper);
-        }
+        // const hasAxesHelper = joint.children.some(child => child instanceof THREE.AxesHelper);
+        // if (!hasAxesHelper) {
+        //   const axesHelper = new THREE.AxesHelper(0.5);
+        //   joint.add(axesHelper);
+        // }
       }
     }
 

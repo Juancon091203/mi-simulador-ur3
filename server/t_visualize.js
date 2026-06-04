@@ -138,10 +138,10 @@ function setupLinks(robotObject) {
 
             // --- ESTO ES UNA AYUDA VISUAL PARA SABER LA ORIENTACIÓN DE CADA EJE ---
             // Añade flechas: ROJO = X, VERDE = Y, AZUL = Z
-            const axesHelper = new THREE.AxesHelper(0.5);
-            joint.add(axesHelper);
+            // const axesHelper = new THREE.AxesHelper(0.5);
+            // joint.add(axesHelper);
 
-            console.log(`Joint_${i} cargado ("${joint.name}"). Ejes visuales añadidos.`);
+            // console.log(`Joint_${i} cargado ("${joint.name}"). Ejes visuales añadidos.`);
         }
     }
 
