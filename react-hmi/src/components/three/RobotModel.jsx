@@ -27,20 +27,20 @@ const robotConfig = {
   }
 };
 
-const RobotModel = ({ modelType, jointAngles }) => {
+const RobotModel = ({ modelType, jointAngles, position = [0, 0, 0], rotationY = 0 }) => {
   const { scene: globalScene } = useThree(); // Referencia a la escena general de Three.js
 
-  const path = modelType === 'UR3' ? '/scenes/scene.json' : `/scenes/${modelType.toLowerCase()}.glb`;
+  const path = `/scenes/${modelType.toLowerCase()}.glb`;
 
   // Cargador universal
   const result = useLoader(
-    modelType === 'UR3' ? THREE.ObjectLoader : GLTFLoader,
+    GLTFLoader,
     path
   );
 
   const robotScene = useMemo(() => {
-    return modelType === 'UR3' ? result : result.scene;
-  }, [result, modelType]);
+    return result.scene;
+  }, [result]);
 
   const [links, setLinks] = useState([]);
   const [initialQuaternions, setInitialQuaternions] = useState([]);
@@ -102,6 +102,14 @@ const RobotModel = ({ modelType, jointAngles }) => {
       setInitialQuaternions([]);
     };
   }, [robotScene, globalScene, modelType]);
+
+  // Aplicar posición y rotación base del robot en la escena
+  useEffect(() => {
+    if (robotScene) {
+      robotScene.position.set(position[0], position[1], position[2]);
+      robotScene.rotation.y = rotationY;
+    }
+  }, [robotScene, position, rotationY]);
 
   // Aplicar rotaciones en cada frame/cambio de ángulo
   useLayoutEffect(() => {

@@ -293,3 +293,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Ignore large scene files
+react-hmi/scenes/scene.json
+react-hmi/scenes/scene.zip
+
+

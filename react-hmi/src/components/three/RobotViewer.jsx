@@ -4,6 +4,8 @@ import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import RobotModel from './RobotModel';
+import ObjetoSujeto from './ObjetoSujeto';
+import RobotPathCircle from './RobotPathCircle';
 
 // Componente para cargar y renderizar el entorno de la cinta
 const ConveyorBelt = () => {
@@ -25,11 +27,11 @@ const ConveyorBelt = () => {
   return <primitive object={gltf.scene} position={[0, 0, 0]} />;
 };
 
-const BaseUR20 = () => {
+const BaseUR20 = ({ position = [0, 0, 0], rotationY = 0 }) => {
   const geometry = useLoader(STLLoader, '/scenes/base.stl');
 
   return (
-    <mesh geometry={geometry} castShadow receiveShadow>
+    <mesh geometry={geometry} position={position} rotation={[0, rotationY, 0]} castShadow receiveShadow>
       <meshStandardMaterial color="#888888" roughness={0.6} />
     </mesh>
   );
@@ -40,7 +42,17 @@ const BaseUR20 = () => {
  * @param {string} modelType - 'UR3', 'UR5', o 'UR10'
  * @param {Array} jointAngles - Array de 6 ángulos en radianes
  */
-const RobotViewer = ({ modelType = 'UR3', jointAngles = [0, 0, 0, 0, 0, 0] }) => {
+const RobotViewer = ({ 
+  modelType = 'UR3', 
+  jointAngles = [0, 0, 0, 0, 0, 0],
+  spheroidSize = { x: 0.6, y: 0.6, z: 0.6 },
+  showSpheroid = true,
+  pendingPointsPositions = new Float32Array(0),
+  activePoint = null,
+  robotPositionIndex = 0,
+  robotPosition = [0, 0, 0],
+  robotRotationY = 0
+}) => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas shadows dpr={[1, 2]}>
@@ -54,9 +66,13 @@ const RobotViewer = ({ modelType = 'UR3', jointAngles = [0, 0, 0, 0, 0, 0] }) =>
           <RobotModel
             modelType={modelType}
             jointAngles={jointAngles}
+            position={robotPosition}
+            rotationY={robotRotationY}
           />
           {/*<ConveyorBelt />*/}
-          <BaseUR20 />
+          <BaseUR20 position={robotPosition} rotationY={robotRotationY} />
+          <ObjetoSujeto spheroidSize={spheroidSize} showSpheroid={showSpheroid} pendingPointsPositions={pendingPointsPositions} activePoint={activePoint} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[1.2, 0, 0]} radius={1.6} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />

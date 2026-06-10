@@ -96,3 +96,15 @@ button {
   width: 100%;
   max-width: 100%;
 }
+
+/* Estilos adicionales de responsive para el panel del esferoide */
+@media (max-width: 768px) {
+  .spheroid-panel {
+    top: 10px !important;
+    right: 10px !important;
+    width: calc(100% - 20px) !important;
+    max-width: 240px !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+}

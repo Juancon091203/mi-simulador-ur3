@@ -1,8 +1,10 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, Suspense, useMemo, useEffect } from 'react';
 import RobotViewer from './components/three/RobotViewer';
 import { useRobotConnection } from './hooks/useRobotConnection';
 import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 import { useRobotHttp } from './hooks/useRobotHttp';
+import SpheroidPanel from './components/panels/SpheroidPanel';
+import PhotoSimulationPanel from './components/panels/PhotoSimulationPanel';
 
 const App = () => {
   const [modelType, setModelType] = useState('UR3');
@@ -13,6 +15,122 @@ const App = () => {
 
   const [manualMode, setManualMode] = useState(false);
   const [manualJoints, setManualJoints] = useState([0, 0, 0, 0, 0, 0]);
+
+  // Estado para las dimensiones y visibilidad del esferoide
+  const [spheroidSize, setSpheroidSize] = useState({ x: 0.6, y: 0.6, z: 0.6 });
+  const [showSpheroid, setShowSpheroid] = useState(true);
+  const [pointCount, setPointCount] = useState(100);
+
+  // Estado para la posición de órbita del robot (0 a 5)
+  const [robotPositionIndex, setRobotPositionIndex] = useState(0);
+
+  // Estado para el paso actual de la simulación de fotos
+  const [currentPhotoStep, setCurrentPhotoStep] = useState(0);
+
+  // 1. Generar puntos de Fibonacci y agruparlos por su sector angular respecto al robot
+  const globalSequence = useMemo(() => {
+    if (pointCount <= 0) return [];
+    const goldenRatioIncrement = Math.PI * (3 - Math.sqrt(5));
+    const rawPoints = [];
+
+    for (let i = 0; i < pointCount; i++) {
+      let y;
+      if (pointCount === 1) {
+        y = 0;
+      } else {
+        y = 1 - (i / (pointCount - 1)) * 2;
+      }
+
+      const radius = Math.sqrt(1 - y * y);
+      const phi = i * goldenRatioIncrement;
+
+      const x = Math.cos(phi) * radius;
+      const z = Math.sin(phi) * radius;
+
+      // Calcular sector del punto en XZ plane para asociarlo con la estación del robot
+      const angleVal = Math.atan2(z, x);
+      let sector = Math.round(angleVal / (Math.PI / 3));
+      sector = (sector + 6) % 6;
+
+      rawPoints.push({
+        x: x * spheroidSize.x,
+        y: y * spheroidSize.y,
+        z: z * spheroidSize.z,
+        sector,
+        originalIndex: i
+      });
+    }
+
+    // Agrupar los puntos por sector (0 a 5)
+    const groups = Array.from({ length: 6 }, () => []);
+    rawPoints.forEach((pt) => {
+      groups[pt.sector].push(pt);
+    });
+
+    // Ordenar los puntos dentro de cada grupo por coordenada Y de mayor a menor (de arriba a abajo)
+    groups.forEach((gp) => {
+      gp.sort((a, b) => b.y - a.y);
+    });
+
+    // Aplanar los grupos en una única secuencia global de fotos ordenada
+    const sequence = [];
+    groups.forEach((gp) => {
+      sequence.push(...gp);
+    });
+
+    return sequence;
+  }, [pointCount, spheroidSize]);
+
+  // 2. Obtener las coordenadas del punto activo (el que se está fotografiando en este paso)
+  const activePoint = useMemo(() => {
+    if (currentPhotoStep >= 0 && currentPhotoStep < globalSequence.length) {
+      return globalSequence[currentPhotoStep];
+    }
+    return null;
+  }, [globalSequence, currentPhotoStep]);
+
+  // 3. Obtener las posiciones de los puntos restantes (que aún no han sido fotografiados)
+  const pendingPointsPositions = useMemo(() => {
+    const positions = [];
+    globalSequence.forEach((pt, idx) => {
+      // Solo incluimos puntos que van después del paso actual (los anteriores ya desaparecieron)
+      if (idx > currentPhotoStep) {
+        positions.push(pt.x, pt.y, pt.z);
+      }
+    });
+    return new Float32Array(positions);
+  }, [globalSequence, currentPhotoStep]);
+
+  // Auto-mover el robot a la estación correspondiente al grupo del punto activo actual
+  useEffect(() => {
+    if (activePoint !== null) {
+      setRobotPositionIndex(activePoint.sector);
+    }
+  }, [activePoint]);
+
+  // Si cambia el número de puntos totales, reiniciamos el paso de simulación para evitar desbordamientos
+  useEffect(() => {
+    setCurrentPhotoStep(0);
+  }, [pointCount]);
+
+  // Calcular posición del robot en la circunferencia de 1.6m alrededor del objeto [1.2, 0, 0]
+  const robotPosition = useMemo(() => {
+    const angle = robotPositionIndex * (Math.PI / 3);
+    const radius = 1.6;
+    const centerX = 1.2;
+    const centerZ = 0;
+    return [
+      centerX + radius * Math.cos(angle),
+      0,
+      centerZ + radius * Math.sin(angle)
+    ];
+  }, [robotPositionIndex]);
+
+  // Calcular rotación para que el robot mire hacia el objeto central
+  const robotRotationY = useMemo(() => {
+    const angle = robotPositionIndex * (Math.PI / 3);
+    return Math.PI - angle;
+  }, [robotPositionIndex]);
 
   const sseConn = useRobotConnection();
   const wsConn = useRobotWebSocket();
@@ -183,7 +301,33 @@ const App = () => {
 
       {/* Viewport 3D Principal */}
       <main className="main-viewport" style={{ ...styles.main, position: 'relative' }}>
-        <RobotViewer modelType={modelType} jointAngles={currentJointAngles} />
+        <RobotViewer 
+          modelType={modelType} 
+          jointAngles={currentJointAngles} 
+          spheroidSize={spheroidSize}
+          showSpheroid={showSpheroid}
+          pendingPointsPositions={pendingPointsPositions}
+          activePoint={activePoint}
+          robotPositionIndex={robotPositionIndex}
+          robotPosition={robotPosition}
+          robotRotationY={robotRotationY}
+        />
+        <SpheroidPanel 
+          spheroidSize={spheroidSize}
+          setSpheroidSize={setSpheroidSize}
+          showSpheroid={showSpheroid}
+          setShowSpheroid={setShowSpheroid}
+          pointCount={pointCount}
+          setPointCount={setPointCount}
+          robotPositionIndex={robotPositionIndex}
+          setRobotPositionIndex={setRobotPositionIndex}
+        />
+        <PhotoSimulationPanel 
+          currentPhotoStep={currentPhotoStep}
+          setCurrentPhotoStep={setCurrentPhotoStep}
+          pointCount={pointCount}
+          robotPositionIndex={robotPositionIndex}
+        />
       </main>
     </div>
   );
