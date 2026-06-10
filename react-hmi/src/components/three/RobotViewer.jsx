@@ -55,7 +55,7 @@ const RobotViewer = ({ modelType = 'UR3', jointAngles = [0, 0, 0, 0, 0, 0] }) =>
             modelType={modelType}
             jointAngles={jointAngles}
           />
-          <ConveyorBelt />
+          {/*<ConveyorBelt />*/}
           <BaseUR20 />
         </Suspense>
 

@@ -2,25 +2,31 @@ import React, { useState, Suspense } from 'react';
 import RobotViewer from './components/three/RobotViewer';
 import { useRobotConnection } from './hooks/useRobotConnection';
 import { useRobotWebSocket } from './hooks/useRobotWebSocket';
+import { useRobotHttp } from './hooks/useRobotHttp';
 
 const App = () => {
   const [modelType, setModelType] = useState('UR3');
   const [connectionMode, setConnectionMode] = useState('websocket');
-  const [ipAddress, setIpAddress] = useState('192.168.3.41:7000/ws');
-  
+  // IP de antes de lo de ESTUN
+  //const [ipAddress, setIpAddress] = useState('192.168.3.41:7000/ws');
+  const [ipAddress, setIpAddress] = useState('192.168.60.10'); // IP de tu PC
+
   const [manualMode, setManualMode] = useState(false);
   const [manualJoints, setManualJoints] = useState([0, 0, 0, 0, 0, 0]);
-  
+
   const sseConn = useRobotConnection();
   const wsConn = useRobotWebSocket();
-  
-  const activeConn = connectionMode === 'websocket' ? wsConn : sseConn;
-  
-  const currentJointAngles = manualMode
-    ? manualJoints.map(deg => deg * Math.PI / 180)
-    : activeConn.jointAngles;
+  const httpConn = useRobotHttp(ipAddress);
+
+  //const currentJointAngles = manualMode
+  //? manualJoints.map(deg => deg * Math.PI / 180)
+  //: activeConn.jointAngles;
 
   const handleConnect = () => {
+    // Si es modo HTTP, el hook ya está "conectado" o escuchando por defecto, 
+    // así que no necesitamos una acción manual de connect()
+    if (connectionMode === 'http') return;
+
     if (activeConn.isConnected) {
       activeConn.disconnect();
     } else {
@@ -35,12 +41,20 @@ const App = () => {
     }
   };
 
+  const activeConn = connectionMode === 'websocket'
+    ? wsConn
+    : (connectionMode === 'sse' ? sseConn : httpConn);
+
+  const currentJointAngles = manualMode
+    ? manualJoints.map(deg => deg * Math.PI / 180)
+    : activeConn.jointAngles;
+
   return (
     <div className="dashboard" style={styles.container}>
       {/* Sidebar de Control */}
       <aside className="sidebar glass" style={styles.sidebar}>
         <header style={styles.header}>
-          <h1 className="text-gradient">UR CONTROL</h1>
+          <h1 className="text-gradient">ROBOT DT</h1>
           <p style={styles.subtitle}>Industrial Digital Twin</p>
         </header>
 
@@ -62,15 +76,15 @@ const App = () => {
         {/* Control Manual para Pruebas offline */}
         <section style={styles.section}>
           <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input 
-              type="checkbox" 
-              checked={manualMode} 
-              onChange={(e) => setManualMode(e.target.checked)} 
+            <input
+              type="checkbox"
+              checked={manualMode}
+              onChange={(e) => setManualMode(e.target.checked)}
               style={{ cursor: 'pointer' }}
             />
             MANUAL OVERRIDE (TEST)
           </label>
-          
+
           {manualMode && (
             <div style={styles.sliderContainer}>
               {manualJoints.map((val, i) => (
@@ -112,14 +126,20 @@ const App = () => {
               setConnectionMode(newMode);
               if (newMode === 'websocket') {
                 setIpAddress('192.168.3.41:7000/ws');
-              } else {
+              }
+              else if (newMode === 'http') {
+                setIpAddress('localhost'); // O '192.168.60.10' que es la IP local
+              }
+              else {
                 setIpAddress('192.168.3.5');
               }
+
             }}
             style={styles.select}
           >
             <option value="websocket">Partner WebSocket</option>
             <option value="sse">Local Flask (SSE)</option>
+            <option value="http">Direct HTTP (ESTUN)</option>
           </select>
         </section>
 
