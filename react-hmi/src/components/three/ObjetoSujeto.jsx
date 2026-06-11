@@ -93,7 +93,8 @@ const ObjetoSujeto = ({
   pendingPointsPositions = new Float32Array(0),
   activePoint = null,
   nextFivePoints = [],
-  position = [1.2, 0.1, 0] // Posicionado al lado del robot
+  objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
+  zBounds = { min: -1.0, max: 1.0 }
 }) => {
   const gltf = useLoader(GLTFLoader, '/scenes/tacones.glb');
 
@@ -138,17 +139,29 @@ const ObjetoSujeto = ({
     return clone;
   }, [gltf]);
 
+  // Cálculo del corte de la esfera en Three.js usando la polar theta
+  const { thetaStart, thetaLength } = useMemo(() => {
+    const minZ = Math.max(-1.0, Math.min(1.0, zBounds.min));
+    const maxZ = Math.max(-1.0, Math.min(1.0, zBounds.max));
+    const start = Math.acos(maxZ);
+    const end = Math.acos(minZ);
+    return {
+      thetaStart: start,
+      thetaLength: end - start
+    };
+  }, [zBounds]);
+
   return (
-    <group position={position}>
-      {/* Modelo 3D */}
-      <primitive object={modelScene} />
+    <group>
+      {/* Modelo 3D - posicionado 0.1m más abajo que el centro de la esfera para encajar visualmente */}
+      <primitive object={modelScene} position={[objectCenter.x, objectCenter.y - 0.1, objectCenter.z]} />
 
       {/* Esferoide Translúcido (Volumen de Control) */}
       {showSpheroid && (
-        <group position={[0, 0.1, 0]}>
-          {/* Esfera sólida translúcida con brillo estilo holograma */}
+        <group position={[objectCenter.x, objectCenter.y, objectCenter.z]}>
+          {/* Esfera sólida translúcida con corte dinámico y brillo estilo holograma */}
           <mesh scale={[spheroidSize.x, spheroidSize.y, spheroidSize.z]}>
-            <sphereGeometry args={[1, 64, 64]} />
+            <sphereGeometry key={`${thetaStart}_${thetaLength}`} args={[1, 64, 64, 0, 2 * Math.PI, thetaStart, thetaLength]} />
             <meshStandardMaterial
               color="#00d2ff"
               transparent={true}
@@ -160,6 +173,36 @@ const ObjetoSujeto = ({
               emissiveIntensity={0.5}
             />
           </mesh>
+
+          {/* Tapa plana para cerrar el corte superior si no está al límite superior */}
+          {zBounds.max < 0.99 && (
+            <mesh position={[0, zBounds.max * spheroidSize.y, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[spheroidSize.x, spheroidSize.z, 1]}>
+              <ringGeometry key={`max_${zBounds.max}`} args={[0, Math.sqrt(1 - zBounds.max ** 2), 64]} />
+              <meshStandardMaterial
+                color="#00d2ff"
+                transparent={true}
+                opacity={0.35}
+                side={THREE.DoubleSide}
+                emissive="#004466"
+                emissiveIntensity={0.5}
+              />
+            </mesh>
+          )}
+
+          {/* Tapa plana para cerrar el corte inferior si no está al límite inferior */}
+          {zBounds.min > -0.99 && (
+            <mesh position={[0, zBounds.min * spheroidSize.y, 0]} rotation={[-Math.PI / 2, 0, 0]} scale={[spheroidSize.x, spheroidSize.z, 1]}>
+              <ringGeometry key={`min_${zBounds.min}`} args={[0, Math.sqrt(1 - zBounds.min ** 2), 64]} />
+              <meshStandardMaterial
+                color="#00d2ff"
+                transparent={true}
+                opacity={0.35}
+                side={THREE.DoubleSide}
+                emissive="#004466"
+                emissiveIntensity={0.5}
+              />
+            </mesh>
+          )}
 
           {/* Puntos distribuidos siguiendo Fibonacci en la superficie */}
           {pendingPointsPositions.length > 0 && (

@@ -21,6 +21,11 @@ const App = () => {
   const [showSpheroid, setShowSpheroid] = useState(true);
   const [pointCount, setPointCount] = useState(100);
 
+  // Estado para el centro del objeto (centro del esferoide)
+  const [objectCenter, setObjectCenter] = useState({ x: 1.2, y: 0.2, z: 0.0 });
+  // Estado para los límites vertical de corte Z en la esfera (relativos al centro, de -1.0 a 1.0)
+  const [zBounds, setZBounds] = useState({ min: -1.0, max: 1.0 });
+
   // Estado para la trayectoria obtenida del backend de Python
   const [backendSequence, setBackendSequence] = useState([]);
 
@@ -28,12 +33,21 @@ const App = () => {
   useEffect(() => {
     let active = true;
     const fetchTrajectory = async () => {
-      // Capturamos el tamaño exacto en el momento del envío para evitar fallos de clausura 
+      // Capturamos el tamaño y centro exacto en el momento del envío para evitar fallos de clausura 
       // si el usuario sigue arrastrando el slider antes de que responda el servidor
       const reqSize = {
         x: spheroidSize.x,
         y: spheroidSize.y,
         z: spheroidSize.z
+      };
+      const reqCenter = {
+        x: objectCenter.x,
+        y: objectCenter.y,
+        z: objectCenter.z
+      };
+      const reqBounds = {
+        min: zBounds.min,
+        max: zBounds.max
       };
       try {
         const response = await fetch('http://localhost:5000/calculate_trajectory', {
@@ -44,21 +58,23 @@ const App = () => {
           body: JSON.stringify({
             n: pointCount,
             radius: 1.0,
-            cx: 0.0,
-            cy: 0.0,
-            cz: 0.0,
+            cx: reqCenter.x,
+            cy: reqCenter.z,  // Python Y es React Z (profundidad)
+            cz: reqCenter.y,  // Python Z es React Y (altura vertical)
             sx: reqSize.x,
-            sy: reqSize.y,
-            sz: reqSize.z
+            sy: reqSize.z,    // Escalado de Python Y es React Z
+            sz: reqSize.y,    // Escalado de Python Z es React Y
+            min_z: reqBounds.min,
+            max_z: reqBounds.max
           })
         });
         const data = await response.json();
         if (active && data.status === 'success' && Array.isArray(data.points)) {
           // Guardamos las coordenadas normalizadas usando los valores capturados en el envío
           const pointsMapped = data.points.map((pt, index) => ({
-            unitX: pt.x / reqSize.x,
-            unitY: pt.y / reqSize.y,
-            unitZ: pt.z / reqSize.z,
+            unitX: (pt.x - reqCenter.x) / reqSize.x,
+            unitY: (pt.z - reqCenter.y) / reqSize.y, // Python Z a React Y
+            unitZ: (pt.y - reqCenter.z) / reqSize.z, // Python Y a React Z
             sector: pt.sector,
             rx: pt.rx,
             ry: pt.ry,
@@ -80,7 +96,7 @@ const App = () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [pointCount, spheroidSize.x, spheroidSize.y, spheroidSize.z]);
+  }, [pointCount, spheroidSize.x, spheroidSize.y, spheroidSize.z, objectCenter.x, objectCenter.y, objectCenter.z, zBounds.min, zBounds.max]);
 
   // Estado para la posición de órbita del robot (0 a 5)
   const [robotPositionIndex, setRobotPositionIndex] = useState(0);
@@ -153,18 +169,18 @@ const App = () => {
     setCurrentPhotoStep(0);
   }, [pointCount]);
 
-  // Calcular posición del robot en la circunferencia de 1.6m alrededor del objeto [1.2, 0, 0]
+  // Calcular posición del robot en la circunferencia de 1.6m alrededor del objeto
   const robotPosition = useMemo(() => {
     const angle = robotPositionIndex * (Math.PI / 3);
     const radius = 1.6;
-    const centerX = 1.2;
-    const centerZ = 0;
+    const centerX = objectCenter.x;
+    const centerZ = objectCenter.z;
     return [
       centerX + radius * Math.cos(angle),
       0,
       centerZ + radius * Math.sin(angle)
     ];
-  }, [robotPositionIndex]);
+  }, [robotPositionIndex, objectCenter.x, objectCenter.z]);
 
   // Calcular rotación para que el robot mire hacia el objeto central
   const robotRotationY = useMemo(() => {
@@ -352,6 +368,8 @@ const App = () => {
           robotPosition={robotPosition}
           robotRotationY={robotRotationY}
           nextFivePoints={nextFivePoints}
+          objectCenter={objectCenter}
+          zBounds={zBounds}
         />
         <SpheroidPanel 
           spheroidSize={spheroidSize}
@@ -362,6 +380,10 @@ const App = () => {
           setPointCount={setPointCount}
           robotPositionIndex={robotPositionIndex}
           setRobotPositionIndex={setRobotPositionIndex}
+          objectCenter={objectCenter}
+          setObjectCenter={setObjectCenter}
+          zBounds={zBounds}
+          setZBounds={setZBounds}
         />
         <PhotoSimulationPanel 
           currentPhotoStep={currentPhotoStep}

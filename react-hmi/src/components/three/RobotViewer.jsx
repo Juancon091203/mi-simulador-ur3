@@ -52,7 +52,9 @@ const RobotViewer = ({
   robotPositionIndex = 0,
   robotPosition = [0, 0, 0],
   robotRotationY = 0,
-  nextFivePoints = []
+  nextFivePoints = [],
+  objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
+  zBounds = { min: -1.0, max: 1.0 }
 }) => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -78,8 +80,10 @@ const RobotViewer = ({
             pendingPointsPositions={pendingPointsPositions} 
             activePoint={activePoint}
             nextFivePoints={nextFivePoints}
+            objectCenter={objectCenter}
+            zBounds={zBounds}
           />
-          <RobotPathCircle activeIndex={robotPositionIndex} center={[1.2, 0, 0]} radius={1.6} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, 0, objectCenter.z]} radius={1.6} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />

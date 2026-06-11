@@ -69,9 +69,11 @@ def calculate_point_sector(x, z, cx, cz):
 def digital():
     def event_stream():
         # Continuous loop to read robot position and stream data
+        # Lowered frequency from 100Hz (0.01s) to 20Hz (0.05s) to prevent browser main-thread
+        # event-loop saturation and free up Flask socket handling
         while True:
             data = Robot_Control.read_robot_pos()
-            time.sleep(0.01)
+            time.sleep(0.05)
             yield 'data: {}\n\n'.format(json.dumps(data))
 
     # Return the event stream as a text/event-stream response
@@ -163,6 +165,6 @@ def calculate_trajectory():
         print(f"[ERROR] calculate_trajectory error: {e}")
         return jsonify({"status": "error", "message": str(e)})
 
-# Run the Flask app on host '0.0.0.0' and port 5000
+# Run the Flask app on host '0.0.0.0' and port 5000 with multithreading active
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, threaded=True)

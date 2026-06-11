@@ -11,9 +11,15 @@ const SpheroidPanel = ({
   pointCount = 100,
   setPointCount,
   robotPositionIndex = 0,
-  setRobotPositionIndex
+  setRobotPositionIndex,
+  objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
+  setObjectCenter,
+  zBounds = { min: -1.0, max: 1.0 },
+  setZBounds
 }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [showCenter, setShowCenter] = useState(false);
+  const [showCuts, setShowCuts] = useState(false);
 
   const handleSliderChange = (axis, value) => {
     setSpheroidSize((prev) => ({
@@ -27,10 +33,35 @@ const SpheroidPanel = ({
     setSpheroidSize({ x: val, y: val, z: val });
   };
 
+  const handleCenterChange = (axis, value) => {
+    setObjectCenter((prev) => ({
+      ...prev,
+      [axis]: parseFloat(value)
+    }));
+  };
+
+  const handleMinZChange = (value) => {
+    const val = parseFloat(value);
+    setZBounds((prev) => ({
+      ...prev,
+      min: Math.min(val, prev.max - 0.05)
+    }));
+  };
+
+  const handleMaxZChange = (value) => {
+    const val = parseFloat(value);
+    setZBounds((prev) => ({
+      ...prev,
+      max: Math.max(val, prev.min + 0.05)
+    }));
+  };
+
   const handleReset = () => {
     setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
     if (setPointCount) setPointCount(100);
     if (setRobotPositionIndex) setRobotPositionIndex(0);
+    if (setObjectCenter) setObjectCenter({ x: 1.2, y: 0.2, z: 0.0 });
+    if (setZBounds) setZBounds({ min: -1.0, max: 1.0 });
   };
 
   return (
@@ -100,7 +131,7 @@ const SpheroidPanel = ({
               cursor: showSpheroid ? 'pointer' : 'not-allowed'
             }}
           >
-            {showDetails ? 'Hide Advanced Details ▲' : 'Show Advanced Details (X, Y, Z) ▼'}
+            {showDetails ? 'Hide Advanced Dimensions ▲' : 'Show Advanced Dimensions (X, Y, Z) ▼'}
           </button>
         </div>
 
@@ -163,6 +194,151 @@ const SpheroidPanel = ({
                 value={spheroidSize.z}
                 disabled={!showSpheroid}
                 onChange={(e) => handleSliderChange('z', e.target.value)}
+                style={{
+                  ...styles.rangeInput,
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Botón para desplegar Centro del Objeto */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => setShowCenter(!showCenter)}
+            disabled={!showSpheroid}
+            style={{
+              ...styles.detailsButton,
+              opacity: showSpheroid ? 1 : 0.5,
+              cursor: showSpheroid ? 'pointer' : 'not-allowed'
+            }}
+          >
+            {showCenter ? 'Hide Center Position ▲' : 'Show Center Position (X, Y, Z) ▼'}
+          </button>
+        </div>
+
+        {/* Detalle de Sliders del Centro (desplegable) */}
+        {showCenter && showSpheroid && (
+          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.08)', gap: '12px' }}>
+            {/* Center X */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}><span style={{ color: '#ff4b5c' }}>X</span> Center</span>
+                <span style={styles.sliderValue}>{objectCenter.x.toFixed(2)}m</span>
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="2.0"
+                step="0.05"
+                value={objectCenter.x}
+                disabled={!showSpheroid}
+                onChange={(e) => handleCenterChange('x', e.target.value)}
+                style={{
+                  ...styles.rangeInput,
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            {/* Center Y (vertical) */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}><span style={{ color: '#00ff88' }}>Y</span> Center (Height)</span>
+                <span style={styles.sliderValue}>{objectCenter.y.toFixed(2)}m</span>
+              </div>
+              <input
+                type="range"
+                min="-0.5"
+                max="1.0"
+                step="0.05"
+                value={objectCenter.y}
+                disabled={!showSpheroid}
+                onChange={(e) => handleCenterChange('y', e.target.value)}
+                style={{
+                  ...styles.rangeInput,
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            {/* Center Z (depth) */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Z</span> Center (Depth)</span>
+                <span style={styles.sliderValue}>{objectCenter.z.toFixed(2)}m</span>
+              </div>
+              <input
+                type="range"
+                min="-1.0"
+                max="1.0"
+                step="0.05"
+                value={objectCenter.z}
+                disabled={!showSpheroid}
+                onChange={(e) => handleCenterChange('z', e.target.value)}
+                style={{
+                  ...styles.rangeInput,
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Botón para desplegar Límites de Altura Z (Cortes) */}
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => setShowCuts(!showCuts)}
+            disabled={!showSpheroid}
+            style={{
+              ...styles.detailsButton,
+              opacity: showSpheroid ? 1 : 0.5,
+              cursor: showSpheroid ? 'pointer' : 'not-allowed'
+            }}
+          >
+            {showCuts ? 'Hide Height Cuts ▲' : 'Show Height Cuts (Min/Max Z) ▼'}
+          </button>
+        </div>
+
+        {/* Detalle de Sliders de Cortes Z (desplegable) */}
+        {showCuts && showSpheroid && (
+          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.08)', gap: '12px' }}>
+            {/* Min Z Cut */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Min</span> Z (Height Cut)</span>
+                <span style={styles.sliderValue}>{zBounds.min.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="-1.0"
+                max="1.0"
+                step="0.05"
+                value={zBounds.min}
+                disabled={!showSpheroid}
+                onChange={(e) => handleMinZChange(e.target.value)}
+                style={{
+                  ...styles.rangeInput,
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            {/* Max Z Cut */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}><span style={{ color: '#00ffcc' }}>Max</span> Z (Height Cut)</span>
+                <span style={styles.sliderValue}>{zBounds.max.toFixed(2)}</span>
+              </div>
+              <input
+                type="range"
+                min="-1.0"
+                max="1.0"
+                step="0.05"
+                value={zBounds.max}
+                disabled={!showSpheroid}
+                onChange={(e) => handleMaxZChange(e.target.value)}
                 style={{
                   ...styles.rangeInput,
                   cursor: 'pointer'
