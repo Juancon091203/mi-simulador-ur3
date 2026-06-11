@@ -51,7 +51,8 @@ const RobotViewer = ({
   activePoint = null,
   robotPositionIndex = 0,
   robotPosition = [0, 0, 0],
-  robotRotationY = 0
+  robotRotationY = 0,
+  nextFivePoints = []
 }) => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -71,7 +72,13 @@ const RobotViewer = ({
           />
           {/*<ConveyorBelt />*/}
           <BaseUR20 position={robotPosition} rotationY={robotRotationY} />
-          <ObjetoSujeto spheroidSize={spheroidSize} showSpheroid={showSpheroid} pendingPointsPositions={pendingPointsPositions} activePoint={activePoint} />
+          <ObjetoSujeto 
+            spheroidSize={spheroidSize} 
+            showSpheroid={showSpheroid} 
+            pendingPointsPositions={pendingPointsPositions} 
+            activePoint={activePoint}
+            nextFivePoints={nextFivePoints}
+          />
           <RobotPathCircle activeIndex={robotPositionIndex} center={[1.2, 0, 0]} radius={1.6} />
         </Suspense>
 

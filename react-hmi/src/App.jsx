@@ -21,6 +21,61 @@ const App = () => {
   const [showSpheroid, setShowSpheroid] = useState(true);
   const [pointCount, setPointCount] = useState(100);
 
+  // Estado para la trayectoria obtenida del backend de Python
+  const [backendSequence, setBackendSequence] = useState([]);
+
+  // Fetch de la trayectoria desde el backend con debouncing para evitar congelar la interfaz al arrastrar sliders
+  useEffect(() => {
+    let active = true;
+    const fetchTrajectory = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/calculate_trajectory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            n: pointCount,
+            radius: 1.0,
+            cx: 0.0,
+            cy: 0.0,
+            cz: 0.0,
+            sx: spheroidSize.x,
+            sy: spheroidSize.y,
+            sz: spheroidSize.z
+          })
+        });
+        const data = await response.json();
+        if (active && data.status === 'success' && Array.isArray(data.points)) {
+          // Guardamos las coordenadas normalizadas (unitarias) para poder redimensionar
+          // en tiempo real desde el cliente a 60 FPS sin esperar al servidor
+          const pointsMapped = data.points.map((pt, index) => ({
+            unitX: pt.x / spheroidSize.x,
+            unitY: pt.y / spheroidSize.y,
+            unitZ: pt.z / spheroidSize.z,
+            sector: pt.sector,
+            rx: pt.rx,
+            ry: pt.ry,
+            rz: pt.rz,
+            originalIndex: index
+          }));
+          setBackendSequence(pointsMapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch trajectory from backend:', err);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      fetchTrajectory();
+    }, 250); // Debounce de 250ms
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [pointCount, spheroidSize.x, spheroidSize.y, spheroidSize.z]);
+
   // Estado para la posición de órbita del robot (0 a 5)
   const [robotPositionIndex, setRobotPositionIndex] = useState(0);
 
@@ -29,6 +84,20 @@ const App = () => {
 
   // 1. Generar puntos de Fibonacci y agruparlos por su sector angular respecto al robot
   const globalSequence = useMemo(() => {
+    if (backendSequence && backendSequence.length > 0) {
+      // Escalamos los puntos unitarios dinámicamente con los valores actuales de los sliders
+      return backendSequence.map(pt => ({
+        x: pt.unitX * spheroidSize.x,
+        y: pt.unitY * spheroidSize.y,
+        z: pt.unitZ * spheroidSize.z,
+        sector: pt.sector,
+        rx: pt.rx,
+        ry: pt.ry,
+        rz: pt.rz,
+        originalIndex: pt.originalIndex
+      }));
+    }
+
     if (pointCount <= 0) return [];
     const goldenRatioIncrement = Math.PI * (3 - Math.sqrt(5));
     const rawPoints = [];
@@ -100,6 +169,21 @@ const App = () => {
     });
     return new Float32Array(positions);
   }, [globalSequence, currentPhotoStep]);
+
+  // 4. Obtener las coordenadas del punto activo y los siguientes 5 puntos para la trayectoria
+  const nextFivePoints = useMemo(() => {
+    const points = [];
+    if (activePoint) {
+      points.push([activePoint.x, activePoint.y, activePoint.z]);
+    }
+    const startIdx = currentPhotoStep + 1;
+    const endIdx = Math.min(globalSequence.length, startIdx + 5);
+    for (let i = startIdx; i < endIdx; i++) {
+      const pt = globalSequence[i];
+      points.push([pt.x, pt.y, pt.z]);
+    }
+    return points;
+  }, [globalSequence, currentPhotoStep, activePoint]);
 
   // Auto-mover el robot a la estación correspondiente al grupo del punto activo actual
   useEffect(() => {
@@ -311,6 +395,7 @@ const App = () => {
           robotPositionIndex={robotPositionIndex}
           robotPosition={robotPosition}
           robotRotationY={robotRotationY}
+          nextFivePoints={nextFivePoints}
         />
         <SpheroidPanel 
           spheroidSize={spheroidSize}
