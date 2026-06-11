@@ -28,6 +28,13 @@ const App = () => {
   useEffect(() => {
     let active = true;
     const fetchTrajectory = async () => {
+      // Capturamos el tamaño exacto en el momento del envío para evitar fallos de clausura 
+      // si el usuario sigue arrastrando el slider antes de que responda el servidor
+      const reqSize = {
+        x: spheroidSize.x,
+        y: spheroidSize.y,
+        z: spheroidSize.z
+      };
       try {
         const response = await fetch('http://localhost:5000/calculate_trajectory', {
           method: 'POST',
@@ -40,19 +47,18 @@ const App = () => {
             cx: 0.0,
             cy: 0.0,
             cz: 0.0,
-            sx: spheroidSize.x,
-            sy: spheroidSize.y,
-            sz: spheroidSize.z
+            sx: reqSize.x,
+            sy: reqSize.y,
+            sz: reqSize.z
           })
         });
         const data = await response.json();
         if (active && data.status === 'success' && Array.isArray(data.points)) {
-          // Guardamos las coordenadas normalizadas (unitarias) para poder redimensionar
-          // en tiempo real desde el cliente a 60 FPS sin esperar al servidor
+          // Guardamos las coordenadas normalizadas usando los valores capturados en el envío
           const pointsMapped = data.points.map((pt, index) => ({
-            unitX: pt.x / spheroidSize.x,
-            unitY: pt.y / spheroidSize.y,
-            unitZ: pt.z / spheroidSize.z,
+            unitX: pt.x / reqSize.x,
+            unitY: pt.y / reqSize.y,
+            unitZ: pt.z / reqSize.z,
             sector: pt.sector,
             rx: pt.rx,
             ry: pt.ry,
@@ -82,7 +88,7 @@ const App = () => {
   // Estado para el paso actual de la simulación de fotos
   const [currentPhotoStep, setCurrentPhotoStep] = useState(0);
 
-  // 1. Generar puntos de Fibonacci y agruparlos por su sector angular respecto al robot
+  // 1. Obtener la trayectoria de Fibonacci y TSP desde el backend de Python
   const globalSequence = useMemo(() => {
     if (backendSequence && backendSequence.length > 0) {
       // Escalamos los puntos unitarios dinámicamente con los valores actuales de los sliders
@@ -97,58 +103,8 @@ const App = () => {
         originalIndex: pt.originalIndex
       }));
     }
-
-    if (pointCount <= 0) return [];
-    const goldenRatioIncrement = Math.PI * (3 - Math.sqrt(5));
-    const rawPoints = [];
-
-    for (let i = 0; i < pointCount; i++) {
-      let y;
-      if (pointCount === 1) {
-        y = 0;
-      } else {
-        y = 1 - (i / (pointCount - 1)) * 2;
-      }
-
-      const radius = Math.sqrt(1 - y * y);
-      const phi = i * goldenRatioIncrement;
-
-      const x = Math.cos(phi) * radius;
-      const z = Math.sin(phi) * radius;
-
-      // Calcular sector del punto en XZ plane para asociarlo con la estación del robot
-      const angleVal = Math.atan2(z, x);
-      let sector = Math.round(angleVal / (Math.PI / 3));
-      sector = (sector + 6) % 6;
-
-      rawPoints.push({
-        x: x * spheroidSize.x,
-        y: y * spheroidSize.y,
-        z: z * spheroidSize.z,
-        sector,
-        originalIndex: i
-      });
-    }
-
-    // Agrupar los puntos por sector (0 a 5)
-    const groups = Array.from({ length: 6 }, () => []);
-    rawPoints.forEach((pt) => {
-      groups[pt.sector].push(pt);
-    });
-
-    // Ordenar los puntos dentro de cada grupo por coordenada Y de mayor a menor (de arriba a abajo)
-    groups.forEach((gp) => {
-      gp.sort((a, b) => b.y - a.y);
-    });
-
-    // Aplanar los grupos en una única secuencia global de fotos ordenada
-    const sequence = [];
-    groups.forEach((gp) => {
-      sequence.push(...gp);
-    });
-
-    return sequence;
-  }, [pointCount, spheroidSize]);
+    return [];
+  }, [backendSequence, spheroidSize]);
 
   // 2. Obtener las coordenadas del punto activo (el que se está fotografiando en este paso)
   const activePoint = useMemo(() => {
