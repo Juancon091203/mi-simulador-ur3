@@ -12,7 +12,8 @@ import * as THREE from 'three';
 const RobotPathCircle = ({
   activeIndex = 0,
   center = [1.2, 0, 0],
-  radius = 1.6
+  radius = 1.6,
+  y = -0.543
 }) => {
   const [centerX, , centerZ] = center;
 
@@ -29,7 +30,7 @@ const RobotPathCircle = ({
   return (
     <group>
       {/* Círculo base en el suelo (plano XZ) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, 0.01, centerZ]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.01, centerZ]}>
         <ringGeometry args={[radius - 0.01, radius + 0.01, 64]} />
         <meshBasicMaterial 
           color="#3aedff" 
@@ -40,7 +41,7 @@ const RobotPathCircle = ({
       </mesh>
 
       {/* Línea exterior delgada adicional de adorno */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, 0.01, centerZ]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.01, centerZ]}>
         <ringGeometry args={[radius - 0.05, radius - 0.048, 64]} />
         <meshBasicMaterial 
           color="#3aedff" 
@@ -55,7 +56,7 @@ const RobotPathCircle = ({
         const isActive = pt.index === activeIndex;
 
         return (
-          <group key={pt.index} position={[pt.x, 0.02, pt.z]}>
+          <group key={pt.index} position={[pt.x, y + 0.02, pt.z]}>
             {/* Indicador de posición (Cilindro pequeño tipo placa metálica/sensor) */}
             <mesh castShadow receiveShadow>
               <cylinderGeometry args={[0.08, 0.09, 0.02, 16]} />

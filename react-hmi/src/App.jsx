@@ -71,22 +71,29 @@ const App = () => {
           })
         });
         const data = await response.json();
-        if (active && data.status === 'success' && Array.isArray(data.points)) {
-          // Guardamos las coordenadas normalizadas usando los valores capturados en el envío
-          const pointsMapped = data.points.map((pt, index) => ({
-            unitX: (pt.x - reqCenter.x) / reqSize.x,
-            unitY: (pt.z - reqCenter.y) / reqSize.y, // Python Z a React Y
-            unitZ: (pt.y - reqCenter.z) / reqSize.z, // Python Y a React Z
-            sector: pt.sector,
-            rx: pt.rx,
-            ry: pt.ry,
-            rz: pt.rz,
-            originalIndex: index
-          }));
-          setBackendSequence(pointsMapped);
+        if (active) {
+          if (data.status === 'success' && Array.isArray(data.points)) {
+            // Guardamos las coordenadas normalizadas usando los valores capturados en el envío
+            const pointsMapped = data.points.map((pt, index) => ({
+              unitX: (pt.x - reqCenter.x) / reqSize.x,
+              unitY: (pt.z - reqCenter.y) / reqSize.y, // Python Z a React Y
+              unitZ: (pt.y - reqCenter.z) / reqSize.z, // Python Y a React Z
+              sector: pt.sector,
+              rx: pt.rx,
+              ry: pt.ry,
+              rz: pt.rz,
+              originalIndex: index
+            }));
+            setBackendSequence(pointsMapped);
+          } else {
+            setBackendSequence([]);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch trajectory from backend:', err);
+        if (active) {
+          setBackendSequence([]);
+        }
       }
     };
 
@@ -374,34 +381,51 @@ const App = () => {
           zBounds={zBounds}
           showSectors={showSectors}
         />
-        <SpheroidPanel 
-          spheroidSize={spheroidSize}
-          setSpheroidSize={setSpheroidSize}
-          showSpheroid={showSpheroid}
-          setShowSpheroid={setShowSpheroid}
-          pointCount={pointCount}
-          setPointCount={setPointCount}
-          robotPositionIndex={robotPositionIndex}
-          setRobotPositionIndex={setRobotPositionIndex}
-          objectCenter={objectCenter}
-          setObjectCenter={setObjectCenter}
-          zBounds={zBounds}
-          setZBounds={setZBounds}
-          showSectors={showSectors}
-          setShowSectors={setShowSectors}
-        />
-        <PhotoSimulationPanel 
-          currentPhotoStep={currentPhotoStep}
-          setCurrentPhotoStep={setCurrentPhotoStep}
-          pointCount={pointCount}
-          robotPositionIndex={robotPositionIndex}
-        />
+        {/* Contenedor lateral derecho para los paneles de control */}
+        <div className="right-panels-container" style={styles.rightPanelsContainer}>
+          <SpheroidPanel 
+            spheroidSize={spheroidSize}
+            setSpheroidSize={setSpheroidSize}
+            showSpheroid={showSpheroid}
+            setShowSpheroid={setShowSpheroid}
+            pointCount={pointCount}
+            setPointCount={setPointCount}
+            robotPositionIndex={robotPositionIndex}
+            setRobotPositionIndex={setRobotPositionIndex}
+            objectCenter={objectCenter}
+            setObjectCenter={setObjectCenter}
+            zBounds={zBounds}
+            setZBounds={setZBounds}
+            showSectors={showSectors}
+            setShowSectors={setShowSectors}
+          />
+          <PhotoSimulationPanel 
+            currentPhotoStep={currentPhotoStep}
+            setCurrentPhotoStep={setCurrentPhotoStep}
+            pointCount={pointCount}
+            robotPositionIndex={robotPositionIndex}
+          />
+        </div>
       </main>
     </div>
   );
 };
 
 const styles = {
+  rightPanelsContainer: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    bottom: '20px',
+    width: '300px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    zIndex: 100,
+    paddingRight: '6px', // Espacio para el gutter de la barra de desplazamiento
+  },
   container: {
     display: 'flex',
     width: '100vw',
@@ -417,6 +441,7 @@ const styles = {
     flexDirection: 'column',
     gap: '30px',
     zIndex: 10,
+    overflowY: 'auto',
     overflowX: 'hidden',
   },
   main: {

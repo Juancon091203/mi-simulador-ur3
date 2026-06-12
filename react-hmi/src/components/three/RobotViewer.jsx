@@ -73,8 +73,13 @@ const RobotViewer = ({
             position={robotPosition}
             rotationY={robotRotationY}
           />
-          {/*<ConveyorBelt />*/}
-          <BaseUR20 position={robotPosition} rotationY={robotRotationY} />
+          <ConveyorBelt />
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.543, 0]} receiveShadow>
+            <planeGeometry args={[30, 30]} />
+            <meshStandardMaterial color="#0e0f14" roughness={0.7} metalness={0.1} />
+          </mesh>
+          <gridHelper args={[30, 30, '#00d2ff', '#1f2937']} position={[0, -0.542, 0]} opacity={0.12} transparent />
+          <BaseUR20 position={[robotPosition[0], -0.543, robotPosition[2]]} rotationY={robotRotationY} />
           <ObjetoSujeto 
             spheroidSize={spheroidSize} 
             showSpheroid={showSpheroid} 
@@ -85,7 +90,7 @@ const RobotViewer = ({
             zBounds={zBounds}
             showSectors={showSectors}
           />
-          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, 0, objectCenter.z]} radius={1.6} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, 0, objectCenter.z]} radius={1.6} y={-0.543} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />

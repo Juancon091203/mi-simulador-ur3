@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useRef, useState, useEffect, useMemo } from 'react';
-import { useThree, useLoader } from '@react-three/fiber';
+import React, { useLayoutEffect, useState, useEffect, useMemo } from 'react';
+import { useLoader } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 
@@ -28,29 +28,27 @@ const robotConfig = {
 };
 
 const RobotModel = ({ modelType, jointAngles, position = [0, 0, 0], rotationY = 0 }) => {
-  const { scene: globalScene } = useThree(); // Referencia a la escena general de Three.js
-
   const path = `/scenes/${modelType.toLowerCase()}.glb`;
 
-  // Cargador universal
+  // Cargador universal (suspende mientras carga)
   const result = useLoader(
     GLTFLoader,
     path
   );
 
+  // Clona la escena para evitar modificar la cache global y evitar crashes
   const robotScene = useMemo(() => {
-    return result.scene;
+    if (!result || !result.scene) return null;
+    const clone = result.scene.clone();
+    return clone;
   }, [result]);
 
   const [links, setLinks] = useState([]);
   const [initialQuaternions, setInitialQuaternions] = useState([]);
 
-  // Añadir/Remover el modelo imperativamente en la escena general (madre)
+  // Carga y búsqueda de articulaciones
   useEffect(() => {
-    if (!robotScene || !globalScene) return;
-
-    // Añadir el robot cargado a la escena general
-    globalScene.add(robotScene);
+    if (!robotScene) return;
 
     const newLinks = [];
     const newQuats = [];
@@ -82,13 +80,6 @@ const RobotModel = ({ modelType, jointAngles, position = [0, 0, 0], rotationY = 
       if (joint) {
         newLinks.push(joint);
         newQuats.push(joint.quaternion.clone());
-
-        // Agregar ayuda visual de ejes (Rojo: X, Verde: Y, Azul: Z) para facilitar la calibración
-        // const hasAxesHelper = joint.children.some(child => child instanceof THREE.AxesHelper);
-        // if (!hasAxesHelper) {
-        //   const axesHelper = new THREE.AxesHelper(0.5);
-        //   joint.add(axesHelper);
-        // }
       }
     }
 
@@ -97,19 +88,10 @@ const RobotModel = ({ modelType, jointAngles, position = [0, 0, 0], rotationY = 
 
     // Limpieza al cambiar de modelo o desmontar
     return () => {
-      globalScene.remove(robotScene);
       setLinks([]);
       setInitialQuaternions([]);
     };
-  }, [robotScene, globalScene, modelType]);
-
-  // Aplicar posición y rotación base del robot en la escena
-  useEffect(() => {
-    if (robotScene) {
-      robotScene.position.set(position[0], position[1], position[2]);
-      robotScene.rotation.y = rotationY;
-    }
-  }, [robotScene, position, rotationY]);
+  }, [robotScene, modelType]);
 
   // Aplicar rotaciones en cada frame/cambio de ángulo
   useLayoutEffect(() => {
@@ -131,8 +113,15 @@ const RobotModel = ({ modelType, jointAngles, position = [0, 0, 0], rotationY = 
     });
   }, [jointAngles, links, initialQuaternions, modelType]);
 
-  // Retornamos null ya que añadimos el robot directamente a la escena general
-  return null;
+  if (!robotScene) return null;
+
+  return (
+    <primitive 
+      object={robotScene} 
+      position={position} 
+      rotation={[0, rotationY, 0]} 
+    />
+  );
 };
 
 export default RobotModel;

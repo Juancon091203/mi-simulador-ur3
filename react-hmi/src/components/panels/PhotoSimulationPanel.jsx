@@ -36,22 +36,45 @@ const PhotoSimulationPanel = ({
         <p style={styles.subtitle}>Inspection Runner</p>
       </header>
 
-      {/* Indicador de Estado de Progreso */}
+      {/* Indicador de Estado de Progreso Semicircular */}
       <div style={styles.statusSection}>
-        <div style={styles.progressTextRow}>
-          <span style={styles.progressLabel}>PROGRESS</span>
-          <span style={styles.progressValue}>
-            {isFinished ? 'COMPLETE' : `${currentPhotoStep} / ${pointCount} Photos`}
-          </span>
-        </div>
-        
-        {/* Barra de progreso */}
-        <div style={styles.progressBarBg}>
-          <div style={{
-            ...styles.progressBarFill,
-            width: `${progressPercent}%`,
-            backgroundColor: isFinished ? '#00ff88' : '#ff9d00'
-          }} />
+        <div style={styles.circularProgressWrapper}>
+          <svg width={130} height={130} viewBox="0 0 130 130" style={{ transform: 'rotate(140deg)' }}>
+            {/* Defs para gradiente */}
+            <defs>
+              <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00d2ff" />
+                <stop offset="100%" stopColor="#ff9d00" />
+              </linearGradient>
+            </defs>
+            {/* Track de fondo */}
+            <circle
+              cx={65}
+              cy={65}
+              r={50}
+              fill="transparent"
+              stroke="rgba(255, 255, 255, 0.05)"
+              strokeWidth={8}
+              strokeDasharray={`${2 * Math.PI * 50 * 260 / 360} ${2 * Math.PI * 50}`}
+              strokeLinecap="round"
+            />
+            {/* Barra de progreso activa */}
+            <circle
+              cx={65}
+              cy={65}
+              r={50}
+              fill="transparent"
+              stroke="url(#progressGrad)"
+              strokeWidth={8}
+              strokeDasharray={`${(progressPercent / 100) * (2 * Math.PI * 50 * 260 / 360)} ${2 * Math.PI * 50}`}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dasharray 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}
+            />
+          </svg>
+          <div style={styles.circularProgressText}>
+            <span style={styles.percentNumber}>{progressPercent.toFixed(0)}%</span>
+            <span style={styles.percentSub}>{isFinished ? 'DONE' : `${currentPhotoStep}/${pointCount}`}</span>
+          </div>
         </div>
       </div>
 
@@ -136,10 +159,7 @@ const PhotoSimulationPanel = ({
 
 const styles = {
   panel: {
-    position: 'absolute',
-    top: '20px',
-    left: '360px', // Colocado al lado del sidebar izquierdo (que tiene 320px de ancho + 20px de margen)
-    width: '260px',
+    width: '100%',
     padding: '18px',
     zIndex: 100,
     display: 'flex',
@@ -171,34 +191,38 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '6px',
-  },
-  progressTextRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  progressLabel: {
-    fontSize: '0.6rem',
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.4)',
+  circularProgressWrapper: {
+    position: 'relative',
+    width: '130px',
+    height: '130px',
+    margin: '10px auto',
+  },
+  circularProgressText: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '130px',
+    height: '130px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    pointerEvents: 'none',
+  },
+  percentNumber: {
+    fontSize: '1.5rem',
+    fontWeight: '800',
+    color: '#ffffff',
+    lineHeight: '1.2',
+  },
+  percentSub: {
+    fontSize: '0.65rem',
+    color: 'rgba(255, 255, 255, 0.4)',
+    textTransform: 'uppercase',
     letterSpacing: '0.5px',
-  },
-  progressValue: {
-    fontSize: '0.7rem',
-    fontWeight: '700',
-    color: 'rgba(255,255,255,0.8)',
-  },
-  progressBarBg: {
-    width: '100%',
-    height: '4px',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: '2px',
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: '2px',
-    transition: 'width 0.2s ease',
+    marginTop: '2px',
   },
   activePhotoCard: {
     background: 'rgba(255,255,255,0.02)',

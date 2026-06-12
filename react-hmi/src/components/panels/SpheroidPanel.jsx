@@ -434,10 +434,7 @@ const SpheroidPanel = ({
 
 const styles = {
   panel: {
-    position: 'absolute',
-    top: '20px',
-    right: '20px',
-    width: '280px',
+    width: '100%',
     padding: '20px',
     zIndex: 100,
     display: 'flex',
@@ -513,9 +510,9 @@ const styles = {
   rangeInput: {
     width: '100%',
     accentColor: '#00d2ff',
-    background: 'rgba(255,255,255,0.05)',
-    height: '4px',
-    borderRadius: '2px',
+    background: 'rgba(255,255,255,0.08)',
+    height: '12px',
+    borderRadius: '6px',
     outline: 'none',
     transition: 'opacity 0.2s',
   },
