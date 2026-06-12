@@ -94,7 +94,8 @@ const ObjetoSujeto = ({
   activePoint = null,
   nextFivePoints = [],
   objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
-  zBounds = { min: -1.0, max: 1.0 }
+  zBounds = { min: -1.0, max: 1.0 },
+  showSectors = false
 }) => {
   const gltf = useLoader(GLTFLoader, '/scenes/tacones.glb');
 
@@ -202,6 +203,36 @@ const ObjetoSujeto = ({
                 emissiveIntensity={0.5}
               />
             </mesh>
+          )}
+
+          {/* Sector slice visualizers ("gajos") */}
+          {showSectors && (
+            <group scale={[spheroidSize.x, spheroidSize.y, spheroidSize.z]}>
+              {[Math.PI / 6, Math.PI / 2, 5 * Math.PI / 6].map((phi, idx) => (
+                <group key={idx} rotation={[0, phi, 0]}>
+                  {/* Neon border highlighting the plane intersection with the sphere */}
+                  <mesh>
+                    <ringGeometry key={`ring_${phi}`} args={[1.0, 1.015, 64]} />
+                    <meshBasicMaterial 
+                      color="#ffa600" 
+                      transparent={true} 
+                      opacity={0.8} 
+                      side={THREE.DoubleSide} 
+                    />
+                  </mesh>
+                  {/* Semi-transparent vertical divider plane */}
+                  <mesh>
+                    <ringGeometry key={`disk_${phi}`} args={[0, 1.0, 64]} />
+                    <meshBasicMaterial 
+                      color="#ffa600" 
+                      transparent={true} 
+                      opacity={0.06} 
+                      side={THREE.DoubleSide} 
+                    />
+                  </mesh>
+                </group>
+              ))}
+            </group>
           )}
 
           {/* Puntos distribuidos siguiendo Fibonacci en la superficie */}

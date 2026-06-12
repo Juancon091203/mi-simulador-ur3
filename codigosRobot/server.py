@@ -44,10 +44,10 @@ def parse_params(param_string):
             params[key.strip()] = float(val.strip())
     return params
 
-def calculate_point_sector(x, z, cx, cz):
+def calculate_point_sector(x, y, cx, cy):
     dx = x - cx
-    dz = z - cz
-    angle_val = np.arctan2(dz, dx)
+    dy = y - cy
+    angle_val = np.arctan2(dy, dx)
     sector = round(angle_val / (np.pi / 3))
     sector = (sector + 6) % 6
     return sector
@@ -96,7 +96,7 @@ def handle_client(client_socket, address):
                 # Group by sector and solve TSP per sector to minimize base station changes
                 sectors = [[] for _ in range(6)]
                 for p in pts:
-                    sec = calculate_point_sector(p[0], p[2], cx, cz)
+                    sec = calculate_point_sector(p[0], p[1], cx, cy)
                     sectors[sec].append(p)
                     
                 ordered_pts = []

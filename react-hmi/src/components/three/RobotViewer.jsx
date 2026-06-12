@@ -54,7 +54,8 @@ const RobotViewer = ({
   robotRotationY = 0,
   nextFivePoints = [],
   objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
-  zBounds = { min: -1.0, max: 1.0 }
+  zBounds = { min: -1.0, max: 1.0 },
+  showSectors = false
 }) => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -82,6 +83,7 @@ const RobotViewer = ({
             nextFivePoints={nextFivePoints}
             objectCenter={objectCenter}
             zBounds={zBounds}
+            showSectors={showSectors}
           />
           <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, 0, objectCenter.z]} radius={1.6} />
         </Suspense>

@@ -15,7 +15,9 @@ const SpheroidPanel = ({
   objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
   setObjectCenter,
   zBounds = { min: -1.0, max: 1.0 },
-  setZBounds
+  setZBounds,
+  showSectors = false,
+  setShowSectors
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showCenter, setShowCenter] = useState(false);
@@ -62,6 +64,7 @@ const SpheroidPanel = ({
     if (setRobotPositionIndex) setRobotPositionIndex(0);
     if (setObjectCenter) setObjectCenter({ x: 1.2, y: 0.2, z: 0.0 });
     if (setZBounds) setZBounds({ min: -1.0, max: 1.0 });
+    if (setShowSectors) setShowSectors(false);
   };
 
   return (
@@ -89,6 +92,29 @@ const SpheroidPanel = ({
             <span style={{
               ...styles.switchKnob,
               transform: showSpheroid ? 'translateX(18px)' : 'translateX(0px)'
+            }} />
+          </span>
+        </label>
+      </div>
+
+      {/* Control de visibilidad de sectores */}
+      <div style={styles.row}>
+        <span style={styles.label}>SHOW SECTORS</span>
+        <label style={styles.switch}>
+          <input
+            type="checkbox"
+            checked={showSectors}
+            onChange={(e) => setShowSectors(e.target.checked)}
+            style={styles.switchInput}
+          />
+          <span style={{
+            ...styles.switchSlider,
+            backgroundColor: showSectors ? '#ff9d00' : 'rgba(255,255,255,0.1)',
+            boxShadow: showSectors ? '0 0 10px rgba(255, 157, 0, 0.5)' : 'none'
+          }}>
+            <span style={{
+              ...styles.switchKnob,
+              transform: showSectors ? 'translateX(18px)' : 'translateX(0px)'
             }} />
           </span>
         </label>

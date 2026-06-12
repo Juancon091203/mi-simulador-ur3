@@ -25,6 +25,8 @@ const App = () => {
   const [objectCenter, setObjectCenter] = useState({ x: 1.2, y: 0.2, z: 0.0 });
   // Estado para los límites vertical de corte Z en la esfera (relativos al centro, de -1.0 a 1.0)
   const [zBounds, setZBounds] = useState({ min: -1.0, max: 1.0 });
+  // Estado para visualizar los gajos de división de los sectores
+  const [showSectors, setShowSectors] = useState(false);
 
   // Estado para la trayectoria obtenida del backend de Python
   const [backendSequence, setBackendSequence] = useState([]);
@@ -370,6 +372,7 @@ const App = () => {
           nextFivePoints={nextFivePoints}
           objectCenter={objectCenter}
           zBounds={zBounds}
+          showSectors={showSectors}
         />
         <SpheroidPanel 
           spheroidSize={spheroidSize}
@@ -384,6 +387,8 @@ const App = () => {
           setObjectCenter={setObjectCenter}
           zBounds={zBounds}
           setZBounds={setZBounds}
+          showSectors={showSectors}
+          setShowSectors={setShowSectors}
         />
         <PhotoSimulationPanel 
           currentPhotoStep={currentPhotoStep}

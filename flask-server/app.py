@@ -56,10 +56,10 @@ import math
 import numpy as np
 from main_path import generate_constrained_sphere_points, solve_tsp_ortools, compute_robot_poses
 
-def calculate_point_sector(x, z, cx, cz):
+def calculate_point_sector(x, y, cx, cy):
     dx = x - cx
-    dz = z - cz
-    angle_val = math.atan2(dz, dx)
+    dy = y - cy
+    angle_val = math.atan2(dy, dx)
     sector = round(angle_val / (math.pi / 3))
     sector = (sector + 6) % 6
     return sector
@@ -121,7 +121,7 @@ def calculate_trajectory():
         # 2. Group points by sector and solve TSP per sector
         sectors = [[] for _ in range(6)]
         for p in scaled_pts:
-            sec = calculate_point_sector(p[0], p[2], cx, cz)
+            sec = calculate_point_sector(p[0], p[1], cx, cy)
             sectors[sec].append(p)
             
         ordered_pts = []
@@ -156,7 +156,7 @@ def calculate_trajectory():
                     "rx": float(pose[3]),
                     "ry": float(pose[4]),
                     "rz": float(pose[5]),
-                    "sector": int(calculate_point_sector(pose[0], pose[2], cx, cz))
+                    "sector": int(calculate_point_sector(pose[0], pose[1], cx, cy))
                 })
             return jsonify({"status": "success", "points": result})
         else:
