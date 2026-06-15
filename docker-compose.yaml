@@ -60,5 +60,19 @@ services:
   #   networks:
   #     - robot_network
 
+  ursim:
+    image: universalrobots/ursim_e-series:latest
+    container_name: ursim_ur20
+    environment:
+      - ROBOT_MODEL=UR20
+    ports:
+      - "5900:5900"      # VNC (para ver la interfaz gráfica)
+      - "6080:6080"      # NoVNC (acceso web)
+      - "29999:29999"    # Dashboard server
+      - "30001-30004:30001-30004" # RTDE, Primary Interface, etc.
+    networks:
+      - robot_network
+    restart: unless-stopped
+
 networks:
   robot_network:

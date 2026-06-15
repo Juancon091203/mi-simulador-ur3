@@ -7,23 +7,66 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0a0a0c;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 
-  /* Design Tokens */
+  /* Design Tokens - Dark Theme Default */
   --bg-dark: #0a0a0c;
   --bg-panel: rgba(20, 20, 25, 0.7);
   --accent-blue: #00d2ff;
   --accent-cyan: #3aedff;
   --accent-orange: #ff9d00;
   --border-glass: rgba(255, 255, 255, 0.1);
-  --text-dim: rgba(255, 255, 255, 0.5);
+  --text-dim: rgba(255, 255, 255, 0.45);
+  --text-color: rgba(255, 255, 255, 0.87);
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --gradient-body: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0c 100%);
+  --shadow-panel: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --progress-track: rgba(255, 255, 255, 0.05);
+  
+  /* Additional UI Variables - Dark Theme */
+  --switch-off-bg: rgba(255, 255, 255, 0.12);
+  --border-inner-glass: rgba(255, 255, 255, 0.08);
+  --slider-track-bg: rgba(255, 255, 255, 0.15);
+  --button-disabled-bg: rgba(255, 255, 255, 0.05);
+  --button-disabled-border: rgba(255, 255, 255, 0.1);
+  --button-disabled-text: rgba(255, 255, 255, 0.3);
+  --button-active-orange-bg: rgba(255, 157, 0, 0.1);
+  --shadow-focus: 0 0 0 2px rgba(0, 210, 255, 0.25);
+  
+  color-scheme: dark;
+}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+body.light-mode {
+  /* Design Tokens - Light Theme */
+  --bg-dark: #f8fafc;
+  --bg-panel: rgba(255, 255, 255, 0.85);
+  --accent-blue: #0284c7;
+  --accent-cyan: #0ea5e9;
+  --accent-orange: #ea580c;
+  --border-glass: rgba(15, 23, 42, 0.12);
+  --text-dim: #334155; /* Slate 700 - high contrast readability */
+  --text-color: #0f172a; /* Slate 900 */
+  --card-bg: rgba(15, 23, 42, 0.04);
+  --input-bg: #ffffff; /* pure white inputs */
+  --gradient-body: radial-gradient(circle at 50% 50%, #e2e8f0 0%, #f1f5f9 100%);
+  --shadow-panel: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --progress-track: rgba(15, 23, 42, 0.08);
+  
+  /* Additional UI Variables - Light Theme */
+  --switch-off-bg: rgba(15, 23, 42, 0.12);
+  --border-inner-glass: rgba(15, 23, 42, 0.08);
+  --slider-track-bg: rgba(15, 23, 42, 0.1);
+  --button-disabled-bg: rgba(15, 23, 42, 0.05);
+  --button-disabled-border: rgba(15, 23, 42, 0.1);
+  --button-disabled-text: rgba(15, 23, 42, 0.35);
+  --button-active-orange-bg: rgba(234, 88, 12, 0.08);
+  --shadow-focus: 0 0 0 2px rgba(2, 132, 199, 0.2);
+  
+  color-scheme: light;
 }
 
 body {
@@ -33,7 +76,9 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #0a0a0c 100%);
+  background: var(--gradient-body);
+  color: var(--text-color);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -48,6 +93,8 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-glass);
   border-radius: 16px;
+  box-shadow: var(--shadow-panel);
+  transition: background 0.3s ease, border 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Typography */
@@ -95,6 +142,12 @@ select,
 button {
   width: 100%;
   max-width: 100%;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent-blue) !important;
+  box-shadow: var(--shadow-focus) !important;
 }
 
 /* Estilos adicionales de responsive para el panel del esferoide */
@@ -186,4 +239,8 @@ input[type="range"]::-moz-range-thumb:hover {
 input[type="range"]::-moz-range-thumb:active {
   transform: scale(1.25);
   background: #ffffff;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

@@ -53,7 +53,7 @@ const PhotoSimulationPanel = ({
               cy={65}
               r={50}
               fill="transparent"
-              stroke="rgba(255, 255, 255, 0.05)"
+              stroke="var(--progress-track)"
               strokeWidth={8}
               strokeDasharray={`${2 * Math.PI * 50 * 260 / 360} ${2 * Math.PI * 50}`}
               strokeLinecap="round"
@@ -87,12 +87,27 @@ const PhotoSimulationPanel = ({
           </div>
           <div style={styles.cardRow}>
             <span style={styles.cardLabel}>CAMERA POSITION</span>
-            <span style={{ ...styles.cardValue, color: '#00ffcc' }}>
+            <span style={{ ...styles.cardValue, color: 'var(--accent-blue)' }}>
               Station P{robotPositionIndex + 1}
             </span>
           </div>
-          <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', textAlign: 'center' }}>
-            Point triggers automatically on camera alignment.
+          <div style={{
+            fontSize: '0.7rem',
+            color: 'var(--accent-blue)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-glass)',
+            borderRadius: '6px',
+            padding: '6px 10px',
+            marginTop: '6px',
+            textAlign: 'center',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ fontSize: '0.8rem' }}>ℹ</span>
+            <span>Point triggers automatically on camera alignment.</span>
           </div>
         </div>
       ) : isFinished && pointCount > 0 ? (
@@ -100,13 +115,28 @@ const PhotoSimulationPanel = ({
           <div style={{ color: '#00ff88', fontWeight: '700', fontSize: '0.8rem', textAlign: 'center' }}>
             ✓ ALL IMAGES CAPTURED
           </div>
-          <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginTop: '4px', textAlign: 'center' }}>
-            Inspection sequence finished successfully.
+          <div style={{
+            fontSize: '0.7rem',
+            color: '#00ff88',
+            background: 'rgba(0, 255, 136, 0.05)',
+            border: '1px solid rgba(0, 255, 136, 0.15)',
+            borderRadius: '6px',
+            padding: '6px 10px',
+            marginTop: '6px',
+            textAlign: 'center',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px'
+          }}>
+            <span style={{ fontSize: '0.8rem' }}>✓</span>
+            <span>Inspection sequence finished successfully.</span>
           </div>
         </div>
       ) : (
         <div style={styles.activePhotoCard}>
-          <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.75rem', textAlign: 'center' }}>
+          <div style={{ color: 'var(--text-dim)', fontWeight: '600', fontSize: '0.75rem', textAlign: 'center' }}>
             No points to simulate. Increase "Fibonacci Points" slider.
           </div>
         </div>
@@ -131,9 +161,9 @@ const PhotoSimulationPanel = ({
           disabled={isFinished || pointCount === 0}
           style={{
             ...styles.navButton,
-            backgroundColor: isFinished ? 'rgba(255,255,255,0.05)' : 'rgba(255, 157, 0, 0.1)',
-            borderColor: isFinished ? 'rgba(255,255,255,0.1)' : '#ff9d00',
-            color: isFinished ? 'rgba(255,255,255,0.3)' : '#ff9d00',
+            backgroundColor: isFinished ? 'var(--button-disabled-bg)' : 'var(--button-active-orange-bg)',
+            borderColor: isFinished ? 'var(--button-disabled-border)' : 'var(--accent-orange)',
+            color: isFinished ? 'var(--button-disabled-text)' : 'var(--accent-orange)',
             opacity: (isFinished || pointCount === 0) ? 0.3 : 1,
             cursor: (isFinished || pointCount === 0) ? 'not-allowed' : 'pointer'
           }}
@@ -165,7 +195,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '15px',
-    color: '#ffffff',
+    color: 'var(--text-color)',
     fontFamily: 'inherit',
     transition: 'all 0.3s ease',
   },
@@ -182,7 +212,7 @@ const styles = {
   },
   subtitle: {
     fontSize: '0.6rem',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-dim)',
     textTransform: 'uppercase',
     letterSpacing: '1px',
     margin: 0,
@@ -214,24 +244,25 @@ const styles = {
   percentNumber: {
     fontSize: '1.5rem',
     fontWeight: '800',
-    color: '#ffffff',
+    color: 'var(--text-color)',
     lineHeight: '1.2',
   },
   percentSub: {
     fontSize: '0.65rem',
-    color: 'rgba(255, 255, 255, 0.4)',
+    color: 'var(--text-dim)',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
     marginTop: '2px',
   },
   activePhotoCard: {
-    background: 'rgba(255,255,255,0.02)',
-    border: '1px solid rgba(255,255,255,0.05)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '10px',
     padding: '12px',
     display: 'flex',
     flexDirection: 'column',
     gap: '8px',
+    transition: 'all 0.3s ease',
   },
   cardRow: {
     display: 'flex',
@@ -240,12 +271,12 @@ const styles = {
   },
   cardLabel: {
     fontSize: '0.65rem',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-dim)',
   },
   cardValue: {
     fontSize: '0.75rem',
     fontWeight: '700',
-    color: '#ffffff',
+    color: 'var(--text-color)',
   },
   buttonGroup: {
     display: 'grid',
@@ -254,10 +285,10 @@ const styles = {
   },
   navButton: {
     padding: '10px',
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
-    color: 'white',
+    color: 'var(--text-color)',
     fontSize: '0.75rem',
     fontWeight: '700',
     transition: 'all 0.2s ease',
@@ -266,9 +297,9 @@ const styles = {
   resetButton: {
     padding: '8px',
     background: 'none',
-    border: '1px solid rgba(255,255,255,0.05)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-dim)',
     fontSize: '0.65rem',
     fontWeight: '600',
     letterSpacing: '0.5px',

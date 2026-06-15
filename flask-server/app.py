@@ -118,7 +118,7 @@ def calculate_trajectory():
             scaled_pts.append((x_s, y_s, z_s))
         scaled_pts = np.array(scaled_pts)
         
-        # 2. Group points by sector and solve TSP per sector
+        # 2. Group points by sector and solve TSP per sector, splitting each into top & bottom sub-sectors
         sectors = [[] for _ in range(6)]
         for p in scaled_pts:
             sec = calculate_point_sector(p[0], p[1], cx, cy)
@@ -129,16 +129,32 @@ def calculate_trajectory():
             sec_pts = sectors[sec_idx]
             if len(sec_pts) == 0:
                 continue
-            elif len(sec_pts) == 1:
-                ordered_pts.append(sec_pts[0])
+            
+            # Divide this sector's points into top and bottom halves (relative to cz center height)
+            top_pts = [p for p in sec_pts if p[2] > cz]
+            bottom_pts = [p for p in sec_pts if p[2] <= cz]
+            
+            # Determine ordering of groups to achieve a smooth horizontal/vertical zig-zag:
+            # Even sectors (0, 2, 4): top first, then bottom
+            # Odd sectors (1, 3, 5): bottom first, then top
+            if sec_idx % 2 == 0:
+                groups = [top_pts, bottom_pts]
             else:
-                sec_pts_arr = np.array(sec_pts)
-                optimized_path, _ = solve_tsp_ortools(sec_pts_arr)
-                if optimized_path:
-                    for idx in optimized_path:
-                        ordered_pts.append(sec_pts_arr[idx])
+                groups = [bottom_pts, top_pts]
+                
+            for group in groups:
+                if len(group) == 0:
+                    continue
+                elif len(group) == 1:
+                    ordered_pts.append(group[0])
                 else:
-                    ordered_pts.extend(sec_pts)
+                    group_arr = np.array(group)
+                    optimized_path, _ = solve_tsp_ortools(group_arr)
+                    if optimized_path:
+                        for idx in optimized_path:
+                            ordered_pts.append(group_arr[idx])
+                    else:
+                        ordered_pts.extend(group)
                     
         ordered_pts = np.array(ordered_pts)
         

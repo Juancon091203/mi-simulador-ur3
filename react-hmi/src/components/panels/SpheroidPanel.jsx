@@ -17,7 +17,11 @@ const SpheroidPanel = ({
   zBounds = { min: -1.0, max: 1.0 },
   setZBounds,
   showSectors = false,
-  setShowSectors
+  setShowSectors,
+  columnHeight = 0.5,
+  setColumnHeight,
+  orbitRadius = 1.6,
+  setOrbitRadius
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [showCenter, setShowCenter] = useState(false);
@@ -62,9 +66,11 @@ const SpheroidPanel = ({
     setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
     if (setPointCount) setPointCount(100);
     if (setRobotPositionIndex) setRobotPositionIndex(0);
-    if (setObjectCenter) setObjectCenter({ x: 1.2, y: 0.2, z: 0.0 });
+    if (setObjectCenter) setObjectCenter({ x: 0.0, y: 0.0, z: 0.0 });
     if (setZBounds) setZBounds({ min: -1.0, max: 1.0 });
     if (setShowSectors) setShowSectors(false);
+    if (setColumnHeight) setColumnHeight(0.5);
+    if (setOrbitRadius) setOrbitRadius(1.6);
   };
 
   return (
@@ -86,8 +92,8 @@ const SpheroidPanel = ({
           />
           <span style={{
             ...styles.switchSlider,
-            backgroundColor: showSpheroid ? '#00d2ff' : 'rgba(255,255,255,0.1)',
-            boxShadow: showSpheroid ? '0 0 10px rgba(0, 210, 255, 0.5)' : 'none'
+            backgroundColor: showSpheroid ? 'var(--accent-blue)' : 'var(--switch-off-bg)',
+            boxShadow: showSpheroid ? '0 0 8px var(--accent-blue)' : 'none'
           }}>
             <span style={{
               ...styles.switchKnob,
@@ -109,8 +115,8 @@ const SpheroidPanel = ({
           />
           <span style={{
             ...styles.switchSlider,
-            backgroundColor: showSectors ? '#ff9d00' : 'rgba(255,255,255,0.1)',
-            boxShadow: showSectors ? '0 0 10px rgba(255, 157, 0, 0.5)' : 'none'
+            backgroundColor: showSectors ? 'var(--accent-orange)' : 'var(--switch-off-bg)',
+            boxShadow: showSectors ? '0 0 8px var(--accent-orange)' : 'none'
           }}>
             <span style={{
               ...styles.switchKnob,
@@ -163,7 +169,7 @@ const SpheroidPanel = ({
 
         {/* Detalle de Sliders X, Y, Z (desplegable) */}
         {showDetails && showSpheroid && (
-          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.08)', gap: '12px' }}>
+          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid var(--border-inner-glass)', gap: '12px' }}>
             {/* Slider X */}
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
@@ -246,7 +252,7 @@ const SpheroidPanel = ({
 
         {/* Detalle de Sliders del Centro (desplegable) */}
         {showCenter && showSpheroid && (
-          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.08)', gap: '12px' }}>
+          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid var(--border-inner-glass)', gap: '12px' }}>
             {/* Center X */}
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
@@ -255,7 +261,7 @@ const SpheroidPanel = ({
               </div>
               <input
                 type="range"
-                min="0.5"
+                min="-2.0"
                 max="2.0"
                 step="0.05"
                 value={objectCenter.x}
@@ -276,8 +282,8 @@ const SpheroidPanel = ({
               </div>
               <input
                 type="range"
-                min="-0.5"
-                max="1.0"
+                min="-2.0"
+                max="2.0"
                 step="0.05"
                 value={objectCenter.y}
                 disabled={!showSpheroid}
@@ -297,8 +303,8 @@ const SpheroidPanel = ({
               </div>
               <input
                 type="range"
-                min="-1.0"
-                max="1.0"
+                min="-2.0"
+                max="2.0"
                 step="0.05"
                 value={objectCenter.z}
                 disabled={!showSpheroid}
@@ -329,7 +335,7 @@ const SpheroidPanel = ({
 
         {/* Detalle de Sliders de Cortes Z (desplegable) */}
         {showCuts && showSpheroid && (
-          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.08)', gap: '12px' }}>
+          <div style={{ ...styles.slidersList, paddingLeft: '10px', borderLeft: '1px solid var(--border-inner-glass)', gap: '12px' }}>
             {/* Min Z Cut */}
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
@@ -415,6 +421,46 @@ const SpheroidPanel = ({
             }}
           />
         </div>
+
+        {/* Slider de Altura de la Columna del Robot */}
+        <div style={styles.sliderGroup}>
+          <div style={styles.sliderHeader}>
+            <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Robot</span> Base Height</span>
+            <span style={styles.sliderValue}>{columnHeight.toFixed(2)}m</span>
+          </div>
+          <input
+            type="range"
+            min="0.0"
+            max="2.0"
+            step="0.05"
+            value={columnHeight}
+            onChange={(e) => setColumnHeight(parseFloat(e.target.value))}
+            style={{
+              ...styles.rangeInput,
+              cursor: 'pointer'
+            }}
+          />
+        </div>
+
+        {/* Slider de Radio de Órbita del Robot */}
+        <div style={styles.sliderGroup}>
+          <div style={styles.sliderHeader}>
+            <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Robot</span> Orbit Radius</span>
+            <span style={styles.sliderValue}>{orbitRadius.toFixed(2)}m</span>
+          </div>
+          <input
+            type="range"
+            min="0.5"
+            max="3.0"
+            step="0.05"
+            value={orbitRadius}
+            onChange={(e) => setOrbitRadius(parseFloat(e.target.value))}
+            style={{
+              ...styles.rangeInput,
+              cursor: 'pointer'
+            }}
+          />
+        </div>
       </div>
 
       <button
@@ -440,7 +486,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '18px',
-    color: '#ffffff',
+    color: 'var(--text-color)',
     fontFamily: 'inherit',
     transition: 'all 0.3s ease',
   },
@@ -457,7 +503,7 @@ const styles = {
   },
   subtitle: {
     fontSize: '0.65rem',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-dim)',
     textTransform: 'uppercase',
     letterSpacing: '1px',
     margin: 0,
@@ -470,12 +516,12 @@ const styles = {
   label: {
     fontSize: '0.65rem',
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.5)',
+    color: 'var(--text-dim)',
     letterSpacing: '1px',
   },
   divider: {
     height: '1px',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'var(--border-glass)',
   },
   slidersList: {
     display: 'flex',
@@ -495,13 +541,14 @@ const styles = {
   axisLabel: {
     fontSize: '0.75rem',
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
+    color: 'var(--text-color)',
   },
   sliderValue: {
     fontSize: '0.75rem',
     fontWeight: '700',
-    color: '#3aedff',
-    background: 'rgba(58,237,255,0.08)',
+    color: 'var(--accent-cyan)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     padding: '2px 6px',
     borderRadius: '4px',
     minWidth: '50px',
@@ -509,8 +556,8 @@ const styles = {
   },
   rangeInput: {
     width: '100%',
-    accentColor: '#00d2ff',
-    background: 'rgba(255,255,255,0.08)',
+    accentColor: 'var(--accent-blue)',
+    background: 'var(--slider-track-bg)',
     height: '12px',
     borderRadius: '6px',
     outline: 'none',
@@ -550,10 +597,10 @@ const styles = {
   },
   button: {
     padding: '10px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--input-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
-    color: 'white',
+    color: 'var(--text-color)',
     fontSize: '0.75rem',
     fontWeight: '700',
     letterSpacing: '0.5px',
@@ -563,7 +610,7 @@ const styles = {
   detailsButton: {
     background: 'none',
     border: 'none',
-    color: '#00d2ff',
+    color: 'var(--accent-blue)',
     fontSize: '0.7rem',
     fontWeight: '600',
     cursor: 'pointer',

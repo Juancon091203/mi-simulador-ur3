@@ -22,10 +22,10 @@ const ActiveTargetPoint = ({ position }) => {
   return (
     <mesh ref={meshRef} position={position}>
       <sphereGeometry args={[0.045, 16, 16]} />
-      <meshStandardMaterial 
-        color="#ff3333" 
-        emissive="#ff1111" 
-        emissiveIntensity={2} 
+      <meshStandardMaterial
+        color="#ff3333"
+        emissive="#ff1111"
+        emissiveIntensity={2}
         roughness={0.1}
         metalness={0.8}
       />
@@ -35,9 +35,9 @@ const ActiveTargetPoint = ({ position }) => {
 
 // Spherical linear interpolation (Slerp) on a unit sphere
 const slerp = (v0, v1, t) => {
-  const dot = v0[0]*v1[0] + v0[1]*v1[1] + v0[2]*v1[2];
+  const dot = v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2];
   const clampedDot = Math.max(-1, Math.min(1, dot));
-  
+
   if (clampedDot > 0.9995) {
     return [
       v0[0] + t * (v1[0] - v0[0]),
@@ -45,13 +45,13 @@ const slerp = (v0, v1, t) => {
       v0[2] + t * (v1[2] - v0[2])
     ];
   }
-  
+
   const theta_0 = Math.acos(clampedDot);
   const sin_theta_0 = Math.sin(theta_0);
-  
+
   const s0 = Math.sin((1 - t) * theta_0) / sin_theta_0;
   const s1 = Math.sin(t * theta_0) / sin_theta_0;
-  
+
   return [
     s0 * v0[0] + s1 * v1[0],
     s0 * v0[1] + s1 * v1[1],
@@ -84,7 +84,7 @@ const getSpheroidArc = (p0, p1, steps, spheroidSize) => {
 };
 
 /**
- * ObjetoSujeto - Componente para cargar el modelo 3D del objeto sujeto (tacones.glb)
+ * ObjetoSujeto - Componente para cargar el modelo 3D del objeto sujeto (zapato.glb)
  * y dibujar un esferoide translúcido y parametrizable a su alrededor.
  */
 const ObjetoSujeto = ({
@@ -97,7 +97,7 @@ const ObjetoSujeto = ({
   zBounds = { min: -1.0, max: 1.0 },
   showSectors = false
 }) => {
-  const gltf = useLoader(GLTFLoader, '/scenes/tacones.glb');
+  const gltf = useLoader(GLTFLoader, '/scenes/zapato.glb');
 
   // Calcular la trayectoria curva que abraza la superficie de la esfera/esferoide
   const curvedLinePoints = useMemo(() => {
@@ -205,33 +205,58 @@ const ObjetoSujeto = ({
             </mesh>
           )}
 
-          {/* Sector slice visualizers ("gajos") */}
+          {/* Sector slice visualizers ("gajos" y ecuador) */}
           {showSectors && (
             <group scale={[spheroidSize.x, spheroidSize.y, spheroidSize.z]}>
+              {/* Vertical wedge dividers */}
               {[Math.PI / 6, Math.PI / 2, 5 * Math.PI / 6].map((phi, idx) => (
                 <group key={idx} rotation={[0, phi, 0]}>
                   {/* Neon border highlighting the plane intersection with the sphere */}
                   <mesh>
                     <ringGeometry key={`ring_${phi}`} args={[1.0, 1.015, 64]} />
-                    <meshBasicMaterial 
-                      color="#ffa600" 
-                      transparent={true} 
-                      opacity={0.8} 
-                      side={THREE.DoubleSide} 
+                    <meshBasicMaterial
+                      color="#ffa600"
+                      transparent={true}
+                      opacity={0.8}
+                      side={THREE.DoubleSide}
                     />
                   </mesh>
                   {/* Semi-transparent vertical divider plane */}
                   <mesh>
                     <ringGeometry key={`disk_${phi}`} args={[0, 1.0, 64]} />
-                    <meshBasicMaterial 
-                      color="#ffa600" 
-                      transparent={true} 
-                      opacity={0.06} 
-                      side={THREE.DoubleSide} 
+                    <meshBasicMaterial
+                      color="#ffa600"
+                      transparent={true}
+                      opacity={0.06}
+                      side={THREE.DoubleSide}
                     />
                   </mesh>
                 </group>
               ))}
+
+              {/* Horizontal equator divider */}
+              <group rotation={[-Math.PI / 2, 0, 0]}>
+                {/* Neon border highlighting the horizontal plane intersection with the sphere */}
+                <mesh>
+                  <ringGeometry key="horizontal_ring" args={[1.0, 1.015, 64]} />
+                  <meshBasicMaterial
+                    color="#ffa600"
+                    transparent={true}
+                    opacity={0.8}
+                    side={THREE.DoubleSide}
+                  />
+                </mesh>
+                {/* Semi-transparent horizontal divider plane */}
+                <mesh>
+                  <ringGeometry key="horizontal_disk" args={[0, 1.0, 64]} />
+                  <meshBasicMaterial
+                    color="#ffa600"
+                    transparent={true}
+                    opacity={0.06}
+                    side={THREE.DoubleSide}
+                  />
+                </mesh>
+              </group>
             </group>
           )}
 

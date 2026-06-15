@@ -22,18 +22,38 @@ const App = () => {
   const [pointCount, setPointCount] = useState(100);
 
   // Estado para el centro del objeto (centro del esferoide)
-  const [objectCenter, setObjectCenter] = useState({ x: 1.2, y: 0.2, z: 0.0 });
+  const [objectCenter, setObjectCenter] = useState({ x: 0.0, y: 1.0, z: 0.0 });
   // Estado para los límites vertical de corte Z en la esfera (relativos al centro, de -1.0 a 1.0)
   const [zBounds, setZBounds] = useState({ min: -1.0, max: 1.0 });
   // Estado para visualizar los gajos de división de los sectores
   const [showSectors, setShowSectors] = useState(false);
 
+  // Estado para la altura de la columna del robot y radio de órbita
+  const [columnHeight, setColumnHeight] = useState(0.5);
+  const [orbitRadius, setOrbitRadius] = useState(1.6);
+
   // Estado para la trayectoria obtenida del backend de Python
   const [backendSequence, setBackendSequence] = useState([]);
+
+  // Estado para el modo oscuro/claro
+  const [darkMode, setDarkMode] = useState(true);
+
+  // Estado para saber si se está calculando la trayectoria en el backend
+  const [isCalculating, setIsCalculating] = useState(false);
+
+  // Efecto para aplicar el tema al body
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
+    }
+  }, [darkMode]);
 
   // Fetch de la trayectoria desde el backend con debouncing para evitar congelar la interfaz al arrastrar sliders
   useEffect(() => {
     let active = true;
+    setIsCalculating(true);
     const fetchTrajectory = async () => {
       // Capturamos el tamaño y centro exacto en el momento del envío para evitar fallos de clausura 
       // si el usuario sigue arrastrando el slider antes de que responda el servidor
@@ -88,11 +108,13 @@ const App = () => {
           } else {
             setBackendSequence([]);
           }
+          setIsCalculating(false);
         }
       } catch (err) {
         console.error('Failed to fetch trajectory from backend:', err);
         if (active) {
           setBackendSequence([]);
+          setIsCalculating(false);
         }
       }
     };
@@ -178,18 +200,17 @@ const App = () => {
     setCurrentPhotoStep(0);
   }, [pointCount]);
 
-  // Calcular posición del robot en la circunferencia de 1.6m alrededor del objeto
+  // Calcular posición del robot en la circunferencia alrededor del objeto
   const robotPosition = useMemo(() => {
     const angle = robotPositionIndex * (Math.PI / 3);
-    const radius = 1.6;
     const centerX = objectCenter.x;
     const centerZ = objectCenter.z;
     return [
-      centerX + radius * Math.cos(angle),
-      0,
-      centerZ + radius * Math.sin(angle)
+      centerX + orbitRadius * Math.cos(angle),
+      -0.543 + columnHeight,
+      centerZ + orbitRadius * Math.sin(angle)
     ];
-  }, [robotPositionIndex, objectCenter.x, objectCenter.z]);
+  }, [robotPositionIndex, objectCenter.x, objectCenter.z, orbitRadius, columnHeight]);
 
   // Calcular rotación para que el robot mire hacia el objeto central
   const robotRotationY = useMemo(() => {
@@ -241,6 +262,43 @@ const App = () => {
           <p style={styles.subtitle}>Industrial Digital Twin</p>
         </header>
 
+        {/* Theme Selector */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: '-15px',
+          marginBottom: '5px',
+          padding: '10px 14px',
+          background: 'var(--card-bg)',
+          borderRadius: '10px',
+          border: '1px solid var(--border-glass)',
+          transition: 'all 0.3s ease'
+        }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', letterSpacing: '1px' }}>THEME MODE</span>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            style={{
+              width: 'auto',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              border: '1px solid var(--border-glass)',
+              background: 'var(--input-bg)',
+              color: 'var(--text-color)',
+              fontSize: '0.65rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.3s ease',
+              boxShadow: 'var(--shadow-focus)',
+            }}
+          >
+            {darkMode ? '🌙 DARK' : '☀️ LIGHT'}
+          </button>
+        </div>
+
         <section style={styles.section}>
           <label style={styles.label}>ROBOT MODEL</label>
           <select
@@ -272,7 +330,7 @@ const App = () => {
             <div style={styles.sliderContainer}>
               {manualJoints.map((val, i) => (
                 <div key={i} style={styles.sliderItem}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '2px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-dim)', marginBottom: '2px' }}>
                     <span>Joint {i + 1}</span>
                     <span>{val.toFixed(0)}°</span>
                   </div>
@@ -289,7 +347,15 @@ const App = () => {
                         return next;
                       });
                     }}
-                    style={{ width: '100%', accentColor: '#00d2ff', cursor: 'pointer' }}
+                    style={{
+                      width: '100%',
+                      accentColor: 'var(--accent-blue)',
+                      background: 'var(--slider-track-bg)',
+                      height: '8px',
+                      borderRadius: '4px',
+                      outline: 'none',
+                      cursor: 'pointer'
+                    }}
                   />
                 </div>
               ))}
@@ -366,9 +432,9 @@ const App = () => {
 
       {/* Viewport 3D Principal */}
       <main className="main-viewport" style={{ ...styles.main, position: 'relative' }}>
-        <RobotViewer 
-          modelType={modelType} 
-          jointAngles={currentJointAngles} 
+        <RobotViewer
+          modelType={modelType}
+          jointAngles={currentJointAngles}
           spheroidSize={spheroidSize}
           showSpheroid={showSpheroid}
           pendingPointsPositions={pendingPointsPositions}
@@ -380,10 +446,49 @@ const App = () => {
           objectCenter={objectCenter}
           zBounds={zBounds}
           showSectors={showSectors}
+          darkMode={darkMode}
+          columnHeight={columnHeight}
+          orbitRadius={orbitRadius}
         />
+
+        {/* Indicador de cálculo de Fibonacci */}
+        {isCalculating && (
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            background: 'var(--bg-panel)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid var(--border-glass)',
+            padding: '10px 18px',
+            borderRadius: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            zIndex: 100,
+            pointerEvents: 'none',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+            color: 'var(--text-color)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div className="spinner" style={{
+              width: '12px',
+              height: '12px',
+              border: '2px solid var(--text-dim)',
+              borderTopColor: 'var(--accent-blue)',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }} />
+            <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--accent-blue)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              Calculating...
+            </span>
+          </div>
+        )}
+
         {/* Contenedor lateral derecho para los paneles de control */}
         <div className="right-panels-container" style={styles.rightPanelsContainer}>
-          <SpheroidPanel 
+          <SpheroidPanel
             spheroidSize={spheroidSize}
             setSpheroidSize={setSpheroidSize}
             showSpheroid={showSpheroid}
@@ -398,8 +503,12 @@ const App = () => {
             setZBounds={setZBounds}
             showSectors={showSectors}
             setShowSectors={setShowSectors}
+            columnHeight={columnHeight}
+            setColumnHeight={setColumnHeight}
+            orbitRadius={orbitRadius}
+            setOrbitRadius={setOrbitRadius}
           />
-          <PhotoSimulationPanel 
+          <PhotoSimulationPanel
             currentPhotoStep={currentPhotoStep}
             setCurrentPhotoStep={setCurrentPhotoStep}
             pointCount={pointCount}
@@ -430,7 +539,8 @@ const styles = {
     display: 'flex',
     width: '100vw',
     height: '100vh',
-    background: '#0a0a0c',
+    background: 'var(--bg-dark)',
+    transition: 'background 0.3s ease',
   },
   sidebar: {
     width: '320px',
@@ -453,7 +563,7 @@ const styles = {
   },
   subtitle: {
     fontSize: '0.7rem',
-    color: 'rgba(255,255,255,0.4)',
+    color: 'var(--text-dim)',
     textTransform: 'uppercase',
     letterSpacing: '2px',
     marginTop: '5px',
@@ -466,27 +576,29 @@ const styles = {
   label: {
     fontSize: '0.65rem',
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.3)',
+    color: 'var(--text-dim)',
     textTransform: 'uppercase',
     letterSpacing: '1px',
   },
   select: {
     padding: '12px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--input-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
-    color: 'white',
+    color: 'var(--text-color)',
     fontSize: '0.9rem',
     outline: 'none',
+    transition: 'all 0.3s ease',
   },
   input: {
     padding: '12px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: 'var(--input-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
-    color: 'white',
+    color: 'var(--text-color)',
     fontSize: '1rem',
     outline: 'none',
+    transition: 'all 0.3s ease',
   },
   button: {
     padding: '15px',
@@ -502,8 +614,10 @@ const styles = {
     alignItems: 'center',
     gap: '10px',
     padding: '15px',
-    background: 'rgba(255,255,255,0.03)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
+    transition: 'all 0.3s ease',
   },
   statusDot: {
     width: '8px',
@@ -513,7 +627,7 @@ const styles = {
   },
   statusText: {
     fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.7)',
+    color: 'var(--text-color)',
   },
   footer: {
     marginTop: '20px',
@@ -527,30 +641,34 @@ const styles = {
   },
   jointItem: {
     padding: '10px',
-    background: 'rgba(255,255,255,0.03)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '6px',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    transition: 'all 0.3s ease',
   },
   jointLabel: {
     fontSize: '0.7rem',
-    color: 'rgba(255,255,255,0.3)',
+    color: 'var(--text-dim)',
   },
   jointValue: {
     fontSize: '0.8rem',
     fontWeight: '600',
-    color: '#00d2ff',
+    color: 'var(--accent-blue)',
   },
   sliderContainer: {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
     padding: '15px',
-    background: 'rgba(255,255,255,0.03)',
+    background: 'var(--card-bg)',
+    border: '1px solid var(--border-glass)',
     borderRadius: '8px',
     maxHeight: '220px',
     overflowY: 'auto',
+    transition: 'all 0.3s ease',
   },
   sliderItem: {
     display: 'flex',
