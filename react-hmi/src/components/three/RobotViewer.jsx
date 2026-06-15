@@ -98,10 +98,10 @@ const RobotViewer = ({
           />
           {/*<ConveyorBelt />*/}
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.543, 0]} receiveShadow>
-            <planeGeometry args={[30, 30]} />
+            <planeGeometry args={[60, 60]} />
             <meshStandardMaterial color={darkMode ? "#0e0f14" : "#e2e8f0"} roughness={0.7} metalness={0.1} />
           </mesh>
-          <gridHelper args={[30, 30, darkMode ? '#00d2ff' : '#0284c7', darkMode ? '#1f2937' : '#cbd5e1']} position={[0, -0.542, 0]} opacity={0.12} transparent />
+          <gridHelper args={[60, 60, darkMode ? '#00d2ff' : '#0284c7', darkMode ? '#1f2937' : '#cbd5e1']} position={[0, -0.542, 0]} opacity={0.12} transparent />
           <RobotColumn position={robotPosition} height={columnHeight} />
           <Soporte />
           <ObjetoSujeto
