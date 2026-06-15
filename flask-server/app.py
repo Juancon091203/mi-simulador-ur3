@@ -4,6 +4,7 @@ from flask_cors import CORS
 from control import Robot_Control
 import json
 import time
+import os
 
 # Initialize the Robot Control module
 Robot_Control.init()
@@ -181,6 +182,70 @@ def calculate_trajectory():
         print(f"[ERROR] calculate_trajectory error: {e}")
         return jsonify({"status": "error", "message": str(e)})
 
+PRESETS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'presets.json')
+
+def load_presets():
+    if not os.path.exists(PRESETS_FILE):
+        return {}
+    try:
+        with open(PRESETS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading presets: {e}")
+        return {}
+
+def save_presets(presets):
+    try:
+        with open(PRESETS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(presets, f, indent=4)
+        return True
+    except Exception as e:
+        print(f"Error saving presets: {e}")
+        return False
+
+@app.route('/presets', methods=['GET'])
+def get_presets():
+    return jsonify(load_presets())
+
+@app.route('/save_preset', methods=['POST'])
+def add_preset():
+    try:
+        data = request.get_json() or {}
+        name = data.get('name')
+        config = data.get('config')
+        if not name or config is None:
+            return jsonify({"status": "error", "message": "Name and config are required"}), 400
+        
+        presets = load_presets()
+        presets[name] = config
+        if save_presets(presets):
+            return jsonify({"status": "success", "presets": presets})
+        else:
+            return jsonify({"status": "error", "message": "Could not write presets file"}), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/delete_preset', methods=['POST'])
+def delete_preset():
+    try:
+        data = request.get_json() or {}
+        name = data.get('name')
+        if not name:
+            return jsonify({"status": "error", "message": "Name is required"}), 400
+        
+        presets = load_presets()
+        if name in presets:
+            del presets[name]
+            if save_presets(presets):
+                return jsonify({"status": "success", "presets": presets})
+            else:
+                return jsonify({"status": "error", "message": "Could not update presets file"}), 500
+        else:
+            return jsonify({"status": "error", "message": "Preset not found"}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Run the Flask app on host '0.0.0.0' and port 5000 with multithreading active
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, threaded=True)
+

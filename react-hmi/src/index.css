@@ -150,6 +150,11 @@ select:focus {
   box-shadow: var(--shadow-focus) !important;
 }
 
+select option {
+  background-color: var(--bg-dark);
+  color: var(--text-color);
+}
+
 /* Estilos adicionales de responsive para el panel del esferoide */
 @media (max-width: 768px) {
   .spheroid-panel {

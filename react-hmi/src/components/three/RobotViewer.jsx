@@ -73,7 +73,7 @@ const RobotViewer = ({
   robotPosition = [0, 0, 0],
   robotRotationY = 0,
   nextFivePoints = [],
-  objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
+  objectCenter = { x: 0.0, y: 1.0, z: 0.0 },
   zBounds = { min: -1.0, max: 1.0 },
   showSectors = false,
   darkMode = true,
@@ -113,8 +113,9 @@ const RobotViewer = ({
             objectCenter={objectCenter}
             zBounds={zBounds}
             showSectors={showSectors}
+            darkMode={darkMode}
           />
-          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543 + columnHeight, objectCenter.z]} radius={orbitRadius} y={-0.543 + columnHeight} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />

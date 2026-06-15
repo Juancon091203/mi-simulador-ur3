@@ -3,7 +3,7 @@ import RobotViewer from './components/three/RobotViewer';
 import { useRobotConnection } from './hooks/useRobotConnection';
 import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 import { useRobotHttp } from './hooks/useRobotHttp';
-import SpheroidPanel from './components/panels/SpheroidPanel';
+import BasicOptionsPanel from './components/panels/BasicOptionsPanel';
 import PhotoSimulationPanel from './components/panels/PhotoSimulationPanel';
 
 const App = () => {
@@ -40,6 +40,76 @@ const App = () => {
 
   // Estado para saber si se está calculando la trayectoria en el backend
   const [isCalculating, setIsCalculating] = useState(false);
+
+  // Presets
+  const [presets, setPresets] = useState({});
+
+  // Fetch presets on load
+  useEffect(() => {
+    const fetchPresets = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/presets');
+        const data = await response.json();
+        setPresets(data);
+      } catch (err) {
+        console.error('Failed to fetch presets:', err);
+      }
+    };
+    fetchPresets();
+  }, []);
+
+  const handleSavePreset = async (name) => {
+    const config = {
+      spheroidSize,
+      objectCenter,
+      zBounds,
+      pointCount,
+      columnHeight,
+      orbitRadius,
+      modelType
+    };
+    try {
+      const response = await fetch('http://localhost:5000/save_preset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, config })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setPresets(data.presets);
+      }
+    } catch (err) {
+      console.error('Failed to save preset:', err);
+    }
+  };
+
+  const handleDeletePreset = async (name) => {
+    try {
+      const response = await fetch('http://localhost:5000/delete_preset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setPresets(data.presets);
+      }
+    } catch (err) {
+      console.error('Failed to delete preset:', err);
+    }
+  };
+
+  const handleLoadPreset = (name) => {
+    const config = presets[name];
+    if (!config) return;
+    if (config.spheroidSize) setSpheroidSize(config.spheroidSize);
+    if (config.objectCenter) setObjectCenter(config.objectCenter);
+    if (config.zBounds) setZBounds(config.zBounds);
+    if (config.pointCount !== undefined) setPointCount(config.pointCount);
+    if (config.columnHeight !== undefined) setColumnHeight(config.columnHeight);
+    if (config.orbitRadius !== undefined) setOrbitRadius(config.orbitRadius);
+    if (config.modelType) setModelType(config.modelType);
+  };
 
   // Efecto para aplicar el tema al body
   useEffect(() => {
@@ -262,42 +332,6 @@ const App = () => {
           <p style={styles.subtitle}>Industrial Digital Twin</p>
         </header>
 
-        {/* Theme Selector */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '-15px',
-          marginBottom: '5px',
-          padding: '10px 14px',
-          background: 'var(--card-bg)',
-          borderRadius: '10px',
-          border: '1px solid var(--border-glass)',
-          transition: 'all 0.3s ease'
-        }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', letterSpacing: '1px' }}>THEME MODE</span>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            style={{
-              width: 'auto',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              border: '1px solid var(--border-glass)',
-              background: 'var(--input-bg)',
-              color: 'var(--text-color)',
-              fontSize: '0.65rem',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.3s ease',
-              boxShadow: 'var(--shadow-focus)',
-            }}
-          >
-            {darkMode ? '🌙 DARK' : '☀️ LIGHT'}
-          </button>
-        </div>
 
         <section style={styles.section}>
           <label style={styles.label}>ROBOT MODEL</label>
@@ -432,6 +466,78 @@ const App = () => {
 
       {/* Viewport 3D Principal */}
       <main className="main-viewport" style={{ ...styles.main, position: 'relative' }}>
+        {/* Progress Circle Floating HUD */}
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          left: '20px',
+          zIndex: 100,
+          pointerEvents: 'none', // Permite click-through
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '120px',
+          height: '120px',
+          borderRadius: '50%',
+          background: 'var(--card-bg)',
+          border: '1px solid var(--border-glass)',
+          boxShadow: 'var(--shadow-focus)',
+          backdropFilter: 'blur(10px)',
+          transition: 'all 0.3s ease'
+        }}>
+          <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+            <svg width={100} height={100} viewBox="0 0 100 100" style={{ transform: 'rotate(140deg)' }}>
+              <defs>
+                <linearGradient id="hudProgressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#00d2ff" />
+                  <stop offset="100%" stopColor="#ff9d00" />
+                </linearGradient>
+              </defs>
+              <circle
+                cx={50}
+                cy={50}
+                r={40}
+                fill="transparent"
+                stroke="var(--progress-track)"
+                strokeWidth={6}
+                strokeDasharray={`${2 * Math.PI * 40 * 260 / 360} ${2 * Math.PI * 40}`}
+                strokeLinecap="round"
+              />
+              <circle
+                cx={50}
+                cy={50}
+                r={40}
+                fill="transparent"
+                stroke="url(#hudProgressGrad)"
+                strokeWidth={6}
+                strokeDasharray={`${(pointCount > 0 ? (currentPhotoStep / pointCount) : 0) * (2 * Math.PI * 40 * 260 / 360)} ${2 * Math.PI * 40}`}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.4s cubic-bezier(0.4, 0, 0.2, 1)' }}
+              />
+            </svg>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100px',
+              height: '100px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              pointerEvents: 'none',
+            }}>
+              <span style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--text-color)', lineHeight: '1.2' }}>
+                {(pointCount > 0 ? (currentPhotoStep / pointCount) * 100 : 0).toFixed(0)}%
+              </span>
+              <span style={{ fontSize: '0.55rem', color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.5px', marginTop: '1px' }}>
+                {currentPhotoStep >= pointCount ? 'DONE' : `${currentPhotoStep}/${pointCount}`}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <RobotViewer
           modelType={modelType}
           jointAngles={currentJointAngles}
@@ -488,15 +594,13 @@ const App = () => {
 
         {/* Contenedor lateral derecho para los paneles de control */}
         <div className="right-panels-container" style={styles.rightPanelsContainer}>
-          <SpheroidPanel
+          <BasicOptionsPanel
             spheroidSize={spheroidSize}
             setSpheroidSize={setSpheroidSize}
             showSpheroid={showSpheroid}
             setShowSpheroid={setShowSpheroid}
             pointCount={pointCount}
             setPointCount={setPointCount}
-            robotPositionIndex={robotPositionIndex}
-            setRobotPositionIndex={setRobotPositionIndex}
             objectCenter={objectCenter}
             setObjectCenter={setObjectCenter}
             zBounds={zBounds}
@@ -507,12 +611,17 @@ const App = () => {
             setColumnHeight={setColumnHeight}
             orbitRadius={orbitRadius}
             setOrbitRadius={setOrbitRadius}
+            darkMode={darkMode}
+            setDarkMode={setDarkMode}
+            presets={presets}
+            onSavePreset={handleSavePreset}
+            onDeletePreset={handleDeletePreset}
+            onLoadPreset={handleLoadPreset}
           />
           <PhotoSimulationPanel
             currentPhotoStep={currentPhotoStep}
             setCurrentPhotoStep={setCurrentPhotoStep}
             pointCount={pointCount}
-            robotPositionIndex={robotPositionIndex}
           />
         </div>
       </main>

@@ -1,0 +1,62 @@
+{
+    "B\u00e1sico": {
+        "spheroidSize": {
+            "x": 0.95,
+            "y": 0.95,
+            "z": 0.95
+        },
+        "objectCenter": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+        },
+        "zBounds": {
+            "min": -1,
+            "max": 1
+        },
+        "pointCount": 100,
+        "columnHeight": 0.5,
+        "orbitRadius": 1.6,
+        "modelType": "UR3"
+    },
+    "Estirado": {
+        "spheroidSize": {
+            "x": 0.6,
+            "y": 0.95,
+            "z": 0.6
+        },
+        "objectCenter": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+        },
+        "zBounds": {
+            "max": 1,
+            "min": -1
+        },
+        "pointCount": 100,
+        "columnHeight": 0.5,
+        "orbitRadius": 1.6,
+        "modelType": "UR3"
+    },
+    "TestPreset": {
+        "spheroidSize": {
+            "x": 0.6,
+            "y": 0.6,
+            "z": 0.6
+        },
+        "objectCenter": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+        },
+        "zBounds": {
+            "min": -1,
+            "max": 1
+        },
+        "pointCount": 100,
+        "columnHeight": 0.5,
+        "orbitRadius": 1.6,
+        "modelType": "UR3"
+    }
+}

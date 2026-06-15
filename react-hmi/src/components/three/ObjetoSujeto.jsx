@@ -93,11 +93,13 @@ const ObjetoSujeto = ({
   pendingPointsPositions = new Float32Array(0),
   activePoint = null,
   nextFivePoints = [],
-  objectCenter = { x: 1.2, y: 0.2, z: 0.0 },
+  objectCenter = { x: 0.0, y: 1.0, z: 0.0 },
   zBounds = { min: -1.0, max: 1.0 },
-  showSectors = false
+  showSectors = false,
+  darkMode = true
 }) => {
   const gltf = useLoader(GLTFLoader, '/scenes/zapato.glb');
+  const sectorColor = darkMode ? "#ff9d00" : "#b45309";
 
   // Calcular la trayectoria curva que abraza la superficie de la esfera/esferoide
   const curvedLinePoints = useMemo(() => {
@@ -215,7 +217,7 @@ const ObjetoSujeto = ({
                   <mesh>
                     <ringGeometry key={`ring_${phi}`} args={[1.0, 1.015, 64]} />
                     <meshBasicMaterial
-                      color="#ffa600"
+                      color={sectorColor}
                       transparent={true}
                       opacity={0.8}
                       side={THREE.DoubleSide}
@@ -225,7 +227,7 @@ const ObjetoSujeto = ({
                   <mesh>
                     <ringGeometry key={`disk_${phi}`} args={[0, 1.0, 64]} />
                     <meshBasicMaterial
-                      color="#ffa600"
+                      color={sectorColor}
                       transparent={true}
                       opacity={0.06}
                       side={THREE.DoubleSide}
@@ -240,7 +242,7 @@ const ObjetoSujeto = ({
                 <mesh>
                   <ringGeometry key="horizontal_ring" args={[1.0, 1.015, 64]} />
                   <meshBasicMaterial
-                    color="#ffa600"
+                    color={sectorColor}
                     transparent={true}
                     opacity={0.8}
                     side={THREE.DoubleSide}
@@ -250,7 +252,7 @@ const ObjetoSujeto = ({
                 <mesh>
                   <ringGeometry key="horizontal_disk" args={[0, 1.0, 64]} />
                   <meshBasicMaterial
-                    color="#ffa600"
+                    color={sectorColor}
                     transparent={true}
                     opacity={0.06}
                     side={THREE.DoubleSide}
