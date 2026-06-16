@@ -1,6 +1,6 @@
 import React from 'react';
 import * as THREE from 'three';
-import { Text } from '@react-three/drei';
+import { Html } from '@react-three/drei';
 
 /**
  * RobotPathCircle - Componente para dibujar la circunferencia de guiado
@@ -102,18 +102,38 @@ const RobotPathCircle = ({
             </group>
 
             {/* Texto de Grados en el suelo */}
-            <Text
+            <Html
               position={[labelX, y + 0.005, labelZ]}
               rotation={[-Math.PI / 2, 0, labelRotation]}
-              fontSize={0.06}
-              color={isActive ? "#ff9d00" : "#3aedff"}
-              font="https://fonts.gstatic.com/s/outfit/v11/0yb92k3WN_t3HmcSM4nJ5w.woff"
-              anchorX="center"
-              anchorY="middle"
-              fillOpacity={isActive ? 0.95 : 0.4}
+              transform
+              occlude={false}
+              center
+              pointerEvents="none"
+              scale={0.25}
             >
-              {`${deg}°`}
-            </Text>
+              <div
+                style={{
+                  color: isActive ? "#ff9d00" : "#3aedff",
+                  fontFamily: "'Outfit', sans-serif",
+                  fontWeight: 800,
+                  fontSize: '24px',
+                  opacity: isActive ? 1.0 : 0.6,
+                  userSelect: 'none',
+                  whiteSpace: 'nowrap',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                  border: `2px solid ${isActive ? 'rgba(255, 157, 0, 0.5)' : 'rgba(58, 237, 255, 0.25)'}`,
+                  background: isActive ? 'rgba(255, 157, 0, 0.15)' : 'rgba(14, 15, 20, 0.8)',
+                  textShadow: isActive 
+                    ? '0 0 10px rgba(255,157,0,0.8)' 
+                    : '0 0 10px rgba(58,237,255,0.4)',
+                  transition: 'all 0.3s ease',
+                  letterSpacing: '1px'
+                }}
+              >
+                {`${deg}°`}
+              </div>
+            </Html>
           </group>
         );
       })}
