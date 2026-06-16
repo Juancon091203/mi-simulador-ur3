@@ -65,8 +65,7 @@ const App = () => {
       zBounds,
       pointCount,
       columnHeight,
-      orbitRadius,
-      modelType
+      orbitRadius
     };
     try {
       const response = await fetch('http://localhost:5000/save_preset', {
@@ -108,7 +107,6 @@ const App = () => {
     if (config.pointCount !== undefined) setPointCount(config.pointCount);
     if (config.columnHeight !== undefined) setColumnHeight(config.columnHeight);
     if (config.orbitRadius !== undefined) setOrbitRadius(config.orbitRadius);
-    if (config.modelType) setModelType(config.modelType);
   };
 
   // Efecto para aplicar el tema al body
