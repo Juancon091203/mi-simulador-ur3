@@ -5,6 +5,8 @@ import { useRobotWebSocket } from './hooks/useRobotWebSocket';
 import { useRobotHttp } from './hooks/useRobotHttp';
 import BasicOptionsPanel from './components/panels/BasicOptionsPanel';
 import PhotoSimulationPanel from './components/panels/PhotoSimulationPanel';
+import CameraViewer from './components/panels/CameraViewer';
+import PhotosGalleryModal from './components/panels/PhotosGalleryModal';
 
 const App = () => {
   const [modelType, setModelType] = useState('UR3');
@@ -44,7 +46,14 @@ const App = () => {
   // Presets
   const [presets, setPresets] = useState({});
 
-  // Fetch presets on load
+  // Lifted and camera states
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isRobotConnected, setIsRobotConnected] = useState(false);
+  const [stabilityThreshold, setStabilityThreshold] = useState(0.08);
+  const [photos, setPhotos] = useState([]);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+  // Fetch presets and photos on load
   useEffect(() => {
     const fetchPresets = async () => {
       try {
@@ -55,8 +64,20 @@ const App = () => {
         console.error('Failed to fetch presets:', err);
       }
     };
+    const fetchPhotos = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/camera/photos');
+        const data = await response.json();
+        setPhotos(data);
+      } catch (err) {
+        console.error('Failed to fetch photos on load:', err);
+      }
+    };
     fetchPresets();
+    fetchPhotos();
   }, []);
+
+
 
   const handleSavePreset = async (name) => {
     const config = {
@@ -202,6 +223,123 @@ const App = () => {
 
   // Estado para el paso actual de la simulación de fotos
   const [currentPhotoStep, setCurrentPhotoStep] = useState(0);
+
+  // Clear photos
+  const handleClearPhotos = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/camera/clear_photos', { method: 'POST' });
+      const data = await response.json();
+      setPhotos(data.photos || []);
+    } catch (err) {
+      console.error('Failed to clear photos:', err);
+    }
+  };
+
+  // Manual capture and next/prev
+  const handleManualNext = async () => {
+    if (currentPhotoStep < pointCount) {
+      try {
+        const response = await fetch('http://localhost:5000/camera/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: currentPhotoStep })
+        });
+        const data = await response.json();
+        if (data.status === 'success') {
+          setPhotos(data.photos);
+        }
+      } catch (err) {
+        console.error('Failed manual photo capture:', err);
+      }
+      setCurrentPhotoStep((prev) => prev + 1);
+    }
+  };
+
+  const handleManualPrev = () => {
+    if (currentPhotoStep > 0) {
+      setCurrentPhotoStep((prev) => prev - 1);
+    }
+  };
+
+  // Automated Run Sequence with stability evaluation
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    let active = true;
+
+    const runStep = async () => {
+      if (currentPhotoStep >= pointCount) {
+        setIsPlaying(false);
+        return;
+      }
+
+      // 1. Tell backend the robot is moving (instability trigger)
+      try {
+        await fetch('http://localhost:5000/camera/robot_move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ duration: 1.2 })
+        });
+      } catch (err) {
+        console.error('Error starting robot movement:', err);
+      }
+
+      // Wait 1.2 seconds for the robot to move and IMU to reflect motion
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      if (!active || !isPlaying) return;
+
+      // 2. Poll stability status until stable = true
+      let isStable = false;
+      let checkAttempts = 0;
+      while (!isStable && active && isPlaying && checkAttempts < 25) {
+        try {
+          const response = await fetch('http://localhost:5000/camera/status');
+          const statusData = await response.json();
+          isStable = statusData.stable;
+        } catch (err) {
+          console.error('Error checking camera stability:', err);
+        }
+        if (!isStable) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          checkAttempts++;
+        }
+      }
+
+      if (!active || !isPlaying) return;
+
+      // 3. Trigger photo capture once stable
+      try {
+        const response = await fetch('http://localhost:5000/camera/capture', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ step: currentPhotoStep })
+        });
+        const data = await response.json();
+        if (data.status === 'success' && active) {
+          setPhotos(data.photos);
+        }
+      } catch (err) {
+        console.error('Error capturing photo in play run:', err);
+      }
+
+      if (!active || !isPlaying) return;
+
+      // 4. Advance step
+      setCurrentPhotoStep((prev) => {
+        const next = prev + 1;
+        if (next >= pointCount) {
+          setIsPlaying(false);
+        }
+        return next;
+      });
+    };
+
+    runStep();
+
+    return () => {
+      active = false;
+    };
+  }, [isPlaying, currentPhotoStep, pointCount]);
 
   // 1. Obtener la trayectoria de Fibonacci y TSP desde el backend de Python
   const globalSequence = useMemo(() => {
@@ -615,17 +753,38 @@ const App = () => {
             onSavePreset={handleSavePreset}
             onDeletePreset={handleDeletePreset}
             onLoadPreset={handleLoadPreset}
+            isPlaying={isPlaying}
+            setIsPlaying={setIsPlaying}
+            isRobotConnected={isRobotConnected}
+            setIsRobotConnected={setIsRobotConnected}
           />
           <PhotoSimulationPanel
             currentPhotoStep={currentPhotoStep}
-            setCurrentPhotoStep={setCurrentPhotoStep}
             pointCount={pointCount}
+            onNext={handleManualNext}
+            onPrev={handleManualPrev}
+            onViewPhotos={() => setIsGalleryOpen(true)}
           />
         </div>
+
+        {/* Visor pequeño flotante de la cámara FRAMOS */}
+        <CameraViewer
+          stabilityThreshold={stabilityThreshold}
+          setStabilityThreshold={setStabilityThreshold}
+        />
+
+        {/* Modal de la Galería de fotos */}
+        <PhotosGalleryModal
+          isOpen={isGalleryOpen}
+          onClose={() => setIsGalleryOpen(false)}
+          photos={photos}
+          onClearPhotos={handleClearPhotos}
+        />
       </main>
     </div>
   );
 };
+
 
 const styles = {
   rightPanelsContainer: {

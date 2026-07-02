@@ -5,20 +5,22 @@ import React from 'react';
  */
 const PhotoSimulationPanel = ({
   currentPhotoStep = 0,
-  setCurrentPhotoStep,
-  pointCount = 100
+  pointCount = 100,
+  onViewPhotos,
+  onNext,
+  onPrev
 }) => {
   const isFinished = currentPhotoStep >= pointCount;
 
   const handleNext = () => {
-    if (currentPhotoStep < pointCount) {
-      setCurrentPhotoStep((prev) => prev + 1);
+    if (currentPhotoStep < pointCount && onNext) {
+      onNext();
     }
   };
 
   const handlePrev = () => {
-    if (currentPhotoStep > 0) {
-      setCurrentPhotoStep((prev) => prev - 1);
+    if (currentPhotoStep > 0 && onPrev) {
+      onPrev();
     }
   };
 
@@ -52,6 +54,13 @@ const PhotoSimulationPanel = ({
           NEXT ▶
         </button>
       </div>
+
+      <button
+        onClick={onViewPhotos}
+        style={styles.galleryButton}
+      >
+        📷 VER CAPTURAS
+      </button>
     </div>
   );
 };
@@ -63,6 +72,7 @@ const styles = {
     zIndex: 100,
     display: 'flex',
     flexDirection: 'column',
+    gap: '10px',
     color: 'var(--text-color)',
     transition: 'all 0.3s ease',
   },
@@ -81,6 +91,21 @@ const styles = {
     fontWeight: '700',
     transition: 'all 0.2s ease',
     outline: 'none',
+  },
+  galleryButton: {
+    padding: '10px',
+    background: 'rgba(0, 210, 255, 0.12)',
+    border: '1px solid rgba(0, 210, 255, 0.3)',
+    borderRadius: '8px',
+    color: 'var(--accent-cyan)',
+    fontSize: '0.75rem',
+    fontWeight: '800',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    outline: 'none',
+    width: '100%',
+    textAlign: 'center',
+    boxShadow: '0 0 10px rgba(0, 210, 255, 0.1)'
   }
 };
 

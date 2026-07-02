@@ -245,7 +245,91 @@ def delete_preset():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+from camera_manager import camera_manager
+
+@app.route('/camera/stream')
+def camera_stream():
+    def generate():
+        camera_manager.register_client()
+        try:
+            while True:
+                frame = camera_manager.last_frame
+                if frame is not None:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+                time.sleep(0.066)
+        finally:
+            camera_manager.unregister_client()
+
+    return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/camera/status')
+def camera_status():
+    return jsonify({
+        "stable": camera_manager.stable,
+        "gyro_magnitude": camera_manager.gyro_magnitude,
+        "accel_deviation": camera_manager.accel_deviation,
+        "umbral_giro": camera_manager.umbral_giro,
+        "umbral_accel": camera_manager.umbral_accel,
+        "simulation_mode": camera_manager.simulation_mode
+    })
+
+@app.route('/camera/threshold', methods=['POST'])
+def camera_threshold():
+    try:
+        data = request.get_json() or {}
+        val = data.get('umbral_giro')
+        if val is not None:
+            camera_manager.set_thresholds(float(val))
+            return jsonify({
+                "status": "success", 
+                "umbral_giro": camera_manager.umbral_giro, 
+                "umbral_accel": camera_manager.umbral_accel
+            })
+        return jsonify({"status": "error", "message": "umbral_giro is required"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/camera/robot_move', methods=['POST'])
+def camera_robot_move():
+    try:
+        data = request.get_json() or {}
+        duration = float(data.get('duration', 1.2))
+        camera_manager.trigger_robot_move(duration)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/camera/capture', methods=['POST'])
+def camera_capture():
+    try:
+        data = request.get_json() or {}
+        step = data.get('step')
+        if step is None:
+            return jsonify({"status": "error", "message": "step index is required"}), 400
+        
+        success, result = camera_manager.capture_photo(int(step))
+        if success:
+            return jsonify({"status": "success", "url": result, "photos": camera_manager.get_photos()})
+        else:
+            return jsonify({"status": "error", "message": result}), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/camera/photos')
+def camera_photos():
+    return jsonify(camera_manager.get_photos())
+
+@app.route('/camera/clear_photos', methods=['POST'])
+def camera_clear_photos():
+    try:
+        camera_manager.clear_photos()
+        return jsonify({"status": "success", "photos": []})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Run the Flask app on host '0.0.0.0' and port 5000 with multithreading active
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, threaded=True)
+
 

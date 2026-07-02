@@ -25,13 +25,15 @@ const BasicOptionsPanel = ({
   presets = {},
   onSavePreset,
   onDeletePreset,
-  onLoadPreset
+  onLoadPreset,
+  isPlaying,
+  setIsPlaying,
+  isRobotConnected,
+  setIsRobotConnected
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('');
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isRobotConnected, setIsRobotConnected] = useState(false);
 
   const handleSliderChange = (axis, value) => {
     setSpheroidSize((prev) => ({
