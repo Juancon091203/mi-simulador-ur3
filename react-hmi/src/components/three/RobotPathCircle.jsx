@@ -112,6 +112,7 @@ const RobotPathCircle = ({
                 center
                 pointerEvents="none"
                 scale={0.25}
+                zIndexRange={[0, 5]}
               >
                 <div
                   style={{

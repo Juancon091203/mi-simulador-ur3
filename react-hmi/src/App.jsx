@@ -834,7 +834,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '30px',
-    zIndex: 10,
+    zIndex: 150,
     overflowY: 'auto',
     overflowX: 'hidden',
   },
