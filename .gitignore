@@ -297,4 +297,7 @@ dist
 react-hmi/scenes/scene.json
 react-hmi/scenes/scene.zip
 
+# Camera captured photos
+flask-server/static/photos/
+
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 /**
- * CameraViewer - Componente independiente para visualizar la cámara FRAMOS D435e
+ * CameraViewer - Componente para visualizar la cámara FRAMOS D435e
  * y la estabilidad de su IMU en tiempo real.
  */
 const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
@@ -12,13 +12,11 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     accel_deviation: 0.0,
     umbral_giro: 0.08,
     umbral_accel: 0.20,
-    simulation_mode: true
+    camera_connected: false
   });
 
-  // Polling de estado de estabilidad e IMU sólo si el visor está abierto
+  // Polling periódico para verificar la conexión de la cámara (tanto abierta como cerrada)
   useEffect(() => {
-    if (!isOpen) return;
-
     const fetchStatus = async () => {
       try {
         const response = await fetch('http://localhost:5000/camera/status');
@@ -26,14 +24,18 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
         setStatus(data);
       } catch (err) {
         console.error('Error fetching camera status:', err);
+        setStatus((prev) => ({ ...prev, camera_connected: false }));
       }
     };
 
-    // Primer fetch inmediato
+    // Consultar inmediatamente
     fetchStatus();
 
-    // Intervalo cada 250ms para lecturas fluidas de la IMU
-    const interval = setInterval(fetchStatus, 250);
+    // Intervalo de polling:
+    // - Si está abierto, consultamos rápido (250ms) para refrescar la IMU en tiempo real.
+    // - Si está cerrado, consultamos lento (3000ms) solo para monitorizar si se conecta/desconecta.
+    const intervalTime = isOpen ? 250 : 3000;
+    const interval = setInterval(fetchStatus, intervalTime);
 
     return () => clearInterval(interval);
   }, [isOpen]);
@@ -53,15 +55,29 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     }
   };
 
+  const isConnected = status.camera_connected;
+
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        style={styles.floatingOpenBtn}
-        title="Mostrar visor de cámara"
-      >
-        📷
-      </button>
+      <div style={styles.floatingWrapper} className="camera-tooltip-container">
+        <button
+          onClick={() => isConnected && setIsOpen(true)}
+          disabled={!isConnected}
+          style={{
+            ...styles.floatingOpenBtn,
+            opacity: isConnected ? 1 : 0.5,
+            cursor: isConnected ? 'pointer' : 'not-allowed',
+            filter: isConnected ? 'none' : 'grayscale(100%)',
+          }}
+        >
+          📷
+        </button>
+        {!isConnected && (
+          <span className="camera-tooltip" style={styles.tooltipText}>
+            Camera offline
+          </span>
+        )}
+      </div>
     );
   }
 
@@ -70,31 +86,45 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
       <header style={styles.header}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ animation: 'pulse 1.5s infinite', color: '#ff9d00' }}>●</span>
-          <span style={styles.title}>CÁMARA FRAMOS D435e</span>
+          <span style={styles.title}>CAMERA VIEWPORT</span>
         </div>
         <button onClick={() => setIsOpen(false)} style={styles.closeBtn}>✕</button>
       </header>
 
-      {/* Stream de Vídeo de Flask (MJPEG) */}
+      {/* Stream de Vídeo de Flask (MJPEG) con retícula CSS súper fina */}
       <div style={styles.videoContainer}>
-        <img
-          src={`http://localhost:5000/camera/stream?t=${Date.now()}`}
-          alt="FRAMOS Stream"
-          style={styles.videoStream}
-          onError={(e) => {
-            // Reemplazo en caso de error de conexión
-            e.target.src = 'https://placehold.co/640x480/1a1f2c/a2a8b4?text=Cámara+Desconectada';
-          }}
-        />
-        {status.simulation_mode && (
-          <span style={styles.simBadge}>SIMULADOR</span>
+        {isConnected ? (
+          <img
+            src={`http://localhost:5000/camera/stream?t=${Date.now()}`}
+            alt="FRAMOS Stream"
+            style={styles.videoStream}
+            onError={(e) => {
+              e.target.src = 'https://placehold.co/640x480/1a1f2c/a2a8b4?text=Stream+Error';
+            }}
+          />
+        ) : (
+          <div style={styles.noCameraView}>
+            <span>Camera Disconnected</span>
+          </div>
+        )}
+
+        {/* Retícula (rejilla) central fija y muy fina */}
+        {isConnected && (
+          <div style={styles.reticleContainer}>
+            {/* Círculo central */}
+            <div style={styles.reticleCircle} />
+            {/* Eje horizontal */}
+            <div style={styles.reticleHorizontal} />
+            {/* Eje vertical */}
+            <div style={styles.reticleVertical} />
+          </div>
         )}
       </div>
 
       {/* Datos del Giroscopio y Estabilidad */}
       <div style={styles.statusPanel}>
         <div style={styles.statusRow}>
-          <span style={styles.label}>ESTADO CÁMARA:</span>
+          <span style={styles.label}>CAMERA STATUS:</span>
           <span
             style={{
               ...styles.statusText,
@@ -102,14 +132,14 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
-            {status.stable ? 'ESTABLE' : 'INESTABLE (VIBRANDO)'}
+            {status.stable ? 'STABLE' : 'UNSTABLE (VIBRATING)'}
           </span>
         </div>
 
         {/* Métrica de giro */}
         <div style={styles.imuMetric}>
           <div style={styles.metricHeader}>
-            <span>Velocidad de Giro:</span>
+            <span>Rotation Speed:</span>
             <span>{status.gyro_magnitude.toFixed(3)} rad/s</span>
           </div>
           <div style={styles.metricTrack}>
@@ -126,7 +156,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
         {/* Umbral de estabilidad (Slider integrado en el visor) */}
         <div style={styles.thresholdControl}>
           <div style={styles.sliderHeader}>
-            <span style={styles.label}>TOLERANCIA DE ESTABILIDAD</span>
+            <span style={styles.label}>STABILITY TOLERANCE</span>
             <span style={styles.sliderValue}>{stabilityThreshold.toFixed(2)}</span>
           </div>
           <input
@@ -139,8 +169,8 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
             style={styles.rangeInput}
           />
           <div style={styles.sliderLabels}>
-            <span>Estricto (0.01)</span>
-            <span>Permisivo (0.50)</span>
+            <span>Strict (0.01)</span>
+            <span>Permissive (0.50)</span>
           </div>
         </div>
       </div>
@@ -149,10 +179,16 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
 };
 
 const styles = {
-  floatingOpenBtn: {
+  floatingWrapper: {
     position: 'absolute',
     bottom: '20px',
     left: '20px',
+    zIndex: 101,
+    display: 'flex',
+    alignItems: 'center',
+    pointerEvents: 'auto',
+  },
+  floatingOpenBtn: {
     width: '50px',
     height: '50px',
     borderRadius: '50%',
@@ -160,14 +196,26 @@ const styles = {
     border: '1px solid var(--border-glass)',
     boxShadow: 'var(--shadow-focus)',
     backdropFilter: 'blur(10px)',
-    cursor: 'pointer',
     fontSize: '1.4rem',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 101,
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    pointerEvents: 'auto',
+    outline: 'none',
+  },
+  tooltipText: {
+    position: 'absolute',
+    left: '60px',
+    backgroundColor: 'rgba(15, 15, 20, 0.9)',
+    color: '#ff4b2b',
+    border: '1px solid rgba(255, 75, 43, 0.3)',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '0.7rem',
+    fontWeight: '800',
+    whiteSpace: 'nowrap',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    pointerEvents: 'none',
   },
   widget: {
     position: 'absolute',
@@ -217,17 +265,46 @@ const styles = {
     height: '100%',
     objectFit: 'cover',
   },
-  simBadge: {
-    position: 'absolute',
-    top: '10px',
-    right: '10px',
-    backgroundColor: 'rgba(0, 210, 255, 0.85)',
-    color: 'black',
-    fontSize: '0.55rem',
-    fontWeight: '800',
-    padding: '3px 8px',
-    borderRadius: '4px',
+  noCameraView: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--text-dim)',
+    fontSize: '0.85rem',
+    fontWeight: '700',
     letterSpacing: '0.5px',
+  },
+  reticleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    pointerEvents: 'none',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reticleCircle: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    border: '1px solid rgba(0, 210, 255, 0.45)',
+    position: 'absolute',
+  },
+  reticleHorizontal: {
+    width: '40px',
+    height: '1px',
+    backgroundColor: 'rgba(0, 210, 255, 0.45)',
+    position: 'absolute',
+  },
+  reticleVertical: {
+    width: '1px',
+    height: '40px',
+    backgroundColor: 'rgba(0, 210, 255, 0.45)',
+    position: 'absolute',
   },
   statusPanel: {
     padding: '14px',

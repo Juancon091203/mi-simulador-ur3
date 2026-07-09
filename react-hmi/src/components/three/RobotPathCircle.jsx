@@ -14,7 +14,8 @@ const RobotPathCircle = ({
   activeIndex = 0,
   center = [1.2, 0, 0],
   radius = 1.6,
-  y = -0.543
+  y = -0.543,
+  hideLabels = false
 }) => {
   const [centerX, , centerZ] = center;
 
@@ -102,38 +103,40 @@ const RobotPathCircle = ({
             </group>
 
             {/* Texto de Grados en el suelo */}
-            <Html
-              position={[labelX, y + 0.005, labelZ]}
-              rotation={[-Math.PI / 2, 0, labelRotation]}
-              transform
-              occlude={false}
-              center
-              pointerEvents="none"
-              scale={0.25}
-            >
-              <div
-                style={{
-                  color: isActive ? "#ff9d00" : "#3aedff",
-                  fontFamily: "'Outfit', sans-serif",
-                  fontWeight: 800,
-                  fontSize: '24px',
-                  opacity: isActive ? 1.0 : 0.6,
-                  userSelect: 'none',
-                  whiteSpace: 'nowrap',
-                  padding: '4px 10px',
-                  borderRadius: '6px',
-                  border: `2px solid ${isActive ? 'rgba(255, 157, 0, 0.5)' : 'rgba(58, 237, 255, 0.25)'}`,
-                  background: isActive ? 'rgba(255, 157, 0, 0.15)' : 'rgba(14, 15, 20, 0.8)',
-                  textShadow: isActive 
-                    ? '0 0 10px rgba(255,157,0,0.8)' 
-                    : '0 0 10px rgba(58,237,255,0.4)',
-                  transition: 'all 0.3s ease',
-                  letterSpacing: '1px'
-                }}
+            {!hideLabels && (
+              <Html
+                position={[labelX, y + 0.005, labelZ]}
+                rotation={[-Math.PI / 2, 0, labelRotation]}
+                transform
+                occlude={false}
+                center
+                pointerEvents="none"
+                scale={0.25}
               >
-                {`${deg}°`}
-              </div>
-            </Html>
+                <div
+                  style={{
+                    color: isActive ? "#ff9d00" : "#3aedff",
+                    fontFamily: "'Outfit', sans-serif",
+                    fontWeight: 800,
+                    fontSize: '24px',
+                    opacity: isActive ? 1.0 : 0.6,
+                    userSelect: 'none',
+                    whiteSpace: 'nowrap',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    border: `2px solid ${isActive ? 'rgba(255, 157, 0, 0.5)' : 'rgba(58, 237, 255, 0.25)'}`,
+                    background: isActive ? 'rgba(255, 157, 0, 0.15)' : 'rgba(14, 15, 20, 0.8)',
+                    textShadow: isActive 
+                      ? '0 0 10px rgba(255,157,0,0.8)' 
+                      : '0 0 10px rgba(58,237,255,0.4)',
+                    transition: 'all 0.3s ease',
+                    letterSpacing: '1px'
+                  }}
+                >
+                  {`${deg}°`}
+                </div>
+              </Html>
+            )}
           </group>
         );
       })}

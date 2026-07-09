@@ -235,6 +235,23 @@ const App = () => {
     }
   };
 
+  // Delete individual photo
+  const handleDeletePhoto = async (stepIndex) => {
+    try {
+      const response = await fetch('http://localhost:5000/camera/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: stepIndex })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setPhotos(data.photos || []);
+      }
+    } catch (err) {
+      console.error('Failed to delete photo:', err);
+    }
+  };
+
   // Manual capture and next/prev
   const handleManualNext = async () => {
     if (currentPhotoStep < pointCount) {
@@ -261,85 +278,84 @@ const App = () => {
     }
   };
 
-  // Automated Run Sequence with stability evaluation
+  // Automated Event-Driven Run Sequence based on camera stability transitions (unstable -> stable)
   useEffect(() => {
     if (!isPlaying) return;
 
     let active = true;
+    let hasSeenUnstable = false;
+    let isCapturing = false;
 
-    const runStep = async () => {
-      if (currentPhotoStep >= pointCount) {
-        setIsPlaying(false);
-        return;
-      }
-
-      // 1. Tell backend the robot is moving (instability trigger)
-      try {
-        await fetch('http://localhost:5000/camera/robot_move', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ duration: 1.2 })
-        });
-      } catch (err) {
-        console.error('Error starting robot movement:', err);
-      }
-
-      // Wait 1.2 seconds for the robot to move and IMU to reflect motion
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      if (!active || !isPlaying) return;
-
-      // 2. Poll stability status until stable = true
-      let isStable = false;
-      let checkAttempts = 0;
-      while (!isStable && active && isPlaying && checkAttempts < 25) {
+    const checkLoop = async () => {
+      while (active && isPlaying) {
         try {
           const response = await fetch('http://localhost:5000/camera/status');
+          if (!response.ok) throw new Error('Status request failed');
           const statusData = await response.json();
-          isStable = statusData.stable;
+
+          if (!active || !isPlaying) break;
+
+          const isStable = statusData.stable;
+
+          if (!isStable) {
+            // Camera is currently moving/vibrating (unstable)
+            hasSeenUnstable = true;
+          } else if (isStable && !isCapturing) {
+            // Camera settled (stable)
+            // Check if we already have a photo for the current step to avoid duplicate captures
+            const hasPhotoForStep = photos.some((p) => p.step === currentPhotoStep);
+
+            // We capture if we have either seen it unstable first (due to robot movement),
+            // OR if it's the very beginning of the run (step 0) and we don't have a photo yet.
+            if (hasSeenUnstable || (!hasPhotoForStep && currentPhotoStep === 0)) {
+              isCapturing = true;
+
+              try {
+                const captureRes = await fetch('http://localhost:5000/camera/capture', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ step: currentPhotoStep })
+                });
+                const captureData = await captureRes.json();
+
+                if (captureData.status === 'success' && active) {
+                  setPhotos(captureData.photos);
+                }
+              } catch (err) {
+                console.error('Error capturing photo in play run:', err);
+              }
+
+              if (!active || !isPlaying) break;
+
+              // Move to the next step
+              setCurrentPhotoStep((prev) => {
+                const next = prev + 1;
+                if (next >= pointCount) {
+                  setIsPlaying(false);
+                }
+                return next;
+              });
+
+              // Reset flags for the next step
+              hasSeenUnstable = false;
+              isCapturing = false;
+            }
+          }
         } catch (err) {
-          console.error('Error checking camera stability:', err);
+          console.error('Error polling camera stability in run loop:', err);
         }
-        if (!isStable) {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-          checkAttempts++;
-        }
+
+        // Poll every 250ms for snappy responsiveness
+        await new Promise((resolve) => setTimeout(resolve, 250));
       }
-
-      if (!active || !isPlaying) return;
-
-      // 3. Trigger photo capture once stable
-      try {
-        const response = await fetch('http://localhost:5000/camera/capture', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ step: currentPhotoStep })
-        });
-        const data = await response.json();
-        if (data.status === 'success' && active) {
-          setPhotos(data.photos);
-        }
-      } catch (err) {
-        console.error('Error capturing photo in play run:', err);
-      }
-
-      if (!active || !isPlaying) return;
-
-      // 4. Advance step
-      setCurrentPhotoStep((prev) => {
-        const next = prev + 1;
-        if (next >= pointCount) {
-          setIsPlaying(false);
-        }
-        return next;
-      });
     };
 
-    runStep();
+    checkLoop();
 
     return () => {
       active = false;
     };
-  }, [isPlaying, currentPhotoStep, pointCount]);
+  }, [isPlaying, currentPhotoStep, pointCount, photos]);
 
   // 1. Obtener la trayectoria de Fibonacci y TSP desde el backend de Python
   const globalSequence = useMemo(() => {
@@ -691,6 +707,7 @@ const App = () => {
           darkMode={darkMode}
           columnHeight={columnHeight}
           orbitRadius={orbitRadius}
+          isGalleryOpen={isGalleryOpen}
         />
 
         {/* Indicador de cálculo de Fibonacci */}
@@ -779,6 +796,7 @@ const App = () => {
           onClose={() => setIsGalleryOpen(false)}
           photos={photos}
           onClearPhotos={handleClearPhotos}
+          onDeletePhoto={handleDeletePhoto}
         />
       </main>
     </div>

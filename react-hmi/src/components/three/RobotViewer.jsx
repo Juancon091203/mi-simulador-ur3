@@ -78,7 +78,8 @@ const RobotViewer = ({
   showSectors = false,
   darkMode = true,
   columnHeight = 0.5,
-  orbitRadius = 1.6
+  orbitRadius = 1.6,
+  isGalleryOpen = false
 }) => {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -115,7 +116,7 @@ const RobotViewer = ({
             showSectors={showSectors}
             darkMode={darkMode}
           />
-          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} hideLabels={isGalleryOpen} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />

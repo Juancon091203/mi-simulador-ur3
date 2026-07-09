@@ -271,7 +271,7 @@ def camera_status():
         "accel_deviation": camera_manager.accel_deviation,
         "umbral_giro": camera_manager.umbral_giro,
         "umbral_accel": camera_manager.umbral_accel,
-        "simulation_mode": camera_manager.simulation_mode
+        "camera_connected": camera_manager.camera_connected
     })
 
 @app.route('/camera/threshold', methods=['POST'])
@@ -292,13 +292,8 @@ def camera_threshold():
 
 @app.route('/camera/robot_move', methods=['POST'])
 def camera_robot_move():
-    try:
-        data = request.get_json() or {}
-        duration = float(data.get('duration', 1.2))
-        camera_manager.trigger_robot_move(duration)
-        return jsonify({"status": "success"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    # Deprecated for real camera trigger, but kept for compatibility
+    return jsonify({"status": "success"})
 
 @app.route('/camera/capture', methods=['POST'])
 def camera_capture():
@@ -313,6 +308,19 @@ def camera_capture():
             return jsonify({"status": "success", "url": result, "photos": camera_manager.get_photos()})
         else:
             return jsonify({"status": "error", "message": result}), 500
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/camera/delete', methods=['POST'])
+def camera_delete_photo():
+    try:
+        data = request.get_json() or {}
+        step = data.get('step')
+        if step is None:
+            return jsonify({"status": "error", "message": "step is required"}), 400
+        
+        camera_manager.delete_photo_by_step(int(step))
+        return jsonify({"status": "success", "photos": camera_manager.get_photos()})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
