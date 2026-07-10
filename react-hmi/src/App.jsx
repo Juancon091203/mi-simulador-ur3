@@ -49,7 +49,7 @@ const App = () => {
   // Lifted and camera states
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRobotConnected, setIsRobotConnected] = useState(false);
-  const [stabilityThreshold, setStabilityThreshold] = useState(0.08);
+  const [stabilityThreshold, setStabilityThreshold] = useState(0.25);
   const [photos, setPhotos] = useState([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
@@ -57,7 +57,7 @@ const App = () => {
   useEffect(() => {
     const fetchPresets = async () => {
       try {
-        const response = await fetch('http://localhost:5000/presets');
+        const response = await fetch('http://localhost:5005/presets');
         const data = await response.json();
         setPresets(data);
       } catch (err) {
@@ -66,7 +66,7 @@ const App = () => {
     };
     const fetchPhotos = async () => {
       try {
-        const response = await fetch('http://localhost:5000/camera/photos');
+        const response = await fetch('http://localhost:5005/camera/photos');
         const data = await response.json();
         setPhotos(data);
       } catch (err) {
@@ -89,7 +89,7 @@ const App = () => {
       orbitRadius
     };
     try {
-      const response = await fetch('http://localhost:5000/save_preset', {
+      const response = await fetch('http://localhost:5005/save_preset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, config })
@@ -105,7 +105,7 @@ const App = () => {
 
   const handleDeletePreset = async (name) => {
     try {
-      const response = await fetch('http://localhost:5000/delete_preset', {
+      const response = await fetch('http://localhost:5005/delete_preset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name })
@@ -161,7 +161,7 @@ const App = () => {
         max: zBounds.max
       };
       try {
-        const response = await fetch('http://localhost:5000/calculate_trajectory', {
+        const response = await fetch('http://localhost:5005/calculate_trajectory', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -227,7 +227,7 @@ const App = () => {
   // Clear photos
   const handleClearPhotos = async () => {
     try {
-      const response = await fetch('http://localhost:5000/camera/clear_photos', { method: 'POST' });
+      const response = await fetch('http://localhost:5005/camera/clear_photos', { method: 'POST' });
       const data = await response.json();
       setPhotos(data.photos || []);
     } catch (err) {
@@ -238,7 +238,7 @@ const App = () => {
   // Delete individual photo
   const handleDeletePhoto = async (stepIndex) => {
     try {
-      const response = await fetch('http://localhost:5000/camera/delete', {
+      const response = await fetch('http://localhost:5005/camera/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ step: stepIndex })
@@ -256,7 +256,7 @@ const App = () => {
   const handleManualNext = async () => {
     if (currentPhotoStep < pointCount) {
       try {
-        const response = await fetch('http://localhost:5000/camera/capture', {
+        const response = await fetch('http://localhost:5005/camera/capture', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ step: currentPhotoStep })
@@ -289,7 +289,7 @@ const App = () => {
     const checkLoop = async () => {
       while (active && isPlaying) {
         try {
-          const response = await fetch('http://localhost:5000/camera/status');
+          const response = await fetch('http://localhost:5005/camera/status');
           if (!response.ok) throw new Error('Status request failed');
           const statusData = await response.json();
 
@@ -311,7 +311,7 @@ const App = () => {
               isCapturing = true;
 
               try {
-                const captureRes = await fetch('http://localhost:5000/camera/capture', {
+                const captureRes = await fetch('http://localhost:5005/camera/capture', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ step: currentPhotoStep })

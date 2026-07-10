@@ -6,12 +6,15 @@ import React, { useState, useEffect } from 'react';
  */
 const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [autoExposure, setAutoExposure] = useState(true);
+  const [exposureMs, setExposureMs] = useState(10);
+  const [gain, setGain] = useState(64);
   const [status, setStatus] = useState({
     stable: true,
     gyro_magnitude: 0.0,
     accel_deviation: 0.0,
-    umbral_giro: 0.08,
-    umbral_accel: 0.20,
+    umbral_giro: 0.25,
+    umbral_accel: 0.625,
     camera_connected: false
   });
 
@@ -19,7 +22,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await fetch('http://localhost:5000/camera/status');
+        const response = await fetch('http://localhost:5005/camera/status');
         const data = await response.json();
         setStatus(data);
       } catch (err) {
@@ -40,12 +43,38 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     return () => clearInterval(interval);
   }, [isOpen]);
 
+  // Synchronize local exposure/gain states with server values
+  useEffect(() => {
+    if (status.auto_exposure !== undefined) setAutoExposure(status.auto_exposure);
+    if (status.exposure_ms !== undefined) setExposureMs(status.exposure_ms);
+    if (status.gain !== undefined) setGain(status.gain);
+  }, [status.auto_exposure, status.exposure_ms, status.gain]);
+
+  const handleSettingsChange = async (newAutoExposure, newExposureMs, newGain) => {
+    setAutoExposure(newAutoExposure);
+    setExposureMs(newExposureMs);
+    setGain(newGain);
+    try {
+      await fetch('http://localhost:5005/camera/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auto_exposure: newAutoExposure,
+          exposure_ms: newExposureMs,
+          gain: newGain
+        })
+      });
+    } catch (err) {
+      console.error('Failed to update camera settings:', err);
+    }
+  };
+
   // Manejo del slider de umbral de estabilidad
   const handleThresholdChange = async (e) => {
     const val = parseFloat(e.target.value);
     setStabilityThreshold(val);
     try {
-      await fetch('http://localhost:5000/camera/threshold', {
+      await fetch('http://localhost:5005/camera/threshold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ umbral_giro: val })
@@ -95,7 +124,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
       <div style={styles.videoContainer}>
         {isConnected ? (
           <img
-            src={`http://localhost:5000/camera/stream?t=${Date.now()}`}
+            src={`http://localhost:5005/camera/stream?t=${Date.now()}`}
             alt="FRAMOS Stream"
             style={styles.videoStream}
             onError={(e) => {
@@ -173,6 +202,58 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
             <span>Permissive (0.50)</span>
           </div>
         </div>
+
+        {/* Ajustes de Obturador y Exposición */}
+        <div style={styles.settingsSection}>
+          <div style={styles.settingsHeader}>
+            <span style={styles.label}>CAMERA EXPOSURE</span>
+            <label style={styles.toggleLabel}>
+              <input
+                type="checkbox"
+                checked={autoExposure}
+                onChange={(e) => handleSettingsChange(e.target.checked, exposureMs, gain)}
+                style={styles.checkbox}
+              />
+              <span style={styles.toggleText}>AUTO</span>
+            </label>
+          </div>
+
+          {!autoExposure && (
+            <div style={styles.manualControls}>
+              <div style={styles.sliderControl}>
+                <div style={styles.sliderHeader}>
+                  <span style={styles.subLabel}>Shutter Speed (ms)</span>
+                  <span style={styles.sliderValue}>{exposureMs.toFixed(1)} ms</span>
+                </div>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="40.0"
+                  step="0.5"
+                  value={exposureMs}
+                  onChange={(e) => handleSettingsChange(false, parseFloat(e.target.value), gain)}
+                  style={styles.rangeInput}
+                />
+              </div>
+
+              <div style={styles.sliderControl}>
+                <div style={styles.sliderHeader}>
+                  <span style={styles.subLabel}>Sensor Gain</span>
+                  <span style={styles.sliderValue}>{gain}</span>
+                </div>
+                <input
+                  type="range"
+                  min="1"
+                  max="128"
+                  step="1"
+                  value={gain}
+                  onChange={(e) => handleSettingsChange(false, exposureMs, parseInt(e.target.value))}
+                  style={styles.rangeInput}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -200,6 +281,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: '0',
+    lineHeight: '1',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     outline: 'none',
   },
@@ -237,7 +320,7 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottom: '1px solid var(--border-glass)',
-    backgroundColor: 'rgba(14, 15, 20, 0.4)',
+    backgroundColor: 'var(--header-bg)',
   },
   title: {
     fontSize: '0.75rem',
@@ -311,7 +394,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    backgroundColor: 'rgba(14, 15, 20, 0.65)',
+    backgroundColor: 'var(--status-panel-bg)',
   },
   statusRow: {
     display: 'flex',
@@ -387,6 +470,53 @@ const styles = {
     justifyContent: 'space-between',
     fontSize: '0.55rem',
     color: 'var(--text-dim)',
+  },
+  settingsSection: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginTop: '4px',
+    borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+    paddingTop: '10px',
+  },
+  settingsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  toggleLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    cursor: 'pointer',
+    userSelect: 'none',
+  },
+  checkbox: {
+    cursor: 'pointer',
+    accentColor: 'var(--accent-orange)',
+    width: '12px',
+    height: '12px',
+  },
+  toggleText: {
+    fontSize: '0.65rem',
+    fontWeight: '800',
+    color: 'var(--accent-orange)',
+  },
+  manualControls: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  sliderControl: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  subLabel: {
+    fontSize: '0.55rem',
+    fontWeight: '600',
+    color: 'var(--text-dim)',
+    textTransform: 'uppercase',
   }
 };
 

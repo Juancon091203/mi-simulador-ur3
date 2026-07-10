@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 /**
  * Custom Hook para gestionar la conexión con el servidor Flask del robot.
  */
-export const useRobotConnection = (serverUrl = 'http://localhost:5000') => {
+export const useRobotConnection = (serverUrl = 'http://localhost:5005') => {
   const [jointAngles, setJointAngles] = useState([0, 0, 0, 0, 0, 0]);
   const [isConnected, setIsConnected] = useState(false);
   const [statusMessage, setStatusMessage] = useState('Disconnected');

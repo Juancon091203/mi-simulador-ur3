@@ -33,6 +33,7 @@ from flask import Flask, Response
 from flask import request, jsonify
 from flask_cors import CORS
 from control import Robot_Control
+# pyrefly: ignore [missing-import]
 from camera_manager import camera_manager
 import json
 import time
@@ -302,8 +303,31 @@ def camera_status():
         "accel_deviation": camera_manager.accel_deviation,
         "umbral_giro": camera_manager.umbral_giro,
         "umbral_accel": camera_manager.umbral_accel,
-        "camera_connected": camera_manager.camera_connected
+        "camera_connected": camera_manager.camera_connected,
+        "auto_exposure": camera_manager.auto_exposure,
+        "exposure_ms": camera_manager.exposure_us / 1000.0,
+        "gain": camera_manager.gain
     })
+
+@app.route('/camera/settings', methods=['POST'])
+def camera_settings():
+    try:
+        data = request.get_json() or {}
+        auto_exposure = data.get('auto_exposure')
+        exposure_ms = data.get('exposure_ms')
+        gain = data.get('gain')
+        
+        if auto_exposure is not None and exposure_ms is not None and gain is not None:
+            camera_manager.update_settings(bool(auto_exposure), float(exposure_ms), int(gain))
+            return jsonify({
+                "status": "success",
+                "auto_exposure": camera_manager.auto_exposure,
+                "exposure_ms": camera_manager.exposure_us / 1000.0,
+                "gain": camera_manager.gain
+            })
+        return jsonify({"status": "error", "message": "auto_exposure, exposure_ms, and gain are required"}), 400
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/camera/threshold', methods=['POST'])
 def camera_threshold():
@@ -367,8 +391,8 @@ def camera_clear_photos():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Run the Flask app on host '0.0.0.0' and port 5000 with multithreading active
+# Run the Flask app on localhost '127.0.0.1' and port 5005 with multithreading active
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(host='127.0.0.1', port=5005, threaded=True)
 
 

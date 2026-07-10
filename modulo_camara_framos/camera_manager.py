@@ -65,13 +65,20 @@ class CameraManager:
         
         # Configuration & Thresholds
         self.umbral_giro = 0.25
-        self.umbral_accel = 0.20
+        self.umbral_accel = 0.625
         self.g_referencia = 9.81
+        self.auto_exposure = True
+        self.exposure_us = 10000  # Default 10 ms (10000 us)
+        self.gain = 64            # Default gain (middle range)
+        self.frame_count = 0
+        self.settings_applied = False
         
         # Current status variables
         self.stable = True
         self.gyro_magnitude = 0.0
         self.accel_deviation = 0.0
+        
+        self.prev_gray = None
         
         # Buffer for the last frame
         self.last_frame = None
@@ -98,16 +105,19 @@ class CameraManager:
             self.camera_connected = False
             return False
         try:
-            # Query on a fresh context to ensure network GigE discovery updates dynamically
-            ctx = rs.context()
-            devices = ctx.query_devices()
+            # Reuse cached context if available to avoid UDP broadcast storms.
+            # Only allocate a new context if it is None (e.g. after a disconnect/error).
+            if self.ctx is None:
+                self.ctx = rs.context()
+            devices = self.ctx.query_devices()
             self.camera_connected = (len(devices) > 0)
-            if self.camera_connected:
-                self.ctx = ctx
+            if not self.camera_connected:
+                self.ctx = None # Force a fresh scan on next check
             print(f"[DEBUG] _check_connection found {len(devices)} devices (connected={self.camera_connected})", flush=True)
             return self.camera_connected
         except Exception as e:
             print(f"[WARN] Error querying devices: {e}", flush=True)
+            self.ctx = None
             self.camera_connected = False
             return False
 
@@ -118,7 +128,7 @@ class CameraManager:
         files = sorted([f for f in os.listdir(self.photos_dir) if f.endswith('.jpg')])
         self.photos_list = []
         for f in files:
-            path = f"http://localhost:5000/static/photos/{f}"
+            path = f"http://localhost:5005/static/photos/{f}"
             step = 0
             try:
                 if 'step_' in f:
@@ -160,9 +170,11 @@ class CameraManager:
         with self.lock:
             self.active_streams += 1
             print(f"[INFO] Active camera streams: {self.active_streams}", flush=True)
-            self._check_connection()
-            if self.camera_connected and self.pipeline is None:
-                self._init_camera()
+            if self.pipeline is None:
+                # Force immediate check and initialization to avoid delay
+                self._check_connection()
+                if self.camera_connected:
+                    self._init_camera()
 
     def unregister_client(self):
         """Decrements active stream count, pausing pipeline if no clients are viewing."""
@@ -184,7 +196,7 @@ class CameraManager:
                 self.camera_connected = False
                 return
             
-            # Check for IMU
+            # Detect physical IMU support
             self.has_imu = False
             dev = devices[0]
             for sensor in dev.query_sensors():
@@ -195,18 +207,27 @@ class CameraManager:
             
             self.pipeline = rs.pipeline()
             config = rs.config()
+            # Enable Color stream. Disable depth to save network bandwidth.
             config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-            config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
             
+            # Enable high-frequency UDP motion streams (IMU)
             if self.has_imu:
                 config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, 250)
                 config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, 200)
-                
+            
             self.pipeline.start(config)
             self.camera_connected = True
             print("[INFO] Physical FRAMOS camera pipeline started successfully.", flush=True)
+            self.frame_count = 0
+            self.settings_applied = False
         except Exception as e:
             print(f"[ERROR] Failed to initialize physical camera pipeline: {e}", flush=True)
+            try:
+                if 'devices' in locals() and len(devices) > 0:
+                    print("[INFO] Attempting hardware reset on the camera to restore communication...", flush=True)
+                    devices[0].hardware_reset()
+            except Exception as reset_err:
+                print(f"[WARN] Failed to send hardware reset: {reset_err}", flush=True)
             self.pipeline = None
             self.camera_connected = False
 
@@ -220,28 +241,70 @@ class CameraManager:
                 print(f"[ERROR] Error stopping pipeline: {e}", flush=True)
             self.pipeline = None
 
+    def _apply_sensor_settings(self):
+        """Applies the current exposure and gain settings to the physical color sensor."""
+        if self.pipeline is None:
+            return
+        try:
+            active_profile = self.pipeline.get_active_profile()
+            color_sensor = active_profile.get_device().first_color_sensor()
+            
+            if self.auto_exposure:
+                color_sensor.set_option(rs.option.enable_auto_exposure, 1)
+                print("[INFO] Applied Auto Exposure on color sensor.", flush=True)
+            else:
+                color_sensor.set_option(rs.option.enable_auto_exposure, 0)
+                # RealSense/FRAMOS color sensor exposure unit is 100 microseconds (1 unit = 100 us)
+                exposure_units = float(self.exposure_us) / 100.0
+                exp_range = color_sensor.get_option_range(rs.option.exposure)
+                clamped_units = max(exp_range.min, min(exp_range.max, exposure_units))
+                color_sensor.set_option(rs.option.exposure, clamped_units)
+                
+                gain_range = color_sensor.get_option_range(rs.option.gain)
+                clamped_gain = max(gain_range.min, min(gain_range.max, float(self.gain)))
+                color_sensor.set_option(rs.option.gain, clamped_gain)
+                
+                print(f"[INFO] Applied Manual Settings: Exposure={self.exposure_us}us (units={clamped_units}), Gain={clamped_gain}", flush=True)
+        except Exception as e:
+            print(f"[WARN] Could not apply color sensor settings: {e}", flush=True)
+
+    def update_settings(self, auto_exposure, exposure_ms, gain):
+        """Thread-safe method to update exposure and gain settings and apply them immediately."""
+        with self.lock:
+            self.auto_exposure = auto_exposure
+            self.exposure_us = int(exposure_ms * 1000)
+            self.gain = int(gain)
+            self._apply_sensor_settings()
+
     def _frame_loop(self):
         """Background loop to fetch frames and process IMU stability."""
+        last_check_time = 0
         while self.is_running:
             try:
                 if self.pipeline is not None:
                     self._process_real_frame()
                 else:
-                    # Periodically check for camera connection if not active
-                    self._check_connection()
-                    if self.camera_connected and self.active_streams > 0:
-                        with self.lock:
-                            self._init_camera()
-                    time.sleep(1.0)
+                    # Decide polling frequency based on whether the HMI is open
+                    poll_interval = 1.5 if self.active_streams > 0 else 3.0
+                    
+                    now = time.time()
+                    if now - last_check_time >= poll_interval:
+                        last_check_time = now
+                        self._check_connection()
+                        if self.camera_connected and self.active_streams > 0:
+                            with self.lock:
+                                self._init_camera()
+                    time.sleep(0.5)
             except Exception as e:
                 print(f"[ERROR] Exception in frame loop: {e}", flush=True)
-                time.sleep(0.5)
+                time.sleep(1.0)
             
-            time.sleep(0.066)
+            if self.pipeline is not None:
+                time.sleep(0.066)  # Reverted to ~15 FPS as requested by the user
 
     def _process_real_frame(self):
         try:
-            frames = self.pipeline.wait_for_frames(timeout_ms=1000)
+            frames = self.pipeline.wait_for_frames(timeout_ms=5000)
             color_frame = frames.get_color_frame()
             if not color_frame:
                 return
@@ -249,7 +312,7 @@ class CameraManager:
             # Convert to OpenCV image
             color_image = np.asanyarray(color_frame.get_data())
             
-            # Process IMU data
+            # Process physical IMU data
             if self.has_imu:
                 accel_frame = frames.first_or_default(rs.stream.accel)
                 gyro_frame = frames.first_or_default(rs.stream.gyro)
@@ -257,9 +320,9 @@ class CameraManager:
                     accel_data = accel_frame.as_motion_frame().get_motion_data()
                     gyro_data = gyro_frame.as_motion_frame().get_motion_data()
                     
-                    self.gyro_magnitude = (gyro_data.x**2 + gyro_data.y**2 + gyro_data.z**2) ** 0.5
-                    accel_magnitude = (accel_data.x**2 + accel_data.y**2 + accel_data.z**2) ** 0.5
-                    self.accel_deviation = abs(accel_magnitude - self.g_referencia)
+                    self.gyro_magnitude = float((gyro_data.x**2 + gyro_data.y**2 + gyro_data.z**2) ** 0.5)
+                    accel_magnitude = float((accel_data.x**2 + accel_data.y**2 + accel_data.z**2) ** 0.5)
+                    self.accel_deviation = float(abs(accel_magnitude - self.g_referencia))
                     
                     # Evaluate stability
                     self.stable = (self.gyro_magnitude < self.umbral_giro) and (self.accel_deviation < self.umbral_accel)
@@ -267,6 +330,12 @@ class CameraManager:
                 self.gyro_magnitude = 0.0
                 self.accel_deviation = 0.0
                 self.stable = True
+                
+            # Defer applying exposure and gain settings until the stream is stable (e.g. 5 frames)
+            self.frame_count += 1
+            if not self.settings_applied and self.frame_count >= 5:
+                self._apply_sensor_settings()
+                self.settings_applied = True
                 
             # Encode clean color frame as JPEG (without overlay)
             _, jpeg = cv2.imencode('.jpg', color_image)
@@ -289,7 +358,7 @@ class CameraManager:
                 with open(filepath, 'wb') as f:
                     f.write(self.last_frame)
                 
-                url = f"http://localhost:5000/static/photos/{filename}"
+                url = f"http://localhost:5005/static/photos/{filename}"
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 
                 self.photos_list = [p for p in self.photos_list if p['step'] != step_index]

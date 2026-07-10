@@ -154,7 +154,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(14, 15, 20, 0.45)',
+    backgroundColor: 'var(--header-bg)',
   },
   title: {
     fontSize: '1.1rem',
@@ -197,7 +197,7 @@ const styles = {
     flex: 1,
     padding: '24px',
     overflowY: 'auto',
-    backgroundColor: 'rgba(14, 15, 20, 0.15)',
+    backgroundColor: 'var(--content-bg)',
   },
   emptyState: {
     display: 'flex',
