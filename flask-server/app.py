@@ -1,10 +1,41 @@
+import os
+import sys
+
+# Locate modulo_camara_framos and add to path
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+framos_dir = os.path.join(os.path.dirname(backend_dir), 'modulo_camara_framos')
+
+# Change working directory to modulo_camara_framos immediately on process startup
+# to satisfy the GigE vision library config search path
+try:
+    os.chdir(framos_dir)
+    print(f"[INFO] Changed process working directory on startup to: {framos_dir}", flush=True)
+except Exception as e:
+    print(f"[WARN] Failed to change directory: {e}", flush=True)
+
+if sys.platform == 'win32':
+    try:
+        os.add_dll_directory(framos_dir)
+        print(f"[INFO] Added FRAMOS DLL directory: {framos_dir}", flush=True)
+    except AttributeError:
+        os.environ['PATH'] = framos_dir + os.pathsep + os.environ['PATH']
+
+# Force local pyrealsense2 override by inserting at index 0 of search paths
+if framos_dir in sys.path:
+    sys.path.remove(framos_dir)
+sys.path.insert(0, framos_dir)
+
+# Also append backend_dir so it can resolve sibling imports (like control)
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
+
 from flask import Flask, Response
 from flask import request, jsonify
 from flask_cors import CORS
 from control import Robot_Control
+from camera_manager import camera_manager
 import json
 import time
-import os
 
 # Initialize the Robot Control module
 Robot_Control.init()
@@ -245,7 +276,7 @@ def delete_preset():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-from camera_manager import camera_manager
+
 
 @app.route('/camera/stream')
 def camera_stream():
