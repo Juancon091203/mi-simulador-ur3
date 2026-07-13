@@ -33,7 +33,7 @@ const RobotPathCircle = ({
   return (
     <group>
       {/* Círculo base en el suelo (plano XZ) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.01, centerZ]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.001, centerZ]}>
         <ringGeometry args={[radius - 0.01, radius + 0.01, 64]} />
         <meshBasicMaterial 
           color="#3aedff" 
@@ -44,7 +44,7 @@ const RobotPathCircle = ({
       </mesh>
 
       {/* Línea exterior delgada adicional de adorno */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.01, centerZ]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.001, centerZ]}>
         <ringGeometry args={[radius - 0.05, radius - 0.048, 64]} />
         <meshBasicMaterial 
           color="#3aedff" 
@@ -59,15 +59,15 @@ const RobotPathCircle = ({
         const isActive = pt.index === activeIndex;
         const deg = pt.index * 60;
         
-        // Colocar el texto de los grados hacia el exterior
-        const labelRadius = radius + 0.22;
+        // Colocar el texto de los grados hacia el exterior pero pegado
+        const labelRadius = radius + 0.08;
         const labelX = centerX + labelRadius * Math.cos(pt.angle);
         const labelZ = centerZ + labelRadius * Math.sin(pt.angle);
         const labelRotation = -pt.angle - Math.PI / 2;
 
         return (
           <group key={pt.index}>
-            <group position={[pt.x, y + 0.02, pt.z]}>
+            <group position={[pt.x, y + 0.011, pt.z]}>
               {/* Indicador de posición (Cilindro pequeño tipo placa metálica/sensor) */}
               <mesh castShadow receiveShadow>
                 <cylinderGeometry args={[0.08, 0.09, 0.02, 16]} />
@@ -105,7 +105,7 @@ const RobotPathCircle = ({
             {/* Texto de Grados en el suelo */}
             {!hideLabels && (
               <Html
-                position={[labelX, y + 0.005, labelZ]}
+                position={[labelX, y + 0.002, labelZ]}
                 rotation={[-Math.PI / 2, 0, labelRotation]}
                 transform
                 occlude={false}

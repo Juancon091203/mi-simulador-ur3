@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
  * CameraViewer - Componente para visualizar la cámara FRAMOS D435e
  * y la estabilidad de su IMU en tiempo real.
  */
-const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
+const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [autoExposure, setAutoExposure] = useState(true);
   const [exposureMs, setExposureMs] = useState(10);
@@ -22,7 +22,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        const response = await fetch('http://localhost:5005/camera/status');
+        const response = await fetch('http://127.0.0.1:5005/camera/status');
         const data = await response.json();
         setStatus(data);
       } catch (err) {
@@ -55,7 +55,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     setExposureMs(newExposureMs);
     setGain(newGain);
     try {
-      await fetch('http://localhost:5005/camera/settings', {
+      await fetch('http://127.0.0.1:5005/camera/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -74,7 +74,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     const val = parseFloat(e.target.value);
     setStabilityThreshold(val);
     try {
-      await fetch('http://localhost:5005/camera/threshold', {
+      await fetch('http://127.0.0.1:5005/camera/threshold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ umbral_giro: val })
@@ -110,6 +110,64 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
     );
   }
 
+  if (inlineIMU) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '5px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', textTransform: 'uppercase' }}>ESTADO IMU:</span>
+          <span
+            style={{
+              fontSize: '0.8rem',
+              fontWeight: 'bold',
+              color: status.stable ? '#00ff88' : '#ff4b2b',
+              textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
+            }}
+          >
+            {status.stable ? 'ESTABLE' : 'INESTABLE (VIBRACIÓN)'}
+          </span>
+        </div>
+
+        {/* Métrica de giro */}
+        <div style={styles.imuMetric}>
+          <div style={styles.metricHeader}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Velocidad Rotación:</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{status.gyro_magnitude.toFixed(3)} rad/s</span>
+          </div>
+          <div style={styles.metricTrack}>
+            <div
+              style={{
+                ...styles.metricBar,
+                width: `${Math.min(100, (status.gyro_magnitude / (status.umbral_giro || 0.25)) * 100)}%`,
+                backgroundColor: status.gyro_magnitude < status.umbral_giro ? '#00ff88' : '#ff4b2b'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Umbral de estabilidad (Slider) */}
+        <div style={styles.thresholdControl}>
+          <div style={styles.sliderHeader}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 'bold' }}>TOLERANCIA DE VIBRACIÓN (IMU)</span>
+            <span style={styles.sliderValue}>{stabilityThreshold.toFixed(2)}</span>
+          </div>
+          <input
+            type="range"
+            min="0.01"
+            max="0.50"
+            step="0.01"
+            value={stabilityThreshold}
+            onChange={handleThresholdChange}
+            style={styles.rangeInput}
+          />
+          <div style={styles.sliderLabels}>
+            <span>Estricto (0.01)</span>
+            <span>Permisivo (0.50)</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="glass camera-viewer-widget" style={styles.widget}>
       <header style={styles.header}>
@@ -124,7 +182,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
       <div style={styles.videoContainer}>
         {isConnected ? (
           <img
-            src={`http://localhost:5005/camera/stream?t=${Date.now()}`}
+            src={`http://127.0.0.1:5005/camera/stream?t=${Date.now()}`}
             alt="FRAMOS Stream"
             style={styles.videoStream}
             onError={(e) => {

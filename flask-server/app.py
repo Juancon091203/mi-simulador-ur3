@@ -29,7 +29,7 @@ sys.path.insert(0, framos_dir)
 if backend_dir not in sys.path:
     sys.path.append(backend_dir)
 
-from flask import Flask, Response
+from flask import Flask, Response, send_from_directory
 from flask import request, jsonify
 from flask_cors import CORS
 # pyrefly: ignore [missing-import]
@@ -218,6 +218,46 @@ def delete_preset():
             return jsonify({"status": "error", "message": "Preset not found"}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+# --- Emergency Alerts Endpoints ---
+alert_status = None
+
+@app.route('/api/trigger_alert', methods=['POST'])
+def trigger_alert():
+    global alert_status
+    try:
+        data = request.get_json() or {}
+        station = data.get('station', 'Estación 1')
+        problem = data.get('problem', 'Parada de Emergencia Pulsada')
+        alert_status = {"station": station, "problem": problem}
+        print(f"[ALERT] Triggered alert on {station}: {problem}", flush=True)
+        return jsonify({"status": "success", "alert": alert_status})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/api/clear_alert', methods=['POST'])
+def clear_alert():
+    global alert_status
+    alert_status = None
+    print("[ALERT] Cleared active alert", flush=True)
+    return jsonify({"status": "success"})
+
+@app.route('/api/alert_status', methods=['GET'])
+def get_alert_status():
+    return jsonify({"alert": alert_status})
+
+@app.route('/mock_camera_feed.png')
+def serve_mock_camera_feed():
+    return send_from_directory('.', 'mock_camera_feed.png')
+
+@app.route('/VNC_UR.png')
+def serve_vnc_ur():
+    return send_from_directory('.', 'VNC_UR.png')
+
+@app.route('/bota_ejemplo.png')
+def serve_bota_ejemplo():
+    return send_from_directory('.', 'bota_ejemplo.png')
 
 
 
