@@ -448,28 +448,31 @@ const App = () => {
   //? manualJoints.map(deg => deg * Math.PI / 180)
   //: activeConn.jointAngles;
 
-  const handleConnect = () => {
-    // Si es modo HTTP, el hook ya está "conectado" o escuchando por defecto, 
-    // así que no necesitamos una acción manual de connect()
-    if (connectionMode === 'http') return;
-
-    if (activeConn.isConnected) {
-      activeConn.disconnect();
-    } else {
-      if (connectionMode === 'websocket') {
-        const url = ipAddress.startsWith('ws://') || ipAddress.startsWith('wss://')
-          ? ipAddress
-          : `ws://${ipAddress}`;
-        activeConn.connect(url);
-      } else {
-        activeConn.connect(ipAddress);
-      }
-    }
-  };
-
   const activeConn = connectionMode === 'websocket'
     ? wsConn
     : (connectionMode === 'sse' ? sseConn : httpConn);
+
+  // Auto-connect to the active robot connection on mount or parameter changes
+  useEffect(() => {
+    if (connectionMode === 'websocket') {
+      const url = ipAddress.startsWith('ws://') || ipAddress.startsWith('wss://')
+        ? ipAddress
+        : `ws://${ipAddress}`;
+      console.log(`[HMI] Auto-connecting to WebSocket: ${url}`);
+      wsConn.connect(url);
+      return () => {
+        console.log('[HMI] Disconnecting WebSocket.');
+        wsConn.disconnect();
+      };
+    } else if (connectionMode === 'sse') {
+      console.log(`[HMI] Auto-connecting to SSE Server: ${ipAddress}`);
+      sseConn.connect(ipAddress);
+      return () => {
+        console.log('[HMI] Disconnecting SSE.');
+        sseConn.disconnect();
+      };
+    }
+  }, [connectionMode, ipAddress]);
 
   const currentJointAngles = manualMode
     ? manualJoints.map(deg => deg * Math.PI / 180)
@@ -480,140 +483,8 @@ const App = () => {
       {/* Sidebar de Control */}
       <aside className="sidebar glass" style={styles.sidebar}>
         <header style={styles.header}>
-          <h1 className="text-gradient">ROBOT DT</h1>
-          <p style={styles.subtitle}>Industrial Digital Twin</p>
+          <h1 className="text-gradient">Automated Photography Studio</h1>
         </header>
-
-
-        <section style={styles.section}>
-          <label style={styles.label}>ROBOT MODEL</label>
-          <select
-            value={modelType}
-            onChange={(e) => setModelType(e.target.value)}
-            style={styles.select}
-          >
-            <option value="UR3">Universal Robots UR3</option>
-            <option value="UR5">Universal Robots UR5</option>
-            {/* <option value="UR10">Universal Robots UR10</option> */}
-            <option value="UR20">Universal Robots UR20</option>
-            <option value="iER15-1430-MI">ESTUN iER15-1430-MI</option>
-          </select>
-        </section>
-
-        {/* Control Manual para Pruebas offline */}
-        <section style={styles.section}>
-          <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={manualMode}
-              onChange={(e) => setManualMode(e.target.checked)}
-              style={{ cursor: 'pointer' }}
-            />
-            MANUAL OVERRIDE (TEST)
-          </label>
-
-          {manualMode && (
-            <div style={styles.sliderContainer}>
-              {manualJoints.map((val, i) => (
-                <div key={i} style={styles.sliderItem}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-dim)', marginBottom: '2px' }}>
-                    <span>Joint {i + 1}</span>
-                    <span>{val.toFixed(0)}°</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-180"
-                    max="180"
-                    value={val}
-                    onChange={(e) => {
-                      const newVal = parseFloat(e.target.value);
-                      setManualJoints(prev => {
-                        const next = [...prev];
-                        next[i] = newVal;
-                        return next;
-                      });
-                    }}
-                    style={{
-                      width: '100%',
-                      accentColor: 'var(--accent-blue)',
-                      background: 'var(--slider-track-bg)',
-                      height: '8px',
-                      borderRadius: '4px',
-                      outline: 'none',
-                      cursor: 'pointer'
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section style={styles.section}>
-          <label style={styles.label}>CONNECTION TYPE</label>
-          <select
-            value={connectionMode}
-            onChange={(e) => {
-              if (activeConn.isConnected) {
-                activeConn.disconnect();
-              }
-              const newMode = e.target.value;
-              setConnectionMode(newMode);
-              if (newMode === 'websocket') {
-                setIpAddress('192.168.3.41:7000/ws');
-              }
-              else if (newMode === 'http') {
-                setIpAddress('localhost'); // O '192.168.60.10' que es la IP local
-              }
-              else {
-                setIpAddress('192.168.3.5');
-              }
-
-            }}
-            style={styles.select}
-          >
-            <option value="websocket">Partner WebSocket</option>
-            <option value="sse">Local Flask (SSE)</option>
-            <option value="http">Direct HTTP (ESTUN)</option>
-          </select>
-        </section>
-
-        <section style={styles.section}>
-          <label style={styles.label}>{connectionMode === 'websocket' ? 'WEBSOCKET URL' : 'ROBOT IP'}</label>
-          <input
-            type="text"
-            value={ipAddress}
-            onChange={(e) => setIpAddress(e.target.value)}
-            style={styles.input}
-          />
-          <button
-            onClick={handleConnect}
-            style={{
-              ...styles.button,
-              backgroundColor: activeConn.isConnected ? '#ff4b2b' : '#00d2ff',
-              boxShadow: activeConn.isConnected ? '0 0 15px rgba(255, 75, 43, 0.4)' : '0 0 15px rgba(0, 210, 255, 0.4)'
-            }}
-          >
-            {activeConn.isConnected ? 'DISCONNECT' : 'CONNECT'}
-          </button>
-        </section>
-
-        <div style={styles.statusBox}>
-          <div style={{ ...styles.statusDot, backgroundColor: activeConn.isConnected ? '#00ff88' : '#ff4b2b' }} />
-          <span style={styles.statusText}>{activeConn.statusMessage}</span>
-        </div>
-
-        <footer style={styles.footer}>
-          <label style={styles.label}>JOINT DATA</label>
-          <div style={styles.jointGrid}>
-            {currentJointAngles.map((angle, i) => (
-              <div key={i} style={styles.jointItem}>
-                <span style={styles.jointLabel}>J{i + 1}</span>
-                <span style={styles.jointValue}>{(angle * 180 / Math.PI).toFixed(1)}°</span>
-              </div>
-            ))}
-          </div>
-        </footer>
       </aside>
 
       {/* Viewport 3D Principal */}

@@ -26,7 +26,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
         const data = await response.json();
         setStatus(data);
       } catch (err) {
-        console.error('Error fetching camera status:', err);
+        console.error('Error fetching IMU status:', err);
         setStatus((prev) => ({ ...prev, camera_connected: false }));
       }
     };
@@ -153,7 +153,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
       {/* Datos del Giroscopio y Estabilidad */}
       <div style={styles.statusPanel}>
         <div style={styles.statusRow}>
-          <span style={styles.label}>CAMERA STATUS:</span>
+          <span style={styles.label}>IMU STATUS:</span>
           <span
             style={{
               ...styles.statusText,
@@ -201,58 +201,6 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold }) => {
             <span>Strict (0.01)</span>
             <span>Permissive (0.50)</span>
           </div>
-        </div>
-
-        {/* Ajustes de Obturador y Exposición */}
-        <div style={styles.settingsSection}>
-          <div style={styles.settingsHeader}>
-            <span style={styles.label}>CAMERA EXPOSURE</span>
-            <label style={styles.toggleLabel}>
-              <input
-                type="checkbox"
-                checked={autoExposure}
-                onChange={(e) => handleSettingsChange(e.target.checked, exposureMs, gain)}
-                style={styles.checkbox}
-              />
-              <span style={styles.toggleText}>AUTO</span>
-            </label>
-          </div>
-
-          {!autoExposure && (
-            <div style={styles.manualControls}>
-              <div style={styles.sliderControl}>
-                <div style={styles.sliderHeader}>
-                  <span style={styles.subLabel}>Shutter Speed (ms)</span>
-                  <span style={styles.sliderValue}>{exposureMs.toFixed(1)} ms</span>
-                </div>
-                <input
-                  type="range"
-                  min="0.5"
-                  max="40.0"
-                  step="0.5"
-                  value={exposureMs}
-                  onChange={(e) => handleSettingsChange(false, parseFloat(e.target.value), gain)}
-                  style={styles.rangeInput}
-                />
-              </div>
-
-              <div style={styles.sliderControl}>
-                <div style={styles.sliderHeader}>
-                  <span style={styles.subLabel}>Sensor Gain</span>
-                  <span style={styles.sliderValue}>{gain}</span>
-                </div>
-                <input
-                  type="range"
-                  min="1"
-                  max="128"
-                  step="1"
-                  value={gain}
-                  onChange={(e) => handleSettingsChange(false, exposureMs, parseInt(e.target.value))}
-                  style={styles.rangeInput}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>
