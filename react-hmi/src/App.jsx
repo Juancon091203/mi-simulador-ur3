@@ -104,11 +104,26 @@ const App = () => {
     cameraGain: 64,
   });
 
-  // Cola de ejecuciones
-  const [executionQueue, setExecutionQueue] = useState([]);
-  const [isQueuePlaying, setIsQueuePlaying] = useState(false);
-  const [currentQueueIndex, setCurrentQueueIndex] = useState(0);
+  // Cola de ejecuciones por estación
+  const [stationQueues, setStationQueues] = useState({
+    1: [],
+    2: [],
+    3: [],
+    4: []
+  });
+  const [stationQueueStatus, setStationQueueStatus] = useState({
+    1: { isPlaying: false, currentIndex: 0 },
+    2: { isPlaying: false, currentIndex: 0 },
+    3: { isPlaying: false, currentIndex: 0 },
+    4: { isPlaying: false, currentIndex: 0 }
+  });
+  const [promptStationId, setPromptStationId] = useState(null);
   const [showObjectChangePrompt, setShowObjectChangePrompt] = useState(false);
+  const [editingQueueItem, setEditingQueueItem] = useState(null); // Para editar elementos de la cola
+
+  // Estados para la gestión y creación de presets
+  const [editingPresetName, setEditingPresetName] = useState(null); // nombre o '__new__'
+  const [editingPresetForm, setEditingPresetForm] = useState(''); // nombre del nuevo preset
 
   // Alerta de Emergencia
   const [emergencyAlert, setEmergencyAlert] = useState(null); // { stationName: string, problem: string } | null
@@ -566,10 +581,10 @@ const App = () => {
     }));
   };
 
-  // 2. Add to Queue Helper
+  // 2. Add to Queue Helper (per-station)
   const handleAddToQueue = () => {
     const newItem = {
-      id: Date.now(),
+      id: editingQueueItem ? editingQueueItem.id : Date.now(),
       productName: configFormData.productName || 'Unnamed Product',
       savePath: configFormData.savePath,
       robotSpeed: configFormData.robotSpeed,
@@ -577,7 +592,23 @@ const App = () => {
       stationName: stations.find(s => s.id === configStationId)?.name || `Station ${configStationId}`,
       ...configFormData
     };
-    setExecutionQueue(prev => [...prev, newItem]);
+
+    if (editingQueueItem) {
+      // Edit queue item in-place
+      setStationQueues(prev => {
+        const stationId = editingQueueItem.stationId;
+        const updatedQueue = prev[stationId].map(item => item.id === editingQueueItem.id ? newItem : item);
+        return { ...prev, [stationId]: updatedQueue };
+      });
+      setEditingQueueItem(null);
+    } else {
+      // Append to the station's queue
+      setStationQueues(prev => ({
+        ...prev,
+        [configStationId]: [...(prev[configStationId] || []), newItem]
+      }));
+    }
+
     setIsConfigModalOpen(false);
     setConfigFormData({
       productName: '',
@@ -589,85 +620,182 @@ const App = () => {
     });
   };
 
-  // 3. Queue Controls
-  const handlePlayQueue = () => {
-    if (executionQueue.length === 0) return;
-    setIsQueuePlaying(true);
+  // 3. Station Specific Queue Controls
+  const handlePlayStationQueue = (stationId) => {
+    setStationQueueStatus(prev => {
+      const status = prev[stationId] || { isPlaying: false, currentIndex: 0 };
+      const queue = stationQueues[stationId] || [];
+      if (queue.length === 0) return prev;
+      return {
+        ...prev,
+        [stationId]: { ...status, isPlaying: true }
+      };
+    });
   };
 
-  const handlePauseQueue = () => {
-    setIsQueuePlaying(false);
+  const handlePauseStationQueue = (stationId) => {
+    setStationQueueStatus(prev => {
+      const status = prev[stationId] || { isPlaying: false, currentIndex: 0 };
+      return {
+        ...prev,
+        [stationId]: { ...status, isPlaying: false }
+      };
+    });
   };
 
-  const handleSkipQueue = () => {
-    setIsQueuePlaying(false);
-    if (currentQueueIndex + 1 < executionQueue.length) {
-      setCurrentQueueIndex(prev => prev + 1);
-      setIsQueuePlaying(true);
-    }
+  const handleRemoveQueueItem = (stationId, itemId) => {
+    setStationQueues(prev => {
+      const queue = prev[stationId] || [];
+      const updated = queue.filter(item => item.id !== itemId);
+      return { ...prev, [stationId]: updated };
+    });
+    // Adjust currentIndex if necessary
+    setStationQueueStatus(prev => {
+      const status = prev[stationId];
+      const queue = stationQueues[stationId] || [];
+      const removedIndex = queue.findIndex(item => item.id === itemId);
+      if (removedIndex !== -1 && status.currentIndex >= removedIndex) {
+        const nextIndex = Math.max(0, status.currentIndex - 1);
+        return {
+          ...prev,
+          [stationId]: { ...status, currentIndex: nextIndex, isPlaying: queue.length > 1 ? status.isPlaying : false }
+        };
+      }
+      return prev;
+    });
+  };
+
+  const handleEditQueueItem = (item) => {
+    setEditingQueueItem(item);
+    setConfigStationId(item.stationId);
+    setConfigFormData({
+      productName: item.productName,
+      savePath: item.savePath,
+      robotSpeed: item.robotSpeed,
+      cameraAutoExposure: item.cameraAutoExposure,
+      cameraShutterMs: item.cameraShutterMs,
+      cameraGain: item.cameraGain,
+    });
+    setIsConfigModalOpen(true);
+  };
+
+  const handleMoveQueueItem = (stationId, index, direction) => {
+    setStationQueues(prev => {
+      const queue = [...(prev[stationId] || [])];
+      if (direction === 'up' && index > 0) {
+        const temp = queue[index];
+        queue[index] = queue[index - 1];
+        queue[index - 1] = temp;
+      } else if (direction === 'down' && index < queue.length - 1) {
+        const temp = queue[index];
+        queue[index] = queue[index + 1];
+        queue[index + 1] = temp;
+      }
+      return { ...prev, [stationId]: queue };
+    });
   };
 
   const handleContinueQueue = () => {
     setShowObjectChangePrompt(false);
-    setCurrentQueueIndex(prev => prev + 1);
-    setIsQueuePlaying(true);
-  };
-
-  const handleQueueItemFinished = () => {
-    setIsQueuePlaying(false);
-    if (currentQueueIndex + 1 < executionQueue.length) {
-      setShowObjectChangePrompt(true);
-    } else {
-      alert("Execution queue completed successfully!");
-      setCurrentQueueIndex(0);
-      setExecutionQueue([]);
+    if (promptStationId) {
+      const stationId = promptStationId;
+      setStationQueueStatus(prev => {
+        const status = prev[stationId];
+        const nextIndex = status.currentIndex + 1;
+        setStations(stPrev => stPrev.map(st => {
+          if (st.id === stationId) {
+            return { ...st, progress: 0, photoCount: 0 };
+          }
+          return st;
+        }));
+        return {
+          ...prev,
+          [stationId]: { isPlaying: true, currentIndex: nextIndex }
+        };
+      });
+      setPromptStationId(null);
     }
   };
 
-  // 4. Queue runner effect
-  useEffect(() => {
-    if (!isQueuePlaying || executionQueue.length === 0 || currentQueueIndex >= executionQueue.length) return;
+  const handleStationQueueItemFinished = (stationId) => {
+    setStationQueueStatus(prev => {
+      const status = prev[stationId];
+      const queue = stationQueues[stationId] || [];
+      const nextIndex = status.currentIndex + 1;
 
-    const currentItem = executionQueue[currentQueueIndex];
-
-    // Set the station to running
-    setStations(prev => prev.map(st => {
-      if (st.id === currentItem.stationId) {
+      if (nextIndex < queue.length) {
+        setPromptStationId(stationId);
+        setShowObjectChangePrompt(true);
         return {
-          ...st,
-          status: 'running',
-          product: currentItem.productName,
-          speed: currentItem.robotSpeed
+          ...prev,
+          [stationId]: { ...status, isPlaying: false }
         };
-      }
-      return st;
-    }));
-
-    const interval = setInterval(() => {
-      setStations(prev => {
-        let finished = false;
-        const nextStations = prev.map(st => {
-          if (st.id === currentItem.stationId) {
-            const nextCount = st.photoCount + 5;
-            if (nextCount >= st.maxPhotos) {
-              finished = true;
-              return { ...st, status: 'idle', photoCount: st.maxPhotos, progress: 100 };
-            }
-            return { ...st, photoCount: nextCount, progress: Math.round((nextCount / st.maxPhotos) * 100) };
+      } else {
+        alert(`Station ${stationId} queue completed successfully!`);
+        setStations(stPrev => stPrev.map(st => {
+          if (st.id === stationId) {
+            return { ...st, status: 'idle', product: 'None', progress: 0, photoCount: 0, speed: 0.0 };
           }
           return st;
-        });
+        }));
+        setStationQueues(qPrev => ({ ...qPrev, [stationId]: [] }));
+        return {
+          ...prev,
+          [stationId]: { isPlaying: false, currentIndex: 0 }
+        };
+      }
+    });
+  };
 
-        if (finished) {
-          clearInterval(interval);
-          handleQueueItemFinished();
-        }
-        return nextStations;
+  // 4. Parallel Queue runner effect
+  useEffect(() => {
+    const activeStations = Object.keys(stationQueueStatus).filter(stationIdStr => {
+      const stationId = parseInt(stationIdStr);
+      const status = stationQueueStatus[stationId];
+      const queue = stationQueues[stationId] || [];
+      return status.isPlaying && queue.length > 0 && status.currentIndex < queue.length;
+    });
+
+    if (activeStations.length === 0) return;
+
+    const interval = setInterval(() => {
+      activeStations.forEach(stationIdStr => {
+        const stationId = parseInt(stationIdStr);
+        const status = stationQueueStatus[stationId];
+        const queue = stationQueues[stationId];
+        const currentItem = queue[status.currentIndex];
+
+        setStations(prev => {
+          let itemFinished = false;
+          const updated = prev.map(st => {
+            if (st.id === stationId) {
+              const nextCount = st.photoCount + 5;
+              if (nextCount >= st.maxPhotos) {
+                itemFinished = true;
+                return { ...st, status: 'idle', photoCount: st.maxPhotos, progress: 100 };
+              }
+              return {
+                ...st,
+                status: 'running',
+                product: currentItem.productName,
+                speed: currentItem.robotSpeed,
+                photoCount: nextCount,
+                progress: Math.round((nextCount / st.maxPhotos) * 100)
+              };
+            }
+            return st;
+          });
+
+          if (itemFinished) {
+            setTimeout(() => handleStationQueueItemFinished(stationId), 50);
+          }
+          return updated;
+        });
       });
     }, 500);
 
     return () => clearInterval(interval);
-  }, [isQueuePlaying, currentQueueIndex, executionQueue]);
+  }, [stationQueueStatus, stationQueues]);
 
   // 5. Emergency Alert Poller effect
   useEffect(() => {
@@ -833,41 +961,9 @@ const App = () => {
       {/* Sidebar de Control */}
       <aside className="sidebar glass" style={styles.sidebar}>
         <header style={styles.header}>
-          <h1 className="text-gradient" style={{ fontSize: '1.4rem', marginBottom: '5px' }}>Automated Photography Studio</h1>
+          <h1 className="text-gradient" style={{ fontSize: '1.1rem', marginBottom: '5px' }}>Automated Photography Studio</h1>
           <p style={styles.subtitle}>Industrial HMI Dashboard</p>
         </header>
-
-        {/* User Card info & Logout */}
-        <div style={{ padding: '15px', background: 'var(--card-bg)', border: '1px solid var(--border-glass)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{currentUser || 'Anonymous User'}</span>
-            <span style={{
-              fontSize: '0.6rem',
-              fontWeight: '800',
-              textTransform: 'uppercase',
-              background: userRole === 'admin' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(0, 210, 255, 0.15)',
-              color: userRole === 'admin' ? '#00ff88' : 'var(--accent-blue)',
-              padding: '2px 8px',
-              borderRadius: '10px'
-            }}>
-              {userRole}
-            </span>
-          </div>
-          <button
-            onClick={() => setIsAuthenticated(false)}
-            style={{
-              ...styles.button,
-              padding: '8px 12px',
-              fontSize: '0.75rem',
-              background: 'none',
-              border: '1px solid var(--border-glass)',
-              color: 'var(--text-color)',
-              marginTop: '5px'
-            }}
-          >
-            Log Out / Change Role
-          </button>
-        </div>
 
         {/* --- Dropdown Navegador de Estaciones --- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -910,27 +1006,30 @@ const App = () => {
             🖥️ Dashboard {activeStationTab !== 'general' ? '(3D)' : ''}
           </button>
 
+          {activeStationTab === 'general' && (
+            <button
+              onClick={() => setActiveSubView('presets')}
+              style={{
+                ...styles.button,
+                padding: '12px',
+                fontSize: '0.8rem',
+                textAlign: 'left',
+                background: activeSubView === 'presets' || activeSubView === 'calibration' ? 'var(--accent-blue)' : 'var(--input-bg)',
+                border: '1px solid var(--border-glass)',
+                color: activeSubView === 'presets' || activeSubView === 'calibration' ? '#000000' : 'var(--text-color)',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: activeSubView === 'presets' || activeSubView === 'calibration' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
+              }}
+            >
+              📐 Presets
+            </button>
+          )}
+
           {activeStationTab !== 'general' && (
             <>
-              <button
-                onClick={() => setActiveSubView('calibration')}
-                style={{
-                  ...styles.button,
-                  padding: '12px',
-                  fontSize: '0.8rem',
-                  textAlign: 'left',
-                  background: activeSubView === 'calibration' ? 'var(--accent-blue)' : 'var(--input-bg)',
-                  border: '1px solid var(--border-glass)',
-                  color: activeSubView === 'calibration' ? '#000000' : 'var(--text-color)',
-                  fontWeight: 'bold',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: activeSubView === 'calibration' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
-                }}
-              >
-                📐 3D Calibration
-              </button>
               <button
                 onClick={() => setActiveSubView('vnc')}
                 style={{
@@ -992,111 +1091,121 @@ const App = () => {
           )}
         </div>
 
-        {/* Add Station Input (Sólo Admins) */}
-        {userRole === 'admin' && (
-          <section style={styles.section}>
-            {!showAddStationInput ? (
-              <button
-                onClick={() => setShowAddStationInput(true)}
-                style={{
-                  ...styles.button,
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px dashed var(--border-glass)',
-                  color: 'var(--text-color)'
-                }}
-              >
-                + Register Station IP
-              </button>
-            ) : (
-              <form onSubmit={handleAddStation} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.label}>New IP Address</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 192.168.3.15"
-                  value={newStationIp}
-                  onChange={(e) => setNewStationIp(e.target.value)}
-                  style={styles.input}
-                  autoFocus
-                />
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    type="submit"
-                    style={{ ...styles.button, padding: '8px', flex: 1, backgroundColor: '#00ff88', color: '#000000', fontSize: '0.75rem' }}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddStationInput(false)}
-                    style={{ ...styles.button, padding: '8px', flex: 1, background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)', fontSize: '0.75rem' }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
-        )}
-
         {/* Execution Queue Controls & List */}
-        {activeStationTab !== 'general' && (
-          <div className="queue-panel">
-            <div className="queue-header">
-              <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Execution Queue ({executionQueue.length})
-              </span>
-              <div className="queue-controls">
-                {isQueuePlaying ? (
-                  <button
-                    onClick={handlePauseQueue}
-                    style={{ background: 'rgba(255, 157, 0, 0.15)', color: 'var(--accent-orange)', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem', fontWeight: 'bold' }}
-                  >
-                    PAUSE
-                  </button>
+        {activeStationTab !== 'general' && (() => {
+          const sQueue = stationQueues[currentStation.id] || [];
+          const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
+          return (
+            <div className="queue-panel">
+              <div className="queue-header">
+                <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Execution Queue ({sQueue.length})
+                </span>
+              </div>
+
+              <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '180px', paddingRight: '4px' }}>
+                {sQueue.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
+                    No tasks in queue. Configure executions to start.
+                  </div>
                 ) : (
-                  <button
-                    onClick={handlePlayQueue}
-                    disabled={executionQueue.length === 0}
-                    style={{ background: executionQueue.length === 0 ? 'var(--button-disabled-bg)' : 'rgba(0, 255, 136, 0.15)', color: executionQueue.length === 0 ? 'var(--button-disabled-text)' : '#00ff88', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: executionQueue.length === 0 ? 'not-allowed' : 'pointer', fontSize: '0.65rem', fontWeight: 'bold' }}
-                  >
-                    PLAY
-                  </button>
+                  sQueue.map((item, idx) => (
+                    <div key={item.id} className={`queue-item ${idx === status.currentIndex ? 'active' : ''}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '6px', marginBottom: '6px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem' }}>{item.productName}</span>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>{item.robotSpeed} m/s • {item.pointCount || 100} pts</span>
+                      </div>
+                      
+                      {/* Controls inside the queue item */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {idx === status.currentIndex && status.isPlaying && (
+                          <span className="spinner" style={{ width: '8px', height: '8px', border: '1px solid var(--text-dim)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '6px' }} />
+                        )}
+                        <button
+                          onClick={() => handleMoveQueueItem(currentStation.id, idx, 'up')}
+                          disabled={idx === 0}
+                          style={{ background: 'none', border: 'none', color: idx === 0 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }}
+                          title="Move Up"
+                        >
+                          ▲
+                        </button>
+                        <button
+                          onClick={() => handleMoveQueueItem(currentStation.id, idx, 'down')}
+                          disabled={idx === sQueue.length - 1}
+                          style={{ background: 'none', border: 'none', color: idx === sQueue.length - 1 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === sQueue.length - 1 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === sQueue.length - 1 ? 0.3 : 1 }}
+                          title="Move Down"
+                        >
+                          ▼
+                        </button>
+                        <button
+                          onClick={() => handleEditQueueItem(item)}
+                          style={{ background: 'none', border: 'none', color: '#00d2ff', cursor: 'pointer', padding: '2px', fontSize: '0.85rem' }}
+                          title="Edit task"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleRemoveQueueItem(currentStation.id, item.id)}
+                          style={{ background: 'none', border: 'none', color: '#ff4b2b', cursor: 'pointer', padding: '2px', fontSize: '0.8rem' }}
+                          title="Remove task"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
-                <button
-                  onClick={handleSkipQueue}
-                  disabled={executionQueue.length === 0}
-                  style={{ background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}
-                >
-                  NEXT
-                </button>
               </div>
             </div>
+          );
+        })()}
 
-            <div className="queue-list">
-              {executionQueue.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
-                  No tasks in queue. Configure executions to start.
-                </div>
-              ) : (
-                executionQueue.map((item, idx) => (
-                  <div key={item.id} className={`queue-item ${idx === currentQueueIndex ? 'active' : ''}`}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontWeight: 'bold' }}>{item.productName}</span>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>{item.stationName} - {item.robotSpeed} m/s</span>
-                    </div>
-                    {idx === currentQueueIndex && isQueuePlaying && (
-                      <span className="spinner" style={{ width: '8px', height: '8px', border: '1px solid var(--text-dim)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
+        {/* User Card info & Logout (smaller, at the bottom of sidebar) */}
+        <div style={{
+          marginTop: 'auto',
+          padding: '10px',
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid var(--border-glass)',
+          borderRadius: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '6px',
+          fontSize: '0.75rem',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontWeight: 'bold' }}>{currentUser || 'Anonymous User'}</span>
+            <span style={{
+              fontSize: '0.55rem',
+              fontWeight: '800',
+              textTransform: 'uppercase',
+              background: userRole === 'admin' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(0, 210, 255, 0.15)',
+              color: userRole === 'admin' ? '#00ff88' : 'var(--accent-blue)',
+              padding: '1px 6px',
+              borderRadius: '8px'
+            }}>
+              {userRole}
+            </span>
           </div>
-        )}
+          <button
+            onClick={() => setIsAuthenticated(false)}
+            style={{
+              ...styles.button,
+              padding: '6px 10px',
+              fontSize: '0.7rem',
+              background: 'none',
+              border: '1px solid var(--border-glass)',
+              color: 'var(--text-color)',
+              marginTop: '2px',
+              width: '100%'
+            }}
+          >
+            Log Out / Change Role
+          </button>
+        </div>
       </aside>
 
       {/* --- PANEL PRINCIPAL DE CONTENIDO (DERECHA) --- */}
-      {activeStationTab === 'general' ? (
+      {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' ? (
         /* VISTA GENERAL (DASHBOARD DE LAS 4 ESTACIONES) */
         <main className="stations-container">
           <header className="stations-header-row">
@@ -1203,46 +1312,48 @@ const App = () => {
       ) : (
         /* VISTA INDIVIDUAL DE ESTACIÓN DETALLADA */
         <main className="stations-container">
-          <header className="stations-header-row">
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          {currentStation && (
+            <header className="stations-header-row">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                  <button
+                    onClick={() => {
+                      setActiveStationTab('general');
+                      setActiveSubView('dashboard');
+                    }}
+                    style={{
+                      width: 'auto',
+                      padding: '8px 16px',
+                      background: 'var(--input-bg)',
+                      border: '1px solid var(--border-glass)',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      color: 'var(--text-color)',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    ← Back
+                  </button>
+                  <h2 style={{ fontSize: '1.6rem', margin: 0 }}>{currentStation.name}</h2>
+                  <span className={`station-status-pill status-pill-${currentStation.status}`}>
+                    {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '6px' }}>Robot IP Address: {currentStation.ip}</p>
+              </div>
+              {userRole === 'admin' && (
                 <button
                   onClick={() => {
-                    setActiveStationTab('general');
-                    setActiveSubView('dashboard');
+                    setConfigStationId(currentStation.id);
+                    setIsConfigModalOpen(true);
                   }}
-                  style={{
-                    width: 'auto',
-                    padding: '8px 16px',
-                    background: 'var(--input-bg)',
-                    border: '1px solid var(--border-glass)',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    color: 'var(--text-color)',
-                    fontWeight: 'bold'
-                  }}
+                  style={{ ...styles.button, width: '180px', backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
                 >
-                  ← Back
+                  ⚙️ Configure Execution
                 </button>
-                <h2 style={{ fontSize: '1.6rem', margin: 0 }}>{currentStation.name}</h2>
-                <span className={`station-status-pill status-pill-${currentStation.status}`}>
-                  {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '6px' }}>Robot IP Address: {currentStation.ip}</p>
-            </div>
-            {userRole === 'admin' && (
-              <button
-                onClick={() => {
-                  setConfigStationId(currentStation.id);
-                  setIsConfigModalOpen(true);
-                }}
-                style={{ ...styles.button, width: '180px', backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                ⚙️ Configure Execution
-              </button>
-            )}
-          </header>
+              )}
+            </header>
+          )}
 
           {/* Renderizado de las Sub-Vistas específicas de la estación */}
           {activeSubView === 'dashboard' && (
@@ -1285,6 +1396,62 @@ const App = () => {
 
               {/* Lado Derecho: Paneles de Simulación y Monitoreo IMU */}
               <div style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
+                {/* Station Controls: Run Queue, Connect Robot */}
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Station Controls</h3>
+                  
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    {(() => {
+                      const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
+                      const sQueue = stationQueues[currentStation.id] || [];
+                      const isPlayingQueue = status.isPlaying;
+                      return (
+                        <button
+                          onClick={() => {
+                            if (isPlayingQueue) {
+                              handlePauseStationQueue(currentStation.id);
+                            } else {
+                              handlePlayStationQueue(currentStation.id);
+                            }
+                          }}
+                          disabled={sQueue.length === 0}
+                          style={{
+                            ...styles.button,
+                            flex: 1,
+                            padding: '10px',
+                            fontSize: '0.75rem',
+                            fontWeight: '800',
+                            background: isPlayingQueue ? 'rgba(255, 157, 0, 0.15)' : 'rgba(0, 255, 136, 0.12)',
+                            borderColor: isPlayingQueue ? '#ff9d00' : '#00ff88',
+                            color: isPlayingQueue ? '#ff9d00' : '#00ff88',
+                            opacity: sQueue.length === 0 ? 0.4 : 1,
+                            cursor: sQueue.length === 0 ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          {isPlayingQueue ? '❚❚ PAUSE RUN' : '▶ PLAY RUN'}
+                        </button>
+                      );
+                    })()}
+
+                    <button
+                      onClick={() => setIsRobotConnected(!isRobotConnected)}
+                      style={{
+                        ...styles.button,
+                        flex: 1,
+                        padding: '10px',
+                        fontSize: '0.75rem',
+                        fontWeight: '800',
+                        background: isRobotConnected ? 'rgba(0, 210, 255, 0.12)' : 'var(--input-bg)',
+                        borderColor: isRobotConnected ? '#00d2ff' : 'var(--border-glass)',
+                        color: isRobotConnected ? '#00d2ff' : 'var(--text-color)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {isRobotConnected ? 'CONNECTED' : 'CONNECT ROBOT'}
+                    </button>
+                  </div>
+                </div>
+
                 <PhotoSimulationPanel
                   isPlaying={isPlaying}
                   setIsPlaying={setIsPlaying}
@@ -1308,6 +1475,129 @@ const App = () => {
                     inlineIMU={true}
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubView === 'presets' && (
+            /* SUB-VISTA 1.25: PRESETS LIST VIEW */
+            <div style={{ display: 'flex', flex: 1, flexDirection: 'column', gap: '20px', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-glass)', background: 'var(--bg-panel)', backdropFilter: 'blur(10px)', color: 'var(--text-color)', overflowY: 'auto', height: 'calc(100vh - 170px)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Configuration Presets</h3>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>Manage 3D scanning boundary and path presets</p>
+                </div>
+                <button
+                  onClick={() => {
+                    // Set to defaults
+                    setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
+                    setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
+                    setZBounds({ min: -1.0, max: 1.0 });
+                    setPointCount(100);
+                    setColumnHeight(0.5);
+                    setOrbitRadius(1.6);
+                    setEditingPresetName('__new__');
+                    setEditingPresetForm('');
+                    setActiveSubView('calibration');
+                  }}
+                  style={{
+                    ...styles.button,
+                    backgroundColor: 'var(--accent-blue)',
+                    color: '#000000',
+                    fontWeight: 'bold',
+                    width: '180px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ➕ Create New Preset
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', marginTop: '10px' }}>
+                {Object.keys(presets).length === 0 ? (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: 'var(--text-dim)', border: '1px dashed var(--border-glass)', borderRadius: '12px' }}>
+                    No presets found. Click "Create New Preset" to get started.
+                  </div>
+                ) : (
+                  Object.keys(presets).map(name => {
+                    const cfg = presets[name] || {};
+                    const sSize = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
+                    return (
+                      <div key={name} className="glass" style={{ padding: '20px', border: '1px solid var(--border-glass)', borderRadius: '12px', background: 'rgba(255,255,255,0.01)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '15px' }}>
+                        <div>
+                          <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--accent-blue)', marginBottom: '8px' }}>{name}</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Fibonacci Points:</span>
+                              <span style={{ color: 'var(--text-color)', fontWeight: 'bold' }}>{cfg.pointCount ?? 100}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Spheroid Size (XYZ):</span>
+                              <span style={{ color: 'var(--text-color)' }}>
+                                {sSize.x.toFixed(2)}x{sSize.y.toFixed(2)}x{sSize.z.toFixed(2)}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Orbit Radius:</span>
+                              <span style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)}m</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span>Base Height:</span>
+                              <span style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)}m</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                          <button
+                            onClick={() => {
+                              handleLoadPreset(name);
+                              setEditingPresetName(name);
+                              setActiveSubView('calibration');
+                            }}
+                            style={{
+                              ...styles.button,
+                              flex: 1,
+                              width: 'auto',
+                              padding: '8px',
+                              fontSize: '0.75rem',
+                              backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                              border: '1px solid var(--accent-blue)',
+                              color: 'var(--accent-blue)',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✏️ Edit & View
+                          </button>
+                          <button
+                            onClick={() => {
+                              const confirmDelete = window.confirm(`Are you sure you want to delete the preset "${name}"?`);
+                              if (confirmDelete) {
+                                handleDeletePreset(name);
+                              }
+                            }}
+                            style={{
+                              ...styles.button,
+                              width: 'auto',
+                              flex: '0 0 50px',
+                              padding: '8px 12px',
+                              fontSize: '0.75rem',
+                              backgroundColor: 'rgba(255, 75, 43, 0.1)',
+                              border: '1px solid #ff4b2b',
+                              color: '#ff4b2b',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
@@ -1353,16 +1643,6 @@ const App = () => {
               {/* Lado Derecho: Configuración del Esferoide y Presets */}
               <div style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
                 <BasicOptionsPanel
-                  modelType={modelType}
-                  setModelType={setModelType}
-                  connectionMode={connectionMode}
-                  setConnectionMode={setConnectionMode}
-                  ipAddress={ipAddress}
-                  setIpAddress={setIpAddress}
-                  manualMode={manualMode}
-                  setManualMode={setManualMode}
-                  manualJoints={manualJoints}
-                  setManualJoints={setManualJoints}
                   spheroidSize={spheroidSize}
                   setSpheroidSize={setSpheroidSize}
                   showSpheroid={showSpheroid}
@@ -1379,12 +1659,15 @@ const App = () => {
                   setColumnHeight={setColumnHeight}
                   orbitRadius={orbitRadius}
                   setOrbitRadius={setOrbitRadius}
-                  backendSequence={backendSequence}
-                  setBackendSequence={setBackendSequence}
-                  isCalculating={isCalculating}
-                  setIsCalculating={setIsCalculating}
                   presets={presets}
-                  setPresets={setPresets}
+                  editingPresetName={editingPresetName}
+                  editingPresetForm={editingPresetForm}
+                  setEditingPresetForm={setEditingPresetForm}
+                  onSavePreset={async (name) => {
+                    await handleSavePreset(name);
+                    setActiveSubView('presets');
+                  }}
+                  onBackToPresets={() => setActiveSubView('presets')}
                 />
               </div>
             </div>

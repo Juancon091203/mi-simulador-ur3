@@ -23,17 +23,13 @@ const BasicOptionsPanel = ({
   darkMode = true,
   setDarkMode,
   presets = {},
-  onSavePreset,
-  onDeletePreset,
-  onLoadPreset,
-  isPlaying,
-  setIsPlaying,
-  isRobotConnected,
-  setIsRobotConnected
+  editingPresetName,        // string (e.g. 'PresetA') o '__new__'
+  editingPresetForm,        // state del input de texto del nombre
+  setEditingPresetForm,     // setter del input
+  onSavePreset,             // callback para guardar
+  onBackToPresets           // callback para volver
 }) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [newPresetName, setNewPresetName] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState('');
 
   const handleSliderChange = (axis, value) => {
     setSpheroidSize((prev) => ({
@@ -78,143 +74,84 @@ const BasicOptionsPanel = ({
     if (setShowSectors) setShowSectors(false);
     if (setColumnHeight) setColumnHeight(0.5);
     if (setOrbitRadius) setOrbitRadius(1.6);
-    setSelectedPreset('');
-  };
-
-  const handleSave = () => {
-    if (!newPresetName.trim()) return;
-    onSavePreset(newPresetName.trim());
-    setSelectedPreset(newPresetName.trim());
-    setNewPresetName('');
-  };
-
-  const handleDelete = () => {
-    if (!selectedPreset) return;
-    const confirmDelete = window.confirm(`Are you sure you want to delete the preset "${selectedPreset}"?`);
-    if (confirmDelete) {
-      onDeletePreset(selectedPreset);
-      setSelectedPreset('');
-    }
-  };
-
-  const handlePresetSelect = (e) => {
-    const name = e.target.value;
-    setSelectedPreset(name);
-    if (name) {
-      onLoadPreset(name);
-    }
   };
 
   return (
     <div className="glass spheroid-panel" style={styles.panel}>
       <header style={styles.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px' }}>
+          <button
+            onClick={onBackToPresets}
+            style={{
+              ...styles.actionButton,
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-glass)',
+              color: 'var(--text-color)',
+              padding: '6px 12px',
+              fontSize: '0.75rem',
+              alignSelf: 'flex-start',
+              cursor: 'pointer'
+            }}
+          >
+            ← Back to Presets List
+          </button>
+          
           <div>
-            <h2 style={styles.title} className="text-gradient">BASIC OPTIONS</h2>
-            <p style={styles.subtitle}>Photographer Control Panel</p>
+            <h2 style={styles.title} className="text-gradient">
+              {editingPresetName === '__new__' ? 'CREATE NEW PRESET' : 'EDIT PRESET'}
+            </h2>
+            {editingPresetName !== '__new__' && (
+              <p style={{ ...styles.subtitle, color: 'var(--accent-blue)', fontWeight: 'bold' }}>
+                Preset: {editingPresetName}
+              </p>
+            )}
           </div>
         </div>
       </header>
 
-      {/* Botón de Ejecución (Play/Pause y Connect Robot) */}
-      <div style={styles.actionButtonGroup}>
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          style={{
-            ...styles.actionButton,
-            background: isPlaying ? 'rgba(255, 157, 0, 0.15)' : 'var(--input-bg)',
-            borderColor: isPlaying ? '#ff9d00' : 'var(--border-glass)',
-            color: isPlaying ? '#ff9d00' : 'var(--text-color)',
-            fontWeight: '800'
-          }}
-        >
-          {isPlaying ? '❚❚ PAUSE RUN' : '▶ PLAY RUN'}
-        </button>
-
-        <button
-          onClick={() => setIsRobotConnected(!isRobotConnected)}
-          style={{
-            ...styles.actionButton,
-            background: isRobotConnected ? 'rgba(0, 255, 136, 0.12)' : 'var(--input-bg)',
-            borderColor: isRobotConnected ? '#00ff88' : 'var(--border-glass)',
-            color: isRobotConnected ? '#00ff88' : 'var(--text-color)',
-            fontWeight: '800'
-          }}
-        >
-          {isRobotConnected ? 'CONNECTED' : 'CONNECT ROBOT'}
-        </button>
-      </div>
-
-      <div style={{ ...styles.divider, opacity: 0.15 }} />
-
-      {/* Control de visibilidad de sectores */}
-      <div style={styles.row}>
-        <span style={styles.label}>SHOW SECTORS</span>
-        <label style={styles.switch}>
-          <input
-            type="checkbox"
-            checked={showSectors}
-            onChange={(e) => setShowSectors(e.target.checked)}
-            style={styles.switchInput}
-          />
-          <span style={{
-            ...styles.switchSlider,
-            backgroundColor: showSectors ? 'var(--accent-orange)' : 'var(--switch-off-bg)',
-            boxShadow: showSectors ? '0 0 8px var(--accent-orange)' : 'none'
-          }}>
-            <span style={{
-              ...styles.switchKnob,
-              transform: showSectors ? 'translateX(18px)' : 'translateX(0px)'
-            }} />
-          </span>
-        </label>
-      </div>
-
-      {/* Presets Configuration Section */}
-      <div style={styles.presetsSection}>
-        <span style={styles.label}>CONFIGURATION PRESETS</span>
-        <div style={styles.presetRow}>
-          <select
-            value={selectedPreset}
-            onChange={handlePresetSelect}
-            style={styles.select}
-          >
-            <option value="">-- Load Preset --</option>
-            {Object.keys(presets).map((name) => (
-              <option key={name} value={name}>{name}</option>
-            ))}
-          </select>
-          {selectedPreset && (
+      {/* Preset Action Box (Save / Naming) */}
+      <div style={{ ...styles.presetsSection, marginBottom: '20px' }}>
+        {editingPresetName === '__new__' ? (
+          <div style={styles.savePresetRow}>
+            <input
+              type="text"
+              placeholder="Enter new preset name..."
+              value={editingPresetForm}
+              onChange={(e) => setEditingPresetForm(e.target.value)}
+              style={styles.input}
+            />
             <button
-              onClick={handleDelete}
-              style={styles.deletePresetBtn}
-              title="Delete selected preset"
+              onClick={() => onSavePreset(editingPresetForm.trim())}
+              disabled={!editingPresetForm.trim()}
+              style={{
+                ...styles.savePresetBtn,
+                background: 'var(--accent-blue)',
+                color: '#000000',
+                fontWeight: 'bold',
+                opacity: editingPresetForm.trim() ? 1 : 0.4,
+                cursor: editingPresetForm.trim() ? 'pointer' : 'not-allowed'
+              }}
             >
-              ✕
+              Create Preset
             </button>
-          )}
-        </div>
-
-        <div style={styles.savePresetRow}>
-          <input
-            type="text"
-            placeholder="New preset name..."
-            value={newPresetName}
-            onChange={(e) => setNewPresetName(e.target.value)}
-            style={styles.input}
-          />
+          </div>
+        ) : (
           <button
-            onClick={handleSave}
-            disabled={!newPresetName.trim()}
+            onClick={() => onSavePreset(editingPresetName)}
             style={{
               ...styles.savePresetBtn,
-              opacity: newPresetName.trim() ? 1 : 0.4,
-              cursor: newPresetName.trim() ? 'pointer' : 'not-allowed'
+              background: 'linear-gradient(135deg, #00ff88, #00d2ff)',
+              color: '#000000',
+              fontWeight: '900',
+              width: '100%',
+              fontSize: '0.8rem',
+              boxShadow: '0 0 10px rgba(0, 255, 136, 0.2)',
+              cursor: 'pointer'
             }}
           >
-            Save
+            💾 Save Preset Changes
           </button>
-        </div>
+        )}
       </div>
 
       <div style={{ ...styles.divider, opacity: 0.15 }} />
@@ -307,9 +244,7 @@ const BasicOptionsPanel = ({
         </div>
       </div>
 
-      <button onClick={handleReset} style={styles.button}>
-        RESET TO DEFAULTS
-      </button>
+
 
       {/* Advanced Options Collapsible */}
       <div style={{ marginTop: '10px' }}>
