@@ -102,6 +102,7 @@ const App = () => {
     cameraAutoExposure: true,
     cameraShutterMs: 5.0,
     cameraGain: 64,
+    presetName: '',
   });
 
   // Cola de ejecuciones por estación
@@ -617,6 +618,7 @@ const App = () => {
       cameraAutoExposure: true,
       cameraShutterMs: 5.0,
       cameraGain: 64,
+      presetName: '',
     });
   };
 
@@ -1816,6 +1818,40 @@ const App = () => {
             <div className="modal-body-scroll">
               {configActiveTab === 'basic' && (
                 <div className="form-grid">
+                  <div className="form-field" style={{ gridColumn: 'span 2' }}>
+                    <label>Scanning Preset</label>
+                    <select
+                      style={styles.select}
+                      value={configFormData.presetName || ''}
+                      onChange={(e) => {
+                        const selectedName = e.target.value;
+                        setConfigFormData(prev => ({ ...prev, presetName: selectedName }));
+                      }}
+                    >
+                      <option value="">— No preset selected —</option>
+                      {Object.keys(presets).map(name => {
+                        const cfg = presets[name] || {};
+                        const s = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
+                        return (
+                          <option key={name} value={name}>
+                            {name} — {cfg.pointCount ?? 100} pts · Ø{s.x.toFixed(2)}x{s.y.toFixed(2)}x{s.z.toFixed(2)} · r{(cfg.orbitRadius ?? 1.6).toFixed(2)}m
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {configFormData.presetName && presets[configFormData.presetName] && (() => {
+                      const cfg = presets[configFormData.presetName];
+                      const s = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
+                      return (
+                        <div style={{ marginTop: '8px', padding: '10px 14px', background: 'rgba(0, 210, 255, 0.05)', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '8px', fontSize: '0.72rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', color: 'var(--text-dim)' }}>
+                          <span>Fibonacci Points: <strong style={{ color: 'var(--text-color)' }}>{cfg.pointCount ?? 100}</strong></span>
+                          <span>Orbit Radius: <strong style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)} m</strong></span>
+                          <span>Spheroid: <strong style={{ color: 'var(--text-color)' }}>{s.x.toFixed(2)}×{s.y.toFixed(2)}×{s.z.toFixed(2)}</strong></span>
+                          <span>Base Height: <strong style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)} m</strong></span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                   <div className="form-field">
                     <label>Product Name</label>
                     <input
