@@ -126,7 +126,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '5px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', textTransform: 'uppercase' }}>ESTADO IMU:</span>
+          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', textTransform: 'uppercase' }}>IMU STATUS:</span>
           <span
             style={{
               fontSize: '0.8rem',
@@ -135,14 +135,14 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
-            {status.stable ? 'ESTABLE' : 'INESTABLE (VIBRACIÓN)'}
+            {status.stable ? 'STABLE' : 'UNSTABLE (VIBRATING)'}
           </span>
         </div>
 
         {/* Métrica de giro */}
         <div style={styles.imuMetric}>
           <div style={styles.metricHeader}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Velocidad Rotación:</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Rotation Speed:</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{status.gyro_magnitude.toFixed(3)} rad/s</span>
           </div>
           <div style={styles.metricTrack}>
@@ -159,7 +159,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
         {/* Umbral de estabilidad (Slider) */}
         <div style={styles.thresholdControl}>
           <div style={styles.sliderHeader}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 'bold' }}>TOLERANCIA DE VIBRACIÓN (IMU)</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 'bold' }}>VIBRATION TOLERANCE (IMU)</span>
             <span style={styles.sliderValue}>{stabilityThreshold.toFixed(2)}</span>
           </div>
           <input
@@ -172,8 +172,8 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
             style={styles.rangeInput}
           />
           <div style={styles.sliderLabels}>
-            <span>Estricto (0.01)</span>
-            <span>Permisivo (0.50)</span>
+            <span>Strict (0.01)</span>
+            <span>Permissive (0.50)</span>
           </div>
         </div>
       </div>

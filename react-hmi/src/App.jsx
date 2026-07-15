@@ -83,10 +83,10 @@ const App = () => {
 
   // Cuadrícula de 4 estaciones
   const [stations, setStations] = useState([
-    { id: 1, name: 'Estación 1', ip: '192.168.3.10', status: 'idle', product: 'Ninguno', savePath: 'C:/Fotos/Estacion1', progress: 0, photoCount: 0, maxPhotos: 100, speed: 0.0 },
-    { id: 2, name: 'Estación 2', ip: '192.168.3.11', status: 'running', product: 'Zapato Deportivo', savePath: 'C:/Fotos/Estacion2', progress: 45, photoCount: 45, maxPhotos: 100, speed: 0.8 },
-    { id: 3, name: 'Estación 3', ip: '192.168.3.12', status: 'warning', product: 'Gafas de Sol', savePath: 'C:/Fotos/Estacion3', progress: 75, photoCount: 75, maxPhotos: 100, speed: 0.5 },
-    { id: 4, name: 'Estación 4', ip: '192.168.3.13', status: 'emergency', product: 'Reloj de Pulsera', savePath: 'C:/Fotos/Estacion4', progress: 20, photoCount: 20, maxPhotos: 100, speed: 0.2 },
+    { id: 1, name: 'Station 1', ip: '192.168.3.10', status: 'idle', product: 'None', savePath: 'C:/Photos/Station1', progress: 0, photoCount: 0, maxPhotos: 100, speed: 0.0 },
+    { id: 2, name: 'Station 2', ip: '192.168.3.11', status: 'running', product: 'Running Shoes', savePath: 'C:/Photos/Station2', progress: 45, photoCount: 45, maxPhotos: 100, speed: 0.8 },
+    { id: 3, name: 'Station 3', ip: '192.168.3.12', status: 'warning', product: 'Sunglasses', savePath: 'C:/Photos/Station3', progress: 75, photoCount: 75, maxPhotos: 100, speed: 0.5 },
+    { id: 4, name: 'Station 4', ip: '192.168.3.13', status: 'emergency', product: 'Wristwatch', savePath: 'C:/Photos/Station4', progress: 20, photoCount: 20, maxPhotos: 100, speed: 0.2 },
   ]);
   const [showAddStationInput, setShowAddStationInput] = useState(false);
   const [newStationIp, setNewStationIp] = useState('');
@@ -97,7 +97,7 @@ const App = () => {
   const [configActiveTab, setConfigActiveTab] = useState('basic'); // 'basic' | 'camera' | 'station'
   const [configFormData, setConfigFormData] = useState({
     productName: '',
-    savePath: 'C:/Fotos/Producto',
+    savePath: 'C:/Photos/Product',
     robotSpeed: 0.5,
     cameraAutoExposure: true,
     cameraShutterMs: 5.0,
@@ -543,10 +543,10 @@ const App = () => {
       ...prev,
       {
         id: prev.length + 1,
-        name: `Estación ${prev.length + 1}`,
+        name: `Station ${prev.length + 1}`,
         ip: newStationIp,
         status: 'idle',
-        product: 'Ninguno',
+        product: 'None',
         progress: 0,
         photoCount: 0,
         maxPhotos: 100,
@@ -570,18 +570,18 @@ const App = () => {
   const handleAddToQueue = () => {
     const newItem = {
       id: Date.now(),
-      productName: configFormData.productName || 'Producto sin nombre',
+      productName: configFormData.productName || 'Unnamed Product',
       savePath: configFormData.savePath,
       robotSpeed: configFormData.robotSpeed,
       stationId: configStationId,
-      stationName: stations.find(s => s.id === configStationId)?.name || `Estación ${configStationId}`,
+      stationName: stations.find(s => s.id === configStationId)?.name || `Station ${configStationId}`,
       ...configFormData
     };
     setExecutionQueue(prev => [...prev, newItem]);
     setIsConfigModalOpen(false);
     setConfigFormData({
       productName: '',
-      savePath: 'C:/Fotos/Producto',
+      savePath: 'C:/Photos/Product',
       robotSpeed: 0.5,
       cameraAutoExposure: true,
       cameraShutterMs: 5.0,
@@ -618,7 +618,7 @@ const App = () => {
     if (currentQueueIndex + 1 < executionQueue.length) {
       setShowObjectChangePrompt(true);
     } else {
-      alert("¡Cola de ejecuciones completada con éxito!");
+      alert("Execution queue completed successfully!");
       setCurrentQueueIndex(0);
       setExecutionQueue([]);
     }
@@ -727,17 +727,17 @@ const App = () => {
             setIsAuthenticated(true);
           }}>
             <div className="login-field">
-              <label>Usuario</label>
+              <label>Username</label>
               <input
                 type="text"
-                placeholder="Ej. operador1"
+                placeholder="e.g. operator1"
                 value={currentUser}
                 onChange={(e) => setCurrentUser(e.target.value)}
                 style={styles.input}
               />
             </div>
             <div className="login-field">
-              <label>Contraseña</label>
+              <label>Password</label>
               <input
                 type="password"
                 placeholder="••••••••"
@@ -747,14 +747,14 @@ const App = () => {
               />
             </div>
             <div className="login-field">
-              <label>Rol de Prueba</label>
+              <label>Testing Role</label>
               <select
                 value={userRole}
                 onChange={(e) => setUserRole(e.target.value)}
                 style={styles.select}
               >
-                <option value="admin">Administrador (Control Total)</option>
-                <option value="operator">Operador (Lectura / Cola)</option>
+                <option value="admin">Administrator (Full Control)</option>
+                <option value="operator">Operator (Read / Queue Only)</option>
               </select>
             </div>
             <button
@@ -767,17 +767,17 @@ const App = () => {
                 marginTop: '10px'
               }}
             >
-              INICIAR SESIÓN
+              SIGN IN
             </button>
             <div style={{ display: 'flex', alignItems: 'center', margin: '15px 0' }}>
               <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
-              <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', padding: '0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>O</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', padding: '0 10px', textTransform: 'uppercase', letterSpacing: '1px' }}>OR</span>
               <div style={{ flex: 1, height: '1px', background: 'var(--border-glass)' }}></div>
             </div>
             <button
               type="button"
               onClick={() => {
-                setCurrentUser('PruebaBypass');
+                setCurrentUser('BypassUser');
                 setUserRole('admin');
                 setIsAuthenticated(true);
               }}
@@ -789,7 +789,7 @@ const App = () => {
                 fontWeight: '900',
               }}
             >
-              ⚡ ACCESO RÁPIDO (BYPASS)
+              ⚡ QUICK ACCESS (BYPASS)
             </button>
           </form>
         </div>
@@ -827,7 +827,7 @@ const App = () => {
           width: 'auto',
         }}
       >
-        {darkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+        {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
       </button>
 
       {/* Sidebar de Control */}
@@ -840,7 +840,7 @@ const App = () => {
         {/* User Card info & Logout */}
         <div style={{ padding: '15px', background: 'var(--card-bg)', border: '1px solid var(--border-glass)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{currentUser || 'Usuario Anónimo'}</span>
+            <span style={{ fontWeight: '800', fontSize: '0.85rem' }}>{currentUser || 'Anonymous User'}</span>
             <span style={{
               fontSize: '0.6rem',
               fontWeight: '800',
@@ -865,13 +865,13 @@ const App = () => {
               marginTop: '5px'
             }}
           >
-            Cerrar Sesión / Cambiar Rol
+            Log Out / Change Role
           </button>
         </div>
 
         {/* --- Dropdown Navegador de Estaciones --- */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={styles.label}>Navegación / Vista</label>
+          <label style={styles.label}>Navigation / View</label>
           <select
             value={activeStationTab}
             onChange={(e) => {
@@ -881,7 +881,7 @@ const App = () => {
             }}
             style={styles.select}
           >
-            <option value="general">🌐 Vista General (4 Estaciones)</option>
+            <option value="general">🌐 General View (4 Stations)</option>
             {stations.map(st => (
               <option key={st.id} value={st.id}>🤖 {st.name} ({st.ip})</option>
             ))}
@@ -929,7 +929,7 @@ const App = () => {
                   boxShadow: activeSubView === 'calibration' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                📐 Calibración 3D
+                📐 3D Calibration
               </button>
               <button
                 onClick={() => setActiveSubView('vnc')}
@@ -948,7 +948,7 @@ const App = () => {
                   boxShadow: activeSubView === 'vnc' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                🎮 Visor VNC (TeachPendant)
+                🎮 VNC Viewer (TeachPendant)
               </button>
               <button
                 onClick={() => setActiveSubView('camera')}
@@ -967,7 +967,7 @@ const App = () => {
                   boxShadow: activeSubView === 'camera' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                📷 Cámara (2D)
+                📷 Camera (2D)
               </button>
               <button
                 onClick={() => setActiveSubView('config')}
@@ -986,7 +986,7 @@ const App = () => {
                   boxShadow: activeSubView === 'config' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                ⚙️ Configuración Estación
+                ⚙️ Station Settings
               </button>
             </>
           )}
@@ -1005,14 +1005,14 @@ const App = () => {
                   color: 'var(--text-color)'
                 }}
               >
-                + Registrar IP Estación
+                + Register Station IP
               </button>
             ) : (
               <form onSubmit={handleAddStation} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={styles.label}>Dirección IP Nueva</label>
+                <label style={styles.label}>New IP Address</label>
                 <input
                   type="text"
-                  placeholder="Ej. 192.168.3.15"
+                  placeholder="e.g. 192.168.3.15"
                   value={newStationIp}
                   onChange={(e) => setNewStationIp(e.target.value)}
                   style={styles.input}
@@ -1023,14 +1023,14 @@ const App = () => {
                     type="submit"
                     style={{ ...styles.button, padding: '8px', flex: 1, backgroundColor: '#00ff88', color: '#000000', fontSize: '0.75rem' }}
                   >
-                    Guardar
+                    Save
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowAddStationInput(false)}
                     style={{ ...styles.button, padding: '8px', flex: 1, background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)', fontSize: '0.75rem' }}
                   >
-                    Anular
+                    Cancel
                   </button>
                 </div>
               </form>
@@ -1043,7 +1043,7 @@ const App = () => {
           <div className="queue-panel">
             <div className="queue-header">
               <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Cola de Ejecución ({executionQueue.length})
+                Execution Queue ({executionQueue.length})
               </span>
               <div className="queue-controls">
                 {isQueuePlaying ? (
@@ -1067,7 +1067,7 @@ const App = () => {
                   disabled={executionQueue.length === 0}
                   style={{ background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.65rem' }}
                 >
-                  SIG
+                  NEXT
                 </button>
               </div>
             </div>
@@ -1075,7 +1075,7 @@ const App = () => {
             <div className="queue-list">
               {executionQueue.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
-                  Sin tareas en cola. Configura ejecuciones para iniciar.
+                  No tasks in queue. Configure executions to start.
                 </div>
               ) : (
                 executionQueue.map((item, idx) => (
@@ -1101,8 +1101,8 @@ const App = () => {
         <main className="stations-container">
           <header className="stations-header-row">
             <div>
-              <h2 style={{ fontSize: '1.6rem' }}>Vista General de Estaciones</h2>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>HMI de Monitoreo Central Multiestación</p>
+              <h2 style={{ fontSize: '1.6rem' }}>Station Overview</h2>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>Central Multi-Station Monitoring Console</p>
             </div>
             {userRole === 'admin' && (
               <button
@@ -1112,7 +1112,7 @@ const App = () => {
                 }}
                 style={{ ...styles.button, width: '180px', backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                ⚙️ Nueva Ejecución
+                ⚙️ New Execution
               </button>
             )}
           </header>
@@ -1133,19 +1133,19 @@ const App = () => {
                     <div className="station-ip">{st.ip}</div>
                   </div>
                   <span className={`station-status-pill status-pill-${st.status}`}>
-                    {st.status === 'running' ? 'En ejecución' : st.status === 'idle' ? 'Esperando' : st.status === 'warning' ? 'Parada Leve' : 'Emergencia'}
+                    {st.status === 'running' ? 'Running' : st.status === 'idle' ? 'Idle' : st.status === 'warning' ? 'Warning Stop' : 'Emergency'}
                   </span>
                 </div>
 
                 <div className="station-body">
                   <div className="station-info-group">
                     <div>
-                      <div className="station-info-label">Producto Activo</div>
+                      <div className="station-info-label">Active Product</div>
                       <div className="station-info-value">{st.product}</div>
                     </div>
                     <div>
-                      <div className="station-info-label">Velocidad Robot</div>
-                      <div className="station-info-value">{st.speed > 0 ? `${st.speed} m/s` : 'Inactivo'}</div>
+                      <div className="station-info-label">Robot Speed</div>
+                      <div className="station-info-value">{st.speed > 0 ? `${st.speed} m/s` : 'Inactive'}</div>
                     </div>
                   </div>
 
@@ -1222,14 +1222,14 @@ const App = () => {
                     fontWeight: 'bold'
                   }}
                 >
-                  ← Volver
+                  ← Back
                 </button>
                 <h2 style={{ fontSize: '1.6rem', margin: 0 }}>{currentStation.name}</h2>
                 <span className={`station-status-pill status-pill-${currentStation.status}`}>
-                  {currentStation.status === 'running' ? 'En ejecución' : currentStation.status === 'idle' ? 'Esperando' : currentStation.status === 'warning' ? 'Parada Leve' : 'Emergencia'}
+                  {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
                 </span>
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '6px' }}>Dirección IP del Robot: {currentStation.ip}</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '6px' }}>Robot IP Address: {currentStation.ip}</p>
             </div>
             {userRole === 'admin' && (
               <button
@@ -1239,7 +1239,7 @@ const App = () => {
                 }}
                 style={{ ...styles.button, width: '180px', backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                ⚙️ Configurar Ejecución
+                ⚙️ Configure Execution
               </button>
             )}
           </header>
@@ -1252,7 +1252,7 @@ const App = () => {
               <div style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
                 <Suspense fallback={
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-dim)' }}>
-                    Cargando gemelo digital...
+                    Loading digital twin...
                   </div>
                 }>
                   <RobotViewer
@@ -1301,7 +1301,7 @@ const App = () => {
                 />
                 {/* Tolerancias de Vibración (IMU) en línea */}
                 <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Tolerancias de Vibración (IMU)</h3>
+                  <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Vibration Tolerances (IMU)</h3>
                   <CameraViewer
                     stabilityThreshold={stabilityThreshold}
                     setStabilityThreshold={setStabilityThreshold}
@@ -1319,7 +1319,7 @@ const App = () => {
               <div style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
                 <Suspense fallback={
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-dim)' }}>
-                    Cargando gemelo digital...
+                    Loading digital twin...
                   </div>
                 }>
                   <RobotViewer
@@ -1407,35 +1407,35 @@ const App = () => {
               <div className="camera-feed-panel glass">
                 <img
                   src={cameraConnected ? "http://localhost:5005/camera/stream" : "http://localhost:5005/bota_ejemplo.png"}
-                  alt="Vista 2D de Cámara"
+                  alt="Camera 2D View"
                   className="camera-feed-image"
                 />
                 <div style={{ position: 'absolute', top: '15px', left: '15px', background: 'rgba(0,0,0,0.6)', padding: '6px 12px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '6px', height: '6px', background: '#00ff88', borderRadius: '50%' }}></span>
-                  FEED EN VIVO (2D) - CÁMARA ESTACIÓN
+                  LIVE FEED (2D) - STATION CAMERA
                 </div>
               </div>
               <div className="camera-config-panel">
                 <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Ajustes del Sensor</h3>
+                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Sensor Settings</h3>
                   <div style={styles.section}>
-                    <label style={styles.label}>Exposición Automática</label>
+                    <label style={styles.label}>Auto Exposure</label>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', marginTop: '5px' }}>
                       <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px' }} />
-                      Habilitado
+                      Enabled
                     </label>
                   </div>
                   <div style={styles.section}>
-                    <label style={styles.label}>Tiempo de Exposición (ms)</label>
+                    <label style={styles.label}>Exposure Time (ms)</label>
                     <input type="range" min="1" max="40" defaultValue="10" />
                   </div>
                   <div style={styles.section}>
-                    <label style={styles.label}>Ganancia</label>
+                    <label style={styles.label}>Gain</label>
                     <input type="range" min="1" max="128" defaultValue="64" />
                   </div>
                 </div>
                 <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Estabilidad (Física/IMU)</h3>
+                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Stability (Physical/IMU)</h3>
                   <CameraViewer
                     stabilityThreshold={stabilityThreshold}
                     setStabilityThreshold={setStabilityThreshold}
@@ -1450,48 +1450,48 @@ const App = () => {
             /* SUB-VISTA 4: CONFIGURACIÓN (RUTA DE GUARDADO Y PRODUCTO) */
             <div style={{ display: 'flex', gap: '25px', height: 'calc(100vh - 170px)', width: '100%' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '30px', borderRadius: '16px', overflowY: 'auto' }}>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>Ajustes de Almacenamiento</h3>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>Storage Settings</h3>
                 <div className="form-field">
-                  <label>Nombre del Producto</label>
+                  <label>Product Name</label>
                   <input
                     type="text"
-                    placeholder="Ej. Gafas de Sol Carrera"
+                    placeholder="e.g. Carrera Sunglasses"
                     value={currentStation.product}
                     onChange={(e) => handleUpdateStationConfig(currentStation.id, e.target.value, currentStation.savePath)}
                     style={styles.input}
                   />
                   <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                    Este nombre definirá la carpeta de almacenamiento de las imágenes capturadas.
+                    This name will define the storage folder for captured images.
                   </span>
                 </div>
                 <div className="form-field">
-                  <label>Ruta de Guardado (Save Path)</label>
+                  <label>Save Path</label>
                   <input
                     type="text"
-                    placeholder="Ej. C:/Fotos/Estacion"
+                    placeholder="e.g. C:/Photos/Station"
                     value={currentStation.savePath}
                     onChange={(e) => handleUpdateStationConfig(currentStation.id, currentStation.product, e.target.value)}
                     style={styles.input}
                   />
                 </div>
                 <div style={{ marginTop: '10px', padding: '15px', background: 'rgba(0, 210, 255, 0.05)', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '8px', fontSize: '0.75rem', lineHeight: '1.6' }}>
-                  ℹ️ Directorio de guardado final para este producto:
+                  ℹ️ Final save path for this product:
                   <br />
-                  <strong>{currentStation.savePath}/{currentStation.product.replace(/\s+/g, '_') || 'sin_nombre'}/</strong>
+                  <strong>{currentStation.savePath}/{currentStation.product.replace(/\s+/g, '_') || 'unnamed'}/</strong>
                 </div>
               </div>
 
               {/* Información General de la estación y velocidad actual */}
               <div style={{ width: '380px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Telemetría de la Estación</h3>
+                  <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Station Telemetry</h3>
                   <div style={styles.section}>
-                    <label style={styles.label}>Producto Asignado</label>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{currentStation.product || 'Ninguno'}</div>
+                    <label style={styles.label}>Assigned Product</label>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{currentStation.product || 'None'}</div>
                   </div>
                   <div style={styles.section}>
-                    <label style={styles.label}>Velocidad Actual del Robot</label>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{currentStation.speed > 0 ? `${currentStation.speed} m/s` : 'Robot detenido'}</div>
+                    <label style={styles.label}>Current Robot Speed</label>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{currentStation.speed > 0 ? `${currentStation.speed} m/s` : 'Robot stopped'}</div>
                   </div>
                 </div>
               </div>
@@ -1505,7 +1505,7 @@ const App = () => {
         <div className="modal-backdrop">
           <div className="modal-content-full glass">
             <header className="modal-header">
-              <h2 style={{ margin: 0 }}>Configurar Ejecución de Estación</h2>
+              <h2 style={{ margin: 0 }}>Configure Station Execution</h2>
               <button className="modal-close-btn" onClick={() => setIsConfigModalOpen(false)}>×</button>
             </header>
 
@@ -1514,19 +1514,19 @@ const App = () => {
                 className={`modal-tab-btn ${configActiveTab === 'basic' ? 'active' : ''}`}
                 onClick={() => setConfigActiveTab('basic')}
               >
-                Datos Básicos
+                Basic Info
               </button>
               <button
                 className={`modal-tab-btn ${configActiveTab === 'camera' ? 'active' : ''}`}
                 onClick={() => setConfigActiveTab('camera')}
               >
-                Cámara
+                Camera
               </button>
               <button
                 className={`modal-tab-btn ${configActiveTab === 'station' ? 'active' : ''}`}
                 onClick={() => setConfigActiveTab('station')}
               >
-                Estación
+                Station
               </button>
             </nav>
 
@@ -1534,20 +1534,20 @@ const App = () => {
               {configActiveTab === 'basic' && (
                 <div className="form-grid">
                   <div className="form-field">
-                    <label>Nombre del Producto</label>
+                    <label>Product Name</label>
                     <input
                       type="text"
-                      placeholder="Ej. Zapato Deportivo Nike"
+                      placeholder="e.g. Nike Running Shoes"
                       value={configFormData.productName}
                       onChange={(e) => setConfigFormData(prev => ({ ...prev, productName: e.target.value }))}
                       style={styles.input}
                     />
                   </div>
                   <div className="form-field">
-                    <label>Ruta de Guardado de Fotos</label>
+                    <label>Photo Save Path</label>
                     <input
                       type="text"
-                      placeholder="Ej. C:/Fotos/Nike"
+                      placeholder="e.g. C:/Photos/Nike"
                       value={configFormData.savePath}
                       onChange={(e) => setConfigFormData(prev => ({ ...prev, savePath: e.target.value }))}
                       style={styles.input}
@@ -1555,7 +1555,7 @@ const App = () => {
                   </div>
                   <div className="form-field" style={{ gridColumn: 'span 2' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                      <label>Velocidad del Robot (m/s)</label>
+                      <label>Robot Speed (m/s)</label>
                       <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{configFormData.robotSpeed} m/s</span>
                     </div>
                     <input
@@ -1580,14 +1580,14 @@ const App = () => {
                         onChange={(e) => setConfigFormData(prev => ({ ...prev, cameraAutoExposure: e.target.checked }))}
                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                       />
-                      Habilitar Exposición Automática (Auto Exposure)
+                      Enable Auto Exposure
                     </label>
                   </div>
                   {!configFormData.cameraAutoExposure && (
                     <>
                       <div className="form-field">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                          <label>Velocidad de Obturador (ms)</label>
+                          <label>Shutter Speed (ms)</label>
                           <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{configFormData.cameraShutterMs} ms</span>
                         </div>
                         <input
@@ -1601,7 +1601,7 @@ const App = () => {
                       </div>
                       <div className="form-field">
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                          <label>Ganancia del Sensor</label>
+                          <label>Sensor Gain</label>
                           <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>{configFormData.cameraGain}</span>
                         </div>
                         <input
@@ -1621,20 +1621,20 @@ const App = () => {
               {configActiveTab === 'station' && (
                 <div className="form-grid">
                   <div className="form-field">
-                    <label>Seleccionar Estación Destino</label>
+                    <label>Select Target Station</label>
                     <select
                       value={configStationId || ''}
                       onChange={(e) => setConfigStationId(parseInt(e.target.value))}
                       style={styles.select}
                     >
-                      <option value="" disabled>Seleccione una estación...</option>
+                      <option value="" disabled>Select a station...</option>
                       {stations.map(st => (
                         <option key={st.id} value={st.id}>{st.name} ({st.ip})</option>
                       ))}
                     </select>
                   </div>
                   <div className="form-field">
-                    <label>Cantidad de Puntos de Captura</label>
+                    <label>Number of Capture Points</label>
                     <input
                       type="number"
                       min="10"
@@ -1653,7 +1653,7 @@ const App = () => {
                 onClick={() => setIsConfigModalOpen(false)}
                 style={{ ...styles.button, width: '120px', background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)' }}
               >
-                Cancelar
+                Cancel
               </button>
               <button
                 onClick={handleAddToQueue}
@@ -1666,7 +1666,7 @@ const App = () => {
                   boxShadow: !configStationId ? 'none' : '0 0 15px rgba(0, 210, 255, 0.3)'
                 }}
               >
-                Añadir a la Cola
+                Add to Queue
               </button>
             </footer>
           </div>
@@ -1678,11 +1678,11 @@ const App = () => {
         <button
           onClick={async () => {
             try {
-              const targetName = currentStation ? currentStation.name : 'Estación 2';
+              const targetName = currentStation ? currentStation.name : 'Station 2';
               await fetch('http://127.0.0.1:5005/api/trigger_alert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ station: targetName, problem: 'Parada de Emergencia Pulsada físicamente' })
+                body: JSON.stringify({ station: targetName, problem: 'Emergency Stop physically pressed' })
               });
             } catch (err) {
               console.error(err);
@@ -1705,7 +1705,7 @@ const App = () => {
             fontWeight: 'bold'
           }}
         >
-          🚨 Simular Alerta {currentStation ? currentStation.name : 'Estación 2'}
+          🚨 Simulate Alert {currentStation ? currentStation.name : 'Station 2'}
         </button>
       )}
 
@@ -1714,19 +1714,19 @@ const App = () => {
         <div className="modal-backdrop">
           <div className="modal-content-full glass alert-dialog" style={{ height: 'auto', maxHeight: '350px', maxWidth: '480px', padding: '24px' }}>
             <h2 style={{ color: '#ff4b2b', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 15px 0' }}>
-              🚨 ALERTA CRÍTICA DE ESTACIÓN
+              🚨 CRITICAL STATION ALERT
             </h2>
             <p style={{ fontSize: '0.95rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
-              Se ha detectado un problema grave en la <strong>{emergencyAlert.station}</strong>.
+              A critical issue has been detected at <strong>{emergencyAlert.station}</strong>.
               <br />
-              <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>Detalle del error: {emergencyAlert.problem}</span>
+              <span style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>Error details: {emergencyAlert.problem}</span>
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={handleClearAlert}
                 style={{ ...styles.button, padding: '12px 24px', backgroundColor: '#ff4b2b', fontWeight: 'bold' }}
               >
-                Reconocer y Despejar Alerta
+                Acknowledge and Clear Alert
               </button>
             </div>
           </div>
@@ -1738,19 +1738,19 @@ const App = () => {
         <div className="modal-backdrop">
           <div className="modal-content-full glass" style={{ height: 'auto', maxHeight: '350px', maxWidth: '480px', padding: '24px', borderLeft: '6px solid var(--accent-orange)' }}>
             <h2 style={{ color: 'var(--accent-orange)', display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 15px 0' }}>
-              🔄 CAMBIO DE OBJETO REQUERIDO
+              🔄 OBJECT CHANGE REQUIRED
             </h2>
             <p style={{ fontSize: '0.95rem', lineHeight: '1.6', margin: '0 0 20px 0' }}>
-              La ejecución del producto anterior ha finalizado.
+              The previous product execution has finished.
               <br />
-              <strong>Por favor, retire el objeto actual del plato giratorio y coloque físicamente el siguiente objeto a fotografiar.</strong>
+              <strong>Please remove the current object from the turntable and physically place the next object to be photographed.</strong>
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={handleContinueQueue}
                 style={{ ...styles.button, padding: '12px 24px', backgroundColor: 'var(--accent-blue)', fontWeight: 'bold' }}
               >
-                Objeto Cambiado - Continuar
+                Object Changed - Continue
               </button>
             </div>
           </div>

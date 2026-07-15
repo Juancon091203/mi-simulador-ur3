@@ -59,7 +59,7 @@ const PhotoSimulationPanel = ({
         onClick={onViewPhotos}
         style={styles.galleryButton}
       >
-        📷 VER CAPTURAS
+        📷 VIEW CAPTURES
       </button>
     </div>
   );

@@ -90,7 +90,7 @@ const BasicOptionsPanel = ({
 
   const handleDelete = () => {
     if (!selectedPreset) return;
-    const confirmDelete = window.confirm(`¿Estás seguro de que deseas eliminar el preset "${selectedPreset}"?`);
+    const confirmDelete = window.confirm(`Are you sure you want to delete the preset "${selectedPreset}"?`);
     if (confirmDelete) {
       onDeletePreset(selectedPreset);
       setSelectedPreset('');
