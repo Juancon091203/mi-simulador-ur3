@@ -10,7 +10,7 @@ import PhotosGalleryModal from './components/panels/PhotosGalleryModal';
 import vibrationIcon from './icon_vibracion-03.svg';
 
 const App = () => {
-  const [modelType, setModelType] = useState('UR3');
+  const [modelType, setModelType] = useState('UR8L_con_garra');
   const [connectionMode, setConnectionMode] = useState('websocket');
   // IP de antes de lo de ESTUN
   //const [ipAddress, setIpAddress] = useState('192.168.3.41:7000/ws');
@@ -53,6 +53,23 @@ const App = () => {
   const [stabilityThreshold, setStabilityThreshold] = useState(0.25);
   const [photos, setPhotos] = useState([]);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [cameraConnected, setCameraConnected] = useState(false);
+
+  // Poll camera status to detect online/offline state
+  useEffect(() => {
+    const checkCamera = async () => {
+      try {
+        const response = await fetch('http://localhost:5005/camera/status');
+        const data = await response.json();
+        setCameraConnected(data.camera_connected);
+      } catch (err) {
+        setCameraConnected(false);
+      }
+    };
+    checkCamera();
+    const interval = setInterval(checkCamera, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // --- NUEVOS ESTADOS MULTI-ESTACIÓN Y LOGIN CON ROLES ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -612,7 +629,7 @@ const App = () => {
     if (!isQueuePlaying || executionQueue.length === 0 || currentQueueIndex >= executionQueue.length) return;
 
     const currentItem = executionQueue[currentQueueIndex];
-    
+
     // Set the station to running
     setStations(prev => prev.map(st => {
       if (st.id === currentItem.stationId) {
@@ -697,7 +714,7 @@ const App = () => {
     ? manualJoints.map(deg => deg * Math.PI / 180)
     : activeConn.jointAngles;
 
-    if (!isAuthenticated) {
+  if (!isAuthenticated) {
     return (
       <div className="login-container">
         <div className="login-card glass">
@@ -950,7 +967,7 @@ const App = () => {
                   boxShadow: activeSubView === 'camera' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                <img src={vibrationIcon} style={{ width: '16px', height: '16px', filter: activeSubView === 'camera' ? 'invert(0)' : 'invert(0.5)' }} alt="Vibración" /> Cámara (2D)
+                📷 Cámara (2D)
               </button>
               <button
                 onClick={() => setActiveSubView('config')}
@@ -1389,12 +1406,9 @@ const App = () => {
             <div className="camera-view-container">
               <div className="camera-feed-panel glass">
                 <img
-                  src="http://127.0.0.1:5005/camera/stream"
+                  src={cameraConnected ? "http://localhost:5005/camera/stream" : "http://localhost:5005/bota_ejemplo.png"}
                   alt="Vista 2D de Cámara"
                   className="camera-feed-image"
-                  onError={(e) => {
-                    e.target.src = 'http://127.0.0.1:5005/bota_ejemplo.png';
-                  }}
                 />
                 <div style={{ position: 'absolute', top: '15px', left: '15px', background: 'rgba(0,0,0,0.6)', padding: '6px 12px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '6px', height: '6px', background: '#00ff88', borderRadius: '50%' }}></span>
@@ -1742,6 +1756,14 @@ const App = () => {
           </div>
         </div>
       )}
+      {/* --- GALLERY MODAL --- */}
+      <PhotosGalleryModal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        photos={photos}
+        onClearPhotos={handleClearPhotos}
+        onDeletePhoto={handleDeletePhoto}
+      />
     </div>
   );
 };

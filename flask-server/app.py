@@ -29,7 +29,7 @@ sys.path.insert(0, framos_dir)
 if backend_dir not in sys.path:
     sys.path.append(backend_dir)
 
-from flask import Flask, Response, send_from_directory
+from flask import Flask, Response, send_from_directory, redirect
 from flask import request, jsonify
 from flask_cors import CORS
 # pyrefly: ignore [missing-import]
@@ -267,6 +267,11 @@ def serve_icon_vibracion():
 
 @app.route('/camera/stream')
 def camera_stream():
+    if not camera_manager.camera_connected:
+        response = redirect('/bota_ejemplo.png')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
+
     def generate():
         camera_manager.register_client()
         try:
