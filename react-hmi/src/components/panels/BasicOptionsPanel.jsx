@@ -113,17 +113,6 @@ const BasicOptionsPanel = ({
             <h2 style={styles.title} className="text-gradient">BASIC OPTIONS</h2>
             <p style={styles.subtitle}>Photographer Control Panel</p>
           </div>
-          {/* Mover la selección del modo oscuro/claro aquí */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            style={{
-              ...styles.themeButton,
-              backgroundColor: darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
-              borderColor: 'var(--border-glass)'
-            }}
-          >
-            {darkMode ? '🌙 DARK' : '☀️ LIGHT'}
-          </button>
         </div>
       </header>
 

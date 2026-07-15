@@ -1,6 +1,6 @@
 import React from 'react';
 import * as THREE from 'three';
-import { Html } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 
 /**
  * RobotPathCircle - Componente para dibujar la circunferencia de guiado
@@ -59,8 +59,8 @@ const RobotPathCircle = ({
         const isActive = pt.index === activeIndex;
         const deg = pt.index * 60;
         
-        // Colocar el texto de los grados hacia el exterior pero pegado
-        const labelRadius = radius + 0.08;
+        // Colocar el texto de los grados hacia el exterior
+        const labelRadius = radius + 0.18;
         const labelX = centerX + labelRadius * Math.cos(pt.angle);
         const labelZ = centerZ + labelRadius * Math.sin(pt.angle);
         const labelRotation = -pt.angle - Math.PI / 2;
@@ -102,41 +102,41 @@ const RobotPathCircle = ({
               )}
             </group>
 
-            {/* Texto de Grados en el suelo */}
+            {/* Texto de Grados en el suelo (WebGL Text) */}
             {!hideLabels && (
-              <Html
-                position={[labelX, y + 0.002, labelZ]}
-                rotation={[-Math.PI / 2, 0, labelRotation]}
-                transform
-                occlude={false}
-                center
-                pointerEvents="none"
-                scale={0.25}
-                zIndexRange={[0, 5]}
-              >
-                <div
-                  style={{
-                    color: isActive ? "#ff9d00" : "#3aedff",
-                    fontFamily: "'Outfit', sans-serif",
-                    fontWeight: 800,
-                    fontSize: '24px',
-                    opacity: isActive ? 1.0 : 0.6,
-                    userSelect: 'none',
-                    whiteSpace: 'nowrap',
-                    padding: '4px 10px',
-                    borderRadius: '6px',
-                    border: `2px solid ${isActive ? 'rgba(255, 157, 0, 0.5)' : 'rgba(58, 237, 255, 0.25)'}`,
-                    background: isActive ? 'rgba(255, 157, 0, 0.15)' : 'rgba(14, 15, 20, 0.8)',
-                    textShadow: isActive 
-                      ? '0 0 10px rgba(255,157,0,0.8)' 
-                      : '0 0 10px rgba(58,237,255,0.4)',
-                    transition: 'all 0.3s ease',
-                    letterSpacing: '1px'
-                  }}
+              <group position={[labelX, y + 0.006, labelZ]} rotation={[-Math.PI / 2, 0, labelRotation]}>
+                {/* Borde exterior */}
+                <mesh position={[0, 0, -0.0005]}>
+                  <planeGeometry args={[0.38, 0.16]} />
+                  <meshBasicMaterial 
+                    color={isActive ? "#ff9d00" : "#3aedff"} 
+                    transparent={true} 
+                    opacity={isActive ? 0.7 : 0.25}
+                    depthWrite={false}
+                  />
+                </mesh>
+                {/* Fondo oscuro */}
+                <mesh position={[0, 0, 0]}>
+                  <planeGeometry args={[0.36, 0.14]} />
+                  <meshBasicMaterial 
+                    color={isActive ? "#110b00" : "#0e0f14"} 
+                    transparent={true} 
+                    opacity={0.9} 
+                    depthWrite={false}
+                  />
+                </mesh>
+                {/* Texto */}
+                <Text
+                  position={[0, 0, 0.001]}
+                  fontSize={0.10}
+                  color={isActive ? "#ff9d00" : "#3aedff"}
+                  anchorX="center"
+                  anchorY="middle"
+                  fontWeight="bold"
                 >
                   {`${deg}°`}
-                </div>
-              </Html>
+                </Text>
+              </group>
             )}
           </group>
         );

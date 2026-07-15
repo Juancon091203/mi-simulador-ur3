@@ -7,6 +7,7 @@ import BasicOptionsPanel from './components/panels/BasicOptionsPanel';
 import PhotoSimulationPanel from './components/panels/PhotoSimulationPanel';
 import CameraViewer from './components/panels/CameraViewer';
 import PhotosGalleryModal from './components/panels/PhotosGalleryModal';
+import vibrationIcon from './icon_vibracion-03.svg';
 
 const App = () => {
   const [modelType, setModelType] = useState('UR3');
@@ -806,6 +807,7 @@ const App = () => {
           boxShadow: 'var(--shadow-focus)',
           backdropFilter: 'blur(10px)',
           fontSize: '0.8rem',
+          width: 'auto',
         }}
       >
         {darkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
@@ -894,6 +896,25 @@ const App = () => {
           {activeStationTab !== 'general' && (
             <>
               <button
+                onClick={() => setActiveSubView('calibration')}
+                style={{
+                  ...styles.button,
+                  padding: '12px',
+                  fontSize: '0.8rem',
+                  textAlign: 'left',
+                  background: activeSubView === 'calibration' ? 'var(--accent-blue)' : 'var(--input-bg)',
+                  border: '1px solid var(--border-glass)',
+                  color: activeSubView === 'calibration' ? '#000000' : 'var(--text-color)',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: activeSubView === 'calibration' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
+                }}
+              >
+                📐 Calibración 3D
+              </button>
+              <button
                 onClick={() => setActiveSubView('vnc')}
                 style={{
                   ...styles.button,
@@ -929,7 +950,7 @@ const App = () => {
                   boxShadow: activeSubView === 'camera' ? '0 0 10px rgba(0,210,255,0.2)' : 'none'
                 }}
               >
-                📷 Cámara (2D)
+                <img src={vibrationIcon} style={{ width: '16px', height: '16px', filter: activeSubView === 'camera' ? 'invert(0)' : 'invert(0.5)' }} alt="Vibración" /> Cámara (2D)
               </button>
               <button
                 onClick={() => setActiveSubView('config')}
@@ -1208,7 +1229,7 @@ const App = () => {
 
           {/* Renderizado de las Sub-Vistas específicas de la estación */}
           {activeSubView === 'dashboard' && (
-            /* SUB-VISTA 1: DASHBOARD (3D DIGITAL TWIN & TELEMETRÍA RESTAURADA) */
+            /* SUB-VISTA 1: DASHBOARD (3D DIGITAL TWIN & CONTROLES DE SECUENCIA) */
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 170px)', borderRadius: '16px', border: '1px solid var(--border-glass)', background: 'var(--bg-panel)', backdropFilter: 'blur(10px)' }}>
               {/* Lado Izquierdo: Visor 3D */}
               <div style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
@@ -1237,9 +1258,82 @@ const App = () => {
                     isGalleryOpen={isGalleryOpen}
                   />
                 </Suspense>
+                {/* Botón flotante para abrir la transmisión de vídeo de la cámara FRAMOS en tiempo real */}
+                <CameraViewer
+                  stabilityThreshold={stabilityThreshold}
+                  setStabilityThreshold={setStabilityThreshold}
+                  inlineIMU={false}
+                />
               </div>
 
-              {/* Lado Derecho: Paneles Originales de Configuración y Simulación */}
+              {/* Lado Derecho: Paneles de Simulación y Monitoreo IMU */}
+              <div style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
+                <PhotoSimulationPanel
+                  isPlaying={isPlaying}
+                  setIsPlaying={setIsPlaying}
+                  currentPhotoStep={currentPhotoStep}
+                  setCurrentPhotoStep={setCurrentPhotoStep}
+                  pointCount={pointCount}
+                  photos={photos}
+                  setPhotos={setPhotos}
+                  isGalleryOpen={isGalleryOpen}
+                  setIsGalleryOpen={setIsGalleryOpen}
+                  onNext={handleManualNext}
+                  onPrev={handleManualPrev}
+                  onViewPhotos={() => setIsGalleryOpen(true)}
+                />
+                {/* Tolerancias de Vibración (IMU) en línea */}
+                <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Tolerancias de Vibración (IMU)</h3>
+                  <CameraViewer
+                    stabilityThreshold={stabilityThreshold}
+                    setStabilityThreshold={setStabilityThreshold}
+                    inlineIMU={true}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSubView === 'calibration' && (
+            /* SUB-VISTA 1.5: CALIBRACIÓN (3D DIGITAL TWIN & CONFIGURACIÓN DEL ESFEROIDE / PRESETS) */
+            <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 170px)', borderRadius: '16px', border: '1px solid var(--border-glass)', background: 'var(--bg-panel)', backdropFilter: 'blur(10px)' }}>
+              {/* Lado Izquierdo: Visor 3D (para feedback visual en tiempo real) */}
+              <div style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
+                <Suspense fallback={
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-dim)' }}>
+                    Cargando gemelo digital...
+                  </div>
+                }>
+                  <RobotViewer
+                    modelType={modelType}
+                    jointAngles={currentJointAngles}
+                    spheroidSize={spheroidSize}
+                    showSpheroid={showSpheroid}
+                    pendingPointsPositions={pendingPointsPositions}
+                    activePoint={activePoint}
+                    robotPositionIndex={robotPositionIndex}
+                    robotPosition={robotPosition}
+                    robotRotationY={robotRotationY}
+                    nextFivePoints={nextFivePoints}
+                    objectCenter={objectCenter}
+                    zBounds={zBounds}
+                    showSectors={showSectors}
+                    darkMode={darkMode}
+                    columnHeight={columnHeight}
+                    orbitRadius={orbitRadius}
+                    isGalleryOpen={isGalleryOpen}
+                  />
+                </Suspense>
+                {/* Botón flotante para abrir la transmisión de vídeo de la cámara FRAMOS en tiempo real */}
+                <CameraViewer
+                  stabilityThreshold={stabilityThreshold}
+                  setStabilityThreshold={setStabilityThreshold}
+                  inlineIMU={false}
+                />
+              </div>
+
+              {/* Lado Derecho: Configuración del Esferoide y Presets */}
               <div style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
                 <BasicOptionsPanel
                   modelType={modelType}
@@ -1275,17 +1369,6 @@ const App = () => {
                   presets={presets}
                   setPresets={setPresets}
                 />
-                <PhotoSimulationPanel
-                  isPlaying={isPlaying}
-                  setIsPlaying={setIsPlaying}
-                  currentPhotoStep={currentPhotoStep}
-                  setCurrentPhotoStep={setCurrentPhotoStep}
-                  pointCount={pointCount}
-                  photos={photos}
-                  setPhotos={setPhotos}
-                  isGalleryOpen={isGalleryOpen}
-                  setIsGalleryOpen={setIsGalleryOpen}
-                />
               </div>
             </div>
           )}
@@ -1302,13 +1385,16 @@ const App = () => {
           )}
 
           {activeSubView === 'camera' && (
-            /* SUB-VISTA 3: CÁMARA (VISTA PREVIA 2D & CONFIGURACIONES CON IMAGEN REAL) */
+            /* SUB-VISTA 3: CÁMARA (VISTA PREVIA 2D - FEED EN VIVO DE CÁMARA FRAMOS) */
             <div className="camera-view-container">
               <div className="camera-feed-panel glass">
                 <img
-                  src="http://127.0.0.1:5005/bota_ejemplo.png"
+                  src="http://127.0.0.1:5005/camera/stream"
                   alt="Vista 2D de Cámara"
                   className="camera-feed-image"
+                  onError={(e) => {
+                    e.target.src = 'http://127.0.0.1:5005/bota_ejemplo.png';
+                  }}
                 />
                 <div style={{ position: 'absolute', top: '15px', left: '15px', background: 'rgba(0,0,0,0.6)', padding: '6px 12px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '6px', height: '6px', background: '#00ff88', borderRadius: '50%' }}></span>
@@ -1348,7 +1434,7 @@ const App = () => {
 
           {activeSubView === 'config' && (
             /* SUB-VISTA 4: CONFIGURACIÓN (RUTA DE GUARDADO Y PRODUCTO) */
-            <div style={{ display: 'flex', gap: '25px', height: 'calc(100vh - 170px)' }}>
+            <div style={{ display: 'flex', gap: '25px', height: 'calc(100vh - 170px)', width: '100%' }}>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '20px', background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '30px', borderRadius: '16px', overflowY: 'auto' }}>
                 <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>Ajustes de Almacenamiento</h3>
                 <div className="form-field">
@@ -1385,6 +1471,10 @@ const App = () => {
               <div style={{ width: '380px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                   <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Telemetría de la Estación</h3>
+                  <div style={styles.section}>
+                    <label style={styles.label}>Producto Asignado</label>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{currentStation.product || 'Ninguno'}</div>
+                  </div>
                   <div style={styles.section}>
                     <label style={styles.label}>Velocidad Actual del Robot</label>
                     <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{currentStation.speed > 0 ? `${currentStation.speed} m/s` : 'Robot detenido'}</div>

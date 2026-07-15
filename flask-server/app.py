@@ -259,6 +259,10 @@ def serve_vnc_ur():
 def serve_bota_ejemplo():
     return send_from_directory('.', 'bota_ejemplo.png')
 
+@app.route('/icon_vibracion-03.svg')
+def serve_icon_vibracion():
+    return send_from_directory('.', 'icon_vibracion-03.svg')
+
 
 
 @app.route('/camera/stream')

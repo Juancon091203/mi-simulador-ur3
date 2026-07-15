@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import vibrationIcon from '../../icon_vibracion-03.svg';
 
 /**
  * CameraViewer - Componente para visualizar la cámara FRAMOS D435e
@@ -35,13 +36,13 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     fetchStatus();
 
     // Intervalo de polling:
-    // - Si está abierto, consultamos rápido (250ms) para refrescar la IMU en tiempo real.
+    // - Si está abierto o inlineIMU es verdadero, consultamos rápido (250ms) para refrescar la IMU en tiempo real.
     // - Si está cerrado, consultamos lento (3000ms) solo para monitorizar si se conecta/desconecta.
-    const intervalTime = isOpen ? 250 : 3000;
+    const intervalTime = (isOpen || inlineIMU) ? 250 : 3000;
     const interval = setInterval(fetchStatus, intervalTime);
 
     return () => clearInterval(interval);
-  }, [isOpen]);
+  }, [isOpen, inlineIMU]);
 
   // Synchronize local exposure/gain states with server values
   useEffect(() => {
@@ -86,7 +87,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
 
   const isConnected = status.camera_connected;
 
-  if (!isOpen) {
+  if (!inlineIMU && !isOpen) {
     return (
       <div style={styles.floatingWrapper} className="camera-tooltip-container">
         <button
@@ -96,10 +97,21 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
             ...styles.floatingOpenBtn,
             opacity: isConnected ? 1 : 0.5,
             cursor: isConnected ? 'pointer' : 'not-allowed',
-            filter: isConnected ? 'none' : 'grayscale(100%)',
+            color: isConnected ? 'var(--text-color)' : 'var(--text-dim)'
           }}
         >
-          📷
+          <span
+            style={{
+              display: 'block',
+              width: '24px',
+              height: '24px',
+              backgroundColor: 'currentColor',
+              mask: `url(${vibrationIcon}) no-repeat center`,
+              WebkitMask: `url(${vibrationIcon}) no-repeat center`,
+              maskSize: 'contain',
+              WebkitMaskSize: 'contain'
+            }}
+          />
         </button>
         {!isConnected && (
           <span className="camera-tooltip" style={styles.tooltipText}>

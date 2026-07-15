@@ -125,7 +125,7 @@ const RobotViewer = ({
       {/* Overlay opcional para mostrar información del modelo */}
       <div style={{ position: 'absolute', bottom: 20, right: 20, pointerEvents: 'none' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', opacity: 0.6 }}>
-          Rendering: {modelType} Baseline Active
+          Rendering: robot Baseline Active
         </span>
       </div>
     </div>
