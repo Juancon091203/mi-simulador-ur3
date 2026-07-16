@@ -81,7 +81,7 @@ const ConfigExecutionModal = ({
                 <label>Product Name</label>
                 <input
                   type="text"
-                  placeholder="e.g. Nike Running Shoes"
+                  placeholder="e.g. Leather kitten-heel sandal"
                   value={configFormData.productName}
                   onChange={(e) => setConfigFormData(prev => ({ ...prev, productName: e.target.value }))}
                   style={styles.input}
