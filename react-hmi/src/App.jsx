@@ -102,6 +102,8 @@ const App = () => {
   // ── Stations / Queues / Alerts ────────────────────────────────────────────
   const stationsHook = useStations();
 
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
   // ─────────────────────────────────────────────────────────────────────────
   // Login screen
   if (!isAuthenticated) {
@@ -140,25 +142,63 @@ const App = () => {
     isGalleryOpen: cameraHook.isGalleryOpen,
   };
 
+  const handleUpdateActiveSpeed = (stationId, newSpeed) => {
+    stationsHook.setStations(prev => prev.map(st =>
+      st.id === stationId ? { ...st, speed: newSpeed } : st
+    ));
+    const status = stationsHook.stationQueueStatus[stationId];
+    if (status) {
+      stationsHook.setStationQueues(prev => {
+        const queue = [...(prev[stationId] || [])];
+        const idx = status.currentIndex;
+        if (queue[idx]) {
+          queue[idx] = { ...queue[idx], robotSpeed: newSpeed };
+        }
+        return { ...prev, [stationId]: queue };
+      });
+    }
+  };
+
+  const onRearmStation = (stationId) => {
+    stationsHook.setStations(prev => prev.map(st =>
+      st.id === stationId ? { ...st, status: 'idle' } : st
+    ));
+    const targetName = stationsHook.stations.find(st => st.id === stationId)?.name;
+    if (stationsHook.emergencyAlert && stationsHook.emergencyAlert.station === targetName) {
+      stationsHook.handleClearAlert();
+    }
+  };
+
+  const activeTabStyle = {
+    background: 'var(--accent-blue)',
+    color: '#000000',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '8px 16px',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    width: 'auto',
+    boxShadow: '0 0 10px rgba(0, 210, 255, 0.3)',
+    transition: 'all 0.2s',
+  };
+
+  const inactiveTabStyle = {
+    background: 'var(--input-bg)',
+    color: 'var(--text-dim)',
+    border: '1px solid var(--border-glass)',
+    borderRadius: '8px',
+    padding: '8px 16px',
+    fontSize: '0.8rem',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    width: 'auto',
+    transition: 'all 0.2s',
+  };
+
   // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="dashboard" style={styles.container}>
-      {/* Dark / Light mode toggle */}
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        style={{
-          position: 'fixed', top: '20px', right: '20px', zIndex: 1000,
-          padding: '8px 12px', background: 'var(--card-bg)',
-          border: '1px solid var(--border-glass)', borderRadius: '20px',
-          color: 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold',
-          display: 'flex', alignItems: 'center', gap: '8px',
-          boxShadow: 'var(--shadow-focus)', backdropFilter: 'blur(10px)',
-          fontSize: '0.8rem', width: 'auto',
-        }}
-      >
-        {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-      </button>
-
       {/* ── Sidebar ─────────────────────────────────────────────────────── */}
       <Sidebar
         activeStationTab={activeStationTab} setActiveStationTab={setActiveStationTab}
@@ -170,168 +210,302 @@ const App = () => {
         handleMoveQueueItem={stationsHook.handleMoveQueueItem}
         handleEditQueueItem={stationsHook.handleEditQueueItem}
         handleRemoveQueueItem={stationsHook.handleRemoveQueueItem}
+        onNewExecution={(stationId) => {
+          stationsHook.setConfigStationId(stationId);
+          stationsHook.setIsConfigModalOpen(true);
+        }}
         currentUser={currentUser} userRole={userRole}
         onLogout={() => setIsAuthenticated(false)}
+        className={`sidebar-responsive ${isSidebarOpen ? 'open' : ''}`}
+        setIsSidebarOpen={setIsSidebarOpen}
       />
 
-      {/* ── Main content ────────────────────────────────────────────────── */}
-      {/* GENERAL VIEW ──────────────────────────────────────────────────── */}
-      {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && (
-        <GeneralOverview
-          stations={stationsHook.stations}
-          userRole={userRole}
-          onOpenConfigModal={() => {
-            stationsHook.setConfigStationId(stationsHook.stations[0]?.id || null);
-            stationsHook.setIsConfigModalOpen(true);
-          }}
-          onSelectStation={(id) => {
-            setActiveStationTab(id);
-            setActiveSubView('dashboard');
+      {/* Backdrop overlay for responsive sidebar drawer */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 998
           }}
         />
       )}
 
-      {/* PRESETS LIST ───────────────────────────────────────────────────── */}
-      {activeSubView === 'presets' && (
-        <main className="stations-container">
-          <PresetsView
-            presets={presetsHook.presets}
-            onCreateNew={() => {
-              calibration.setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
-              calibration.setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
-              calibration.setZBounds({ min: -1.0, max: 1.0 });
-              calibration.setPointCount(100);
-              calibration.setColumnHeight(0.5);
-              calibration.setOrbitRadius(1.6);
-              presetsHook.setEditingPresetName('__new__');
-              presetsHook.setEditingPresetForm('');
-              setActiveSubView('calibration');
-            }}
-            onEditPreset={(name) => {
-              presetsHook.handleLoadPreset(name, {
-                setSpheroidSize: calibration.setSpheroidSize,
-                setObjectCenter: calibration.setObjectCenter,
-                setZBounds: calibration.setZBounds,
-                setPointCount: calibration.setPointCount,
-                setColumnHeight: calibration.setColumnHeight,
-                setOrbitRadius: calibration.setOrbitRadius,
-              });
-              presetsHook.setEditingPresetName(name);
-              setActiveSubView('calibration');
-            }}
-            onDeletePreset={presetsHook.handleDeletePreset}
-          />
-        </main>
-      )}
-
-      {/* CALIBRATION / PRESET EDITOR ────────────────────────────────────── */}
-      {activeSubView === 'calibration' && (
-        <main className="stations-container">
-          <CalibrationView
-            {...robotViewerProps}
-            stabilityThreshold={cameraHook.stabilityThreshold}
-            setStabilityThreshold={cameraHook.setStabilityThreshold}
-            setSpheroidSize={calibration.setSpheroidSize}
-            setShowSpheroid={calibration.setShowSpheroid}
-            pointCount={calibration.pointCount}
-            setPointCount={calibration.setPointCount}
-            setObjectCenter={calibration.setObjectCenter}
-            setZBounds={calibration.setZBounds}
-            setShowSectors={calibration.setShowSectors}
-            setColumnHeight={calibration.setColumnHeight}
-            setOrbitRadius={calibration.setOrbitRadius}
-            presets={presetsHook.presets}
-            editingPresetName={presetsHook.editingPresetName}
-            editingPresetForm={presetsHook.editingPresetForm}
-            setEditingPresetForm={presetsHook.setEditingPresetForm}
-            onSavePreset={async (name) => {
-              await presetsHook.handleSavePreset(name);
-              setActiveSubView('presets');
-            }}
-            onBackToPresets={() => setActiveSubView('presets')}
-          />
-        </main>
-      )}
-
-      {/* STATION-SPECIFIC VIEWS ─────────────────────────────────────────── */}
-      {activeStationTab !== 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && currentStation && (
-        <main className="stations-container">
-          {/* Station header */}
-          <header className="stations-header-row">
+      {/* ── Main content pane ────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', flex: 1, flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        {/* Unified Header (Title & IP/Subtitle) */}
+        <header style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px 24px 10px 24px',
+          background: 'transparent',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button
+              className="hamburger-btn"
+              onClick={() => setIsSidebarOpen(true)}
+              style={{
+                display: 'none',
+                background: 'none',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '8px',
+                width: '40px',
+                height: '40px',
+                cursor: 'pointer',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-color)',
+                padding: 0
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <button
-                  onClick={() => { setActiveStationTab('general'); setActiveSubView('dashboard'); }}
-                  style={{ width: 'auto', padding: '8px 16px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)', borderRadius: '8px', cursor: 'pointer', color: 'var(--text-color)', fontWeight: 'bold' }}
-                >
-                  ← Back
-                </button>
-                <h2 style={{ fontSize: '1.6rem', margin: 0 }}>{currentStation.name}</h2>
-                <span className={`station-status-pill status-pill-${currentStation.status}`}>
-                  {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
-                </span>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '6px' }}>
-                Robot IP Address: {currentStation.ip}
-              </p>
+              {activeStationTab === 'general' ? (
+                <>
+                  <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>General View</h2>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                    Central Multi-Station Monitoring Console
+                  </p>
+                </>
+              ) : (
+                currentStation && (
+                  <>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                      <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{currentStation.name}</h2>
+                      <span className={`station-status-pill status-pill-${currentStation.status}`}>
+                        {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
+                      Robot IP Address: {currentStation.ip}
+                    </p>
+                  </>
+                )
+              )}
             </div>
-            {userRole === 'admin' && (
-              <button
-                onClick={() => {
-                  stationsHook.setConfigStationId(currentStation.id);
-                  stationsHook.setIsConfigModalOpen(true);
-                }}
-                style={{ ...styles.button, width: '180px', backgroundColor: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-              >
-                ⚙️ Configure Execution
-              </button>
+          </div>
+
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            style={{
+              padding: '8px 12px', background: 'var(--input-bg)',
+              border: '1px solid var(--border-glass)', borderRadius: '20px',
+              color: 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold',
+              display: 'flex', alignItems: 'center', gap: '8px',
+              fontSize: '0.8rem', width: 'auto',
+            }}
+          >
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+        </header>
+
+        {/* Sticky Horizontal Tabs Navigation */}
+        <div style={{
+          display: 'flex',
+          padding: '0 24px 12px 24px',
+          borderBottom: '1px solid var(--border-glass)',
+          background: 'transparent',
+          zIndex: 100
+        }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {activeStationTab === 'general' ? (
+              <>
+                <button
+                  onClick={() => setActiveSubView('dashboard')}
+                  style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
+                >
+                  🌐 General Overview
+                </button>
+                <button
+                  onClick={() => setActiveSubView('presets')}
+                  style={(activeSubView === 'presets' || activeSubView === 'calibration') ? activeTabStyle : inactiveTabStyle}
+                >
+                  📐 Presets (3D Calibration)
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setActiveStationTab('general');
+                    setActiveSubView('dashboard');
+                  }}
+                  style={inactiveTabStyle}
+                >
+                  ← Back to Stations
+                </button>
+                <button
+                  onClick={() => setActiveSubView('dashboard')}
+                  style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
+                >
+                  🖥️ Dashboard (3D)
+                </button>
+                <button
+                  onClick={() => setActiveSubView('vnc')}
+                  style={activeSubView === 'vnc' ? activeTabStyle : inactiveTabStyle}
+                >
+                  🎮 VNC Viewer (TeachPendant)
+                </button>
+                <button
+                  onClick={() => setActiveSubView('camera')}
+                  style={activeSubView === 'camera' ? activeTabStyle : inactiveTabStyle}
+                >
+                  📷 Camera (2D)
+                </button>
+                <button
+                  onClick={() => setActiveSubView('config')}
+                  style={activeSubView === 'config' ? activeTabStyle : inactiveTabStyle}
+                >
+                  ⚙️ Station Settings
+                </button>
+              </>
             )}
-          </header>
+          </div>
+        </div>
 
-          {/* Sub-views */}
-          {activeSubView === 'dashboard' && (
-            <StationDashboard
-              {...robotViewerProps}
-              stabilityThreshold={cameraHook.stabilityThreshold}
-              setStabilityThreshold={cameraHook.setStabilityThreshold}
-              isPlaying={cameraHook.isPlaying}
-              setIsPlaying={cameraHook.setIsPlaying}
-              currentPhotoStep={cameraHook.currentPhotoStep}
-              setCurrentPhotoStep={cameraHook.setCurrentPhotoStep}
-              pointCount={calibration.pointCount}
-              photos={cameraHook.photos}
-              setPhotos={cameraHook.setPhotos}
-              setIsGalleryOpen={cameraHook.setIsGalleryOpen}
-              onNext={cameraHook.handleManualNext}
-              onPrev={cameraHook.handleManualPrev}
-              currentStation={currentStation}
-              stationQueues={stationsHook.stationQueues}
-              stationQueueStatus={stationsHook.stationQueueStatus}
-              handlePlayStationQueue={stationsHook.handlePlayStationQueue}
-              handlePauseStationQueue={stationsHook.handlePauseStationQueue}
-              isRobotConnected={isRobotConnected}
-              setIsRobotConnected={setIsRobotConnected}
+        {/* Scrollable content container */}
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+          {/* GENERAL VIEW ──────────────────────────────────────────────────── */}
+          {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && (
+            <GeneralOverview
+              stations={stationsHook.stations}
+              userRole={userRole}
+              onOpenConfigModal={() => {
+                stationsHook.setConfigStationId(stationsHook.stations[0]?.id || null);
+                stationsHook.setIsConfigModalOpen(true);
+              }}
+              onSelectStation={(id) => {
+                setActiveStationTab(id);
+                setActiveSubView('dashboard');
+              }}
             />
           )}
 
-          {activeSubView === 'vnc' && <VncView />}
-
-          {activeSubView === 'camera' && (
-            <CameraView
-              cameraConnected={cameraHook.cameraConnected}
-              stabilityThreshold={cameraHook.stabilityThreshold}
-              setStabilityThreshold={cameraHook.setStabilityThreshold}
-            />
+          {/* PRESETS LIST ───────────────────────────────────────────────────── */}
+          {activeSubView === 'presets' && (
+            <main className="stations-container">
+              <PresetsView
+                presets={presetsHook.presets}
+                onCreateNew={() => {
+                  calibration.setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
+                  calibration.setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
+                  calibration.setZBounds({ min: -1.0, max: 1.0 });
+                  calibration.setPointCount(100);
+                  calibration.setColumnHeight(0.5);
+                  calibration.setOrbitRadius(1.6);
+                  presetsHook.setEditingPresetName('__new__');
+                  presetsHook.setEditingPresetForm('');
+                  setActiveSubView('calibration');
+                }}
+                onEditPreset={(name) => {
+                  presetsHook.handleLoadPreset(name, {
+                    setSpheroidSize: calibration.setSpheroidSize,
+                    setObjectCenter: calibration.setObjectCenter,
+                    setZBounds: calibration.setZBounds,
+                    setPointCount: calibration.setPointCount,
+                    setColumnHeight: calibration.setColumnHeight,
+                    setOrbitRadius: calibration.setOrbitRadius,
+                  });
+                  presetsHook.setEditingPresetName(name);
+                  setActiveSubView('calibration');
+                }}
+                onDeletePreset={presetsHook.handleDeletePreset}
+              />
+            </main>
           )}
 
-          {activeSubView === 'config' && (
-            <StationConfigView
-              currentStation={currentStation}
-              handleUpdateStationConfig={stationsHook.handleUpdateStationConfig}
-            />
+          {/* CALIBRATION / PRESET EDITOR ────────────────────────────────────── */}
+          {activeSubView === 'calibration' && (
+            <main className="stations-container">
+              <CalibrationView
+                {...robotViewerProps}
+                stabilityThreshold={cameraHook.stabilityThreshold}
+                setStabilityThreshold={cameraHook.setStabilityThreshold}
+                setSpheroidSize={calibration.setSpheroidSize}
+                setShowSpheroid={calibration.setShowSpheroid}
+                pointCount={calibration.pointCount}
+                setPointCount={calibration.setPointCount}
+                setObjectCenter={calibration.setObjectCenter}
+                setZBounds={calibration.setZBounds}
+                setShowSectors={calibration.setShowSectors}
+                setColumnHeight={calibration.setColumnHeight}
+                setOrbitRadius={calibration.setOrbitRadius}
+                presets={presetsHook.presets}
+                editingPresetName={presetsHook.editingPresetName}
+                editingPresetForm={presetsHook.editingPresetForm}
+                setEditingPresetForm={presetsHook.setEditingPresetForm}
+                onSavePreset={async (name) => {
+                  await presetsHook.handleSavePreset(name);
+                  setActiveSubView('presets');
+                }}
+                onBackToPresets={() => setActiveSubView('presets')}
+              />
+            </main>
           )}
-        </main>
-      )}
+
+          {activeStationTab !== 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && currentStation && (
+            <main className="stations-container">
+              {/* Sub-views */}
+              {activeSubView === 'dashboard' && (
+                <StationDashboard
+                  {...robotViewerProps}
+                  stabilityThreshold={cameraHook.stabilityThreshold}
+                  setStabilityThreshold={cameraHook.setStabilityThreshold}
+                  isPlaying={cameraHook.isPlaying}
+                  setIsPlaying={cameraHook.setIsPlaying}
+                  currentPhotoStep={cameraHook.currentPhotoStep}
+                  setCurrentPhotoStep={cameraHook.setCurrentPhotoStep}
+                  pointCount={calibration.pointCount}
+                  photos={cameraHook.photos}
+                  setPhotos={cameraHook.setPhotos}
+                  setIsGalleryOpen={cameraHook.setIsGalleryOpen}
+                  onNext={cameraHook.handleManualNext}
+                  onPrev={cameraHook.handleManualPrev}
+                  currentStation={currentStation}
+                  stationQueues={stationsHook.stationQueues}
+                  stationQueueStatus={stationsHook.stationQueueStatus}
+                  handlePlayStationQueue={stationsHook.handlePlayStationQueue}
+                  handlePauseStationQueue={stationsHook.handlePauseStationQueue}
+                  handleUpdateActiveSpeed={handleUpdateActiveSpeed}
+                  onRearmStation={onRearmStation}
+                  isRobotConnected={isRobotConnected}
+                  setIsRobotConnected={setIsRobotConnected}
+                />
+              )}
+
+              {activeSubView === 'vnc' && <VncView />}
+
+              {activeSubView === 'camera' && (
+                <CameraView
+                  cameraConnected={cameraHook.cameraConnected}
+                  stabilityThreshold={cameraHook.stabilityThreshold}
+                  setStabilityThreshold={cameraHook.setStabilityThreshold}
+                />
+              )}
+
+              {activeSubView === 'config' && (
+                <StationConfigView
+                  currentStation={currentStation}
+                  handleUpdateStationConfig={stationsHook.handleUpdateStationConfig}
+                />
+              )}
+            </main>
+          )}
+        </div>
+      </div>
 
       {/* ── Modals ──────────────────────────────────────────────────────── */}
       <ConfigExecutionModal
@@ -347,6 +521,19 @@ const App = () => {
         stations={stationsHook.stations}
         onSubmit={stationsHook.handleAddToQueue}
         editingQueueItem={stationsHook.editingQueueItem}
+        onCreateNewPreset={() => {
+          stationsHook.setIsConfigModalOpen(false);
+          setActiveStationTab('general');
+          calibration.setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
+          calibration.setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
+          calibration.setZBounds({ min: -1.0, max: 1.0 });
+          calibration.setPointCount(100);
+          calibration.setColumnHeight(0.5);
+          calibration.setOrbitRadius(1.6);
+          presetsHook.setEditingPresetName('__new__');
+          presetsHook.setEditingPresetForm('');
+          setActiveSubView('calibration');
+        }}
       />
 
       <EmergencyAlertModal

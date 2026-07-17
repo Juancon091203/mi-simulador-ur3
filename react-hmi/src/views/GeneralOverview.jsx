@@ -7,14 +7,8 @@ import styles from '../styles/appStyles';
  */
 const GeneralOverview = ({ stations, userRole, onOpenConfigModal, onSelectStation }) => (
   <main className="stations-container">
-    <header className="stations-header-row">
-      <div>
-        <h2 style={{ fontSize: '1.6rem' }}>Station Overview</h2>
-        <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-          Central Multi-Station Monitoring Console
-        </p>
-      </div>
-      {userRole === 'admin' && (
+    {userRole === 'admin' && (
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
         <button
           onClick={onOpenConfigModal}
           style={{
@@ -25,12 +19,16 @@ const GeneralOverview = ({ stations, userRole, onOpenConfigModal, onSelectStatio
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
+            padding: '10px 16px',
+            fontSize: '0.8rem',
+            borderRadius: '8px',
+            cursor: 'pointer',
           }}
         >
           ⚙️ New Execution
         </button>
-      )}
-    </header>
+      </div>
+    )}
 
     <div className="stations-grid">
       {stations.map(st => (

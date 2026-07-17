@@ -281,13 +281,23 @@ const ObjetoSujeto = ({
             </points>
           )}
 
-          {/* Trayectoria de los próximos 5 puntos */}
+          {/* Trayectoria de los próximos 5 puntos con degradado fade-out */}
           {curvedLinePoints && curvedLinePoints.length > 1 && (
-            <Line
-              points={curvedLinePoints}
-              color="#00ff88" // Verde neón premium para la trayectoria
-              lineWidth={2.5}
-            />
+            <group>
+              {curvedLinePoints.slice(0, -1).map((p, idx) => {
+                const opacity = Math.max(0.05, 1.0 - (idx / (curvedLinePoints.length - 1)));
+                return (
+                  <Line
+                    key={idx}
+                    points={[p, curvedLinePoints[idx + 1]]}
+                    color="#00ff88"
+                    lineWidth={2.5}
+                    transparent={true}
+                    opacity={opacity}
+                  />
+                );
+              })}
+            </group>
           )}
 
           {/* Punto activo que simula la captura de la cámara */}

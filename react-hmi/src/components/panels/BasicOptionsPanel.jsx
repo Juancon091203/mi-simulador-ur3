@@ -171,7 +171,22 @@ const BasicOptionsPanel = ({
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
             <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Spheroid</span> Size</span>
-            <span style={styles.sliderValue}>{spheroidSize.x.toFixed(2)}m</span>
+            <input
+              type="number"
+              value={spheroidSize.x}
+              min="0.1"
+              max="2.0"
+              step="0.05"
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) handleUniformChange(val);
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
           </div>
           <input
             type="range"
@@ -188,7 +203,22 @@ const BasicOptionsPanel = ({
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
             <span style={styles.axisLabel}><span style={{ color: '#00ff88' }}>Center</span> Height (Z)</span>
-            <span style={styles.sliderValue}>{objectCenter.y.toFixed(2)}m</span>
+            <input
+              type="number"
+              value={objectCenter.y}
+              min="-2.0"
+              max="2.0"
+              step="0.05"
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) handleCenterChange('y', val);
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
           </div>
           <input
             type="range"
@@ -205,7 +235,22 @@ const BasicOptionsPanel = ({
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
             <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Fibonacci</span> Points</span>
-            <span style={styles.sliderValue}>{pointCount}</span>
+            <input
+              type="number"
+              value={pointCount}
+              min="0"
+              max="700"
+              step="10"
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val)) setPointCount(val);
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
           </div>
           <input
             type="range"
@@ -222,7 +267,22 @@ const BasicOptionsPanel = ({
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
             <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Robot</span> Orbit Radius</span>
-            <span style={styles.sliderValue}>{orbitRadius.toFixed(2)}m</span>
+            <input
+              type="number"
+              value={orbitRadius}
+              min="0.5"
+              max="3.0"
+              step="0.05"
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) setOrbitRadius(val);
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
           </div>
           <input
             type="range"
@@ -239,7 +299,22 @@ const BasicOptionsPanel = ({
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
             <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Robot</span> Base Height</span>
-            <span style={styles.sliderValue}>{columnHeight.toFixed(2)}m</span>
+            <input
+              type="number"
+              value={columnHeight}
+              min="0.0"
+              max="2.0"
+              step="0.05"
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) setColumnHeight(val);
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
           </div>
           <input
             type="range"
@@ -252,8 +327,6 @@ const BasicOptionsPanel = ({
           />
         </div>
       </div>
-
-
 
       {/* Advanced Options Collapsible */}
       <div style={{ marginTop: '10px' }}>
@@ -272,7 +345,22 @@ const BasicOptionsPanel = ({
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
                 <span style={styles.axisLabel}><span style={{ color: '#ff4b5c' }}>X</span> Dimension</span>
-                <span style={styles.sliderValue}>{spheroidSize.x.toFixed(2)}m</span>
+                <input
+                  type="number"
+                  value={spheroidSize.x}
+                  min="0.1"
+                  max="2.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) handleSliderChange('x', val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
               </div>
               <input
                 type="range"
@@ -289,7 +377,22 @@ const BasicOptionsPanel = ({
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
                 <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Y</span> Dimension (Depth)</span>
-                <span style={styles.sliderValue}>{spheroidSize.z.toFixed(2)}m</span>
+                <input
+                  type="number"
+                  value={spheroidSize.z}
+                  min="0.1"
+                  max="2.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) handleSliderChange('z', val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
               </div>
               <input
                 type="range"
@@ -306,7 +409,22 @@ const BasicOptionsPanel = ({
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
                 <span style={styles.axisLabel}><span style={{ color: '#00ff88' }}>Z</span> Dimension (Height)</span>
-                <span style={styles.sliderValue}>{spheroidSize.y.toFixed(2)}m</span>
+                <input
+                  type="number"
+                  value={spheroidSize.y}
+                  min="0.1"
+                  max="2.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) handleSliderChange('y', val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
               </div>
               <input
                 type="range"
@@ -323,7 +441,22 @@ const BasicOptionsPanel = ({
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
                 <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Min</span> Z (Height Cut)</span>
-                <span style={styles.sliderValue}>{zBounds.min.toFixed(2)}</span>
+                <input
+                  type="number"
+                  value={zBounds.min}
+                  min="-1.0"
+                  max="1.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) handleMinZChange(val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
               </div>
               <input
                 type="range"
@@ -340,7 +473,22 @@ const BasicOptionsPanel = ({
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
                 <span style={styles.axisLabel}><span style={{ color: '#00ffcc' }}>Max</span> Z (Height Cut)</span>
-                <span style={styles.sliderValue}>{zBounds.max.toFixed(2)}</span>
+                <input
+                  type="number"
+                  value={zBounds.max}
+                  min="-1.0"
+                  max="1.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) handleMaxZChange(val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
               </div>
               <input
                 type="range"
@@ -526,13 +674,6 @@ const styles = {
   },
   rangeInput: {
     width: '100%',
-    accentColor: 'var(--accent-blue)',
-    background: 'var(--slider-track-bg)',
-    height: '12px',
-    borderRadius: '6px',
-    outline: 'none',
-    transition: 'opacity 0.2s',
-    cursor: 'pointer'
   },
   switch: {
     position: 'relative',

@@ -14,44 +14,51 @@ const Sidebar = ({
   currentStation,
   stationQueues, stationQueueStatus,
   handleMoveQueueItem, handleEditQueueItem, handleRemoveQueueItem,
+  onNewExecution,
   // User / auth
   currentUser, userRole,
   onLogout,
+  className,
+  setIsSidebarOpen,
 }) => {
-  const navBtnStyle = (isActive) => ({
-    ...styles.button,
-    padding: '12px',
-    fontSize: '0.8rem',
-    textAlign: 'left',
-    background: isActive ? 'var(--accent-blue)' : 'var(--input-bg)',
-    border: '1px solid var(--border-glass)',
-    color: isActive ? '#000000' : 'var(--text-color)',
-    fontWeight: 'bold',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    boxShadow: isActive ? '0 0 10px rgba(0,210,255,0.2)' : 'none',
-  });
-
   return (
-    <aside className="sidebar glass" style={styles.sidebar}>
+    <aside className={`sidebar glass ${className || ''}`} style={styles.sidebar}>
       {/* Header */}
-      <header style={styles.header}>
-        <h1 className="text-gradient" style={{ fontSize: '1.1rem', marginBottom: '5px' }}>
-          Automated Photography Studio
-        </h1>
-        <p style={styles.subtitle}>Industrial HMI Dashboard</p>
+      <header style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 className="text-gradient" style={{ fontSize: '1.1rem', marginBottom: '5px' }}>
+            Automated Photography Studio
+          </h1>
+          <p style={styles.subtitle}>Industrial HMI Dashboard</p>
+        </div>
+        <button
+          className="sidebar-close-btn"
+          onClick={() => setIsSidebarOpen && setIsSidebarOpen(false)}
+          style={{
+            display: 'none',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-color)',
+            fontSize: '1.25rem',
+            cursor: 'pointer',
+            padding: 0,
+            width: 'auto',
+          }}
+        >
+          ✕
+        </button>
       </header>
 
       {/* Station / View selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label style={styles.label}>Navigation / View</label>
+        <label style={styles.label}>Active Station / Area</label>
         <select
           value={activeStationTab}
           onChange={(e) => {
             const val = e.target.value;
             setActiveStationTab(val === 'general' ? 'general' : parseInt(val));
             setActiveSubView('dashboard');
+            if (setIsSidebarOpen) setIsSidebarOpen(false);
           }}
           style={styles.select}
         >
@@ -62,38 +69,7 @@ const Sidebar = ({
         </select>
       </div>
 
-      {/* Sub-view buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <button
-          onClick={() => setActiveSubView('dashboard')}
-          style={navBtnStyle(activeSubView === 'dashboard')}
-        >
-          🖥️ Dashboard {activeStationTab !== 'general' ? '(3D)' : ''}
-        </button>
-
-        {activeStationTab === 'general' && (
-          <button
-            onClick={() => setActiveSubView('presets')}
-            style={navBtnStyle(activeSubView === 'presets' || activeSubView === 'calibration')}
-          >
-            📐 Presets
-          </button>
-        )}
-
-        {activeStationTab !== 'general' && (
-          <>
-            <button onClick={() => setActiveSubView('vnc')} style={navBtnStyle(activeSubView === 'vnc')}>
-              🎮 VNC Viewer (TeachPendant)
-            </button>
-            <button onClick={() => setActiveSubView('camera')} style={navBtnStyle(activeSubView === 'camera')}>
-              📷 Camera (2D)
-            </button>
-            <button onClick={() => setActiveSubView('config')} style={navBtnStyle(activeSubView === 'config')}>
-              ⚙️ Station Settings
-            </button>
-          </>
-        )}
-      </div>
+      <div style={{ ...styles.divider, opacity: 0.15 }} />
 
       {/* Execution Queue (only in station view) */}
       {activeStationTab !== 'general' && currentStation && (() => {
@@ -101,12 +77,34 @@ const Sidebar = ({
         const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
         return (
           <div className="queue-panel">
-            <div className="queue-header">
+            <div className="queue-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Execution Queue ({sQueue.length})
+                Queue ({sQueue.length})
               </span>
+              {userRole === 'admin' && (
+                <button
+                  onClick={() => onNewExecution(currentStation.id)}
+                  style={{
+                    background: 'var(--accent-blue)',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '4px 8px',
+                    fontSize: '0.65rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '2px',
+                    width: 'auto',
+                  }}
+                  title="Add new execution"
+                >
+                  ➕ Add
+                </button>
+              )}
             </div>
-            <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '180px', paddingRight: '4px' }}>
+            <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '250px', paddingRight: '4px' }}>
               {sQueue.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
                   No tasks in queue. Configure executions to start.
