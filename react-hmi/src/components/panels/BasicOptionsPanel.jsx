@@ -20,7 +20,7 @@ const BasicOptionsPanel = ({
   setColumnHeight,
   orbitRadius = 1.6,
   setOrbitRadius,
-  darkMode = true,
+  darkMode = false,
   setDarkMode,
   presets = {},
   editingPresetName,        // string (e.g. 'PresetA') o '__new__'

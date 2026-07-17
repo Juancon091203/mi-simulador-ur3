@@ -40,7 +40,7 @@ const App = () => {
   const [loginPass, setLoginPass] = useState('');
 
   // ── Theme ─────────────────────────────────────────────────────────────────
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
     document.body.classList.toggle('light-mode', !darkMode);
   }, [darkMode]);
