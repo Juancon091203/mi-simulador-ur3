@@ -608,6 +608,7 @@ input[type="range"]::-moz-range-thumb:active {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  position: relative;
 }
 
 .modal-header {
@@ -620,12 +621,16 @@ input[type="range"]::-moz-range-thumb:active {
 }
 
 .modal-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
   background: none;
   border: none;
   color: var(--text-dim);
   font-size: 1.5rem;
   cursor: pointer;
   transition: color 0.2s;
+  z-index: 10;
 }
 
 .modal-close-btn:hover {

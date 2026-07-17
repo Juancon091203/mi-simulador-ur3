@@ -115,7 +115,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
         </button>
         {!isConnected && (
           <span className="camera-tooltip" style={styles.tooltipText}>
-            Camera offline
+            IMU offline
           </span>
         )}
       </div>

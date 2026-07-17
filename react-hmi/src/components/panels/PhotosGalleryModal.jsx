@@ -26,18 +26,18 @@ const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDel
   return (
     <div style={styles.backdrop} onClick={onClose}>
       <div className="glass" style={styles.modalBox} onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} style={styles.closeBtn}>✕</button>
         <header style={styles.header}>
           <div>
             <h2 style={styles.title} className="text-gradient">PHOTO ALBUM</h2>
             <p style={styles.subtitle}>Photos recorded by the system ({photos.length} photos)</p>
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginRight: '30px' }}>
             {photos.length > 0 && (
               <button onClick={onClearPhotos} style={styles.clearBtn}>
                 🗑️ Clear Album
               </button>
             )}
-            <button onClick={onClose} style={styles.closeBtn}>✕</button>
           </div>
         </header>
 
@@ -66,7 +66,10 @@ const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDel
                     className="photo-delete-btn"
                     title="Delete this photo"
                   >
-                    ✕
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
                   </button>
 
                   <div className="photo-image-wrapper" onClick={() => setLightboxIndex(i)}>
@@ -138,6 +141,7 @@ const styles = {
     padding: '24px',
   },
   modalBox: {
+    position: 'relative',
     width: '100%',
     maxWidth: '900px',
     height: '75vh',
@@ -170,6 +174,9 @@ const styles = {
     margin: '2px 0 0 0',
   },
   closeBtn: {
+    position: 'absolute',
+    top: '15px',
+    right: '15px',
     background: 'none',
     border: 'none',
     color: 'var(--text-color)',
@@ -180,6 +187,7 @@ const styles = {
     opacity: 0.7,
     transition: 'opacity 0.2s',
     width: 'auto',
+    zIndex: 10,
   },
   clearBtn: {
     background: 'rgba(255, 75, 43, 0.1)',
@@ -251,14 +259,13 @@ const styles = {
     alignItems: 'center',
   },
   lightboxCloseBtn: {
-    background: 'rgba(255,255,255,0.1)',
+    background: 'none',
     border: 'none',
-    color: 'white',
-    padding: '4px 10px',
-    borderRadius: '4px',
+    color: '#ffffff',
+    fontSize: '0.8rem',
     cursor: 'pointer',
-    fontSize: '0.7rem',
-    width: 'auto',
+    opacity: 0.8,
+    transition: 'opacity 0.2s',
   },
   navArrowLeft: {
     position: 'absolute',

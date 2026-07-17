@@ -345,8 +345,6 @@ const App = () => {
         setConfigStationId={stationsHook.setConfigStationId}
         presets={presetsHook.presets}
         stations={stationsHook.stations}
-        pointCount={calibration.pointCount}
-        setPointCount={calibration.setPointCount}
         onSubmit={stationsHook.handleAddToQueue}
         editingQueueItem={stationsHook.editingQueueItem}
       />
@@ -358,6 +356,7 @@ const App = () => {
 
       <ObjectChangeModal
         isOpen={stationsHook.showObjectChangePrompt}
+        stationName={stationsHook.stations.find(st => st.id === stationsHook.promptStationId)?.name || `Station ${stationsHook.promptStationId}`}
         onContinue={stationsHook.handleContinueQueue}
       />
 

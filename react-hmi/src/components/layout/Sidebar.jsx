@@ -120,7 +120,7 @@ const Sidebar = ({
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
                       <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem' }}>{item.productName}</span>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>{item.robotSpeed} m/s • {item.pointCount || 100} pts</span>
+                      <span style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>Preset: {item.presetName || 'None'}</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                       {idx === status.currentIndex && status.isPlaying && (
@@ -129,7 +129,19 @@ const Sidebar = ({
                       <button onClick={() => handleMoveQueueItem(currentStation.id, idx, 'up')} disabled={idx === 0} style={{ background: 'none', border: 'none', color: idx === 0 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }} title="Move Up">▲</button>
                       <button onClick={() => handleMoveQueueItem(currentStation.id, idx, 'down')} disabled={idx === sQueue.length - 1} style={{ background: 'none', border: 'none', color: idx === sQueue.length - 1 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === sQueue.length - 1 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === sQueue.length - 1 ? 0.3 : 1 }} title="Move Down">▼</button>
                       <button onClick={() => handleEditQueueItem(item)} style={{ background: 'none', border: 'none', color: '#00d2ff', cursor: 'pointer', padding: '2px', fontSize: '0.85rem' }} title="Edit task">✏️</button>
-                      <button onClick={() => handleRemoveQueueItem(currentStation.id, item.id)} style={{ background: 'none', border: 'none', color: '#ff4b2b', cursor: 'pointer', padding: '2px', fontSize: '0.8rem' }} title="Remove task">✕</button>
+                      <button
+                        onClick={() => handleRemoveQueueItem(currentStation.id, item.id)}
+                        style={{
+                          background: 'none', border: 'none', color: '#ff4b2b', cursor: 'pointer',
+                          padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                        title="Remove task"
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 ))

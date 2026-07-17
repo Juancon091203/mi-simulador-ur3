@@ -13,7 +13,7 @@ const ConfigExecutionModal = ({
   configFormData, setConfigFormData,
   configStationId, setConfigStationId,
   // Data
-  presets, stations, pointCount, setPointCount,
+  presets, stations,
   // Submit
   onSubmit,
   editingQueueItem,
@@ -22,10 +22,26 @@ const ConfigExecutionModal = ({
 
   return (
     <div className="modal-backdrop">
-      <div className="modal-content-full glass">
+      <div className="modal-content-full glass" style={{ position: 'relative' }}>
+        <button
+          className="modal-close-btn"
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '25px',
+            background: 'none',
+            border: 'none',
+            color: 'var(--text-dim)',
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            zIndex: 100,
+          }}
+        >
+          ×
+        </button>
         <header className="modal-header">
           <h2 style={{ margin: 0 }}>Configure Station Execution</h2>
-          <button className="modal-close-btn" onClick={onClose}>×</button>
         </header>
 
         <nav className="modal-tabs">
@@ -58,7 +74,7 @@ const ConfigExecutionModal = ({
                     const s = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
                     return (
                       <option key={name} value={name}>
-                        {name} — {cfg.pointCount ?? 100} pts · Ø{s.x.toFixed(2)}x{s.y.toFixed(2)}x{s.z.toFixed(2)} · r{(cfg.orbitRadius ?? 1.6).toFixed(2)}m
+                        {name} — {cfg.pointCount ?? 100} pts · Size: {s.x.toFixed(2)}m · Height: {(cfg.objectCenter?.y ?? 1.0).toFixed(2)}m
                       </option>
                     );
                   })}
@@ -69,9 +85,10 @@ const ConfigExecutionModal = ({
                   return (
                     <div style={{ marginTop: '8px', padding: '10px 14px', background: 'rgba(0, 210, 255, 0.05)', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '8px', fontSize: '0.72rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', color: 'var(--text-dim)' }}>
                       <span>Fibonacci Points: <strong style={{ color: 'var(--text-color)' }}>{cfg.pointCount ?? 100}</strong></span>
-                      <span>Orbit Radius: <strong style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)} m</strong></span>
-                      <span>Spheroid: <strong style={{ color: 'var(--text-color)' }}>{s.x.toFixed(2)}×{s.y.toFixed(2)}×{s.z.toFixed(2)}</strong></span>
-                      <span>Base Height: <strong style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)} m</strong></span>
+                      <span>Spheroid Size: <strong style={{ color: 'var(--text-color)' }}>{s.x.toFixed(2)} m</strong></span>
+                      <span>Center Height (Z): <strong style={{ color: 'var(--text-color)' }}>{(cfg.objectCenter?.y ?? 1.0).toFixed(2)} m</strong></span>
+                      <span>Robot Orbit Radius: <strong style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)} m</strong></span>
+                      <span>Robot Base Height: <strong style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)} m</strong></span>
                     </div>
                   );
                 })()}
@@ -157,7 +174,7 @@ const ConfigExecutionModal = ({
           {/* ── Station tab ────────────────────────────────────────────────── */}
           {configActiveTab === 'station' && (
             <div className="form-grid">
-              <div className="form-field">
+              <div className="form-field" style={{ gridColumn: 'span 2' }}>
                 <label>Select Target Station</label>
                 <select
                   value={configStationId || ''}
@@ -169,15 +186,6 @@ const ConfigExecutionModal = ({
                     <option key={st.id} value={st.id}>{st.name} ({st.ip})</option>
                   ))}
                 </select>
-              </div>
-              <div className="form-field">
-                <label>Number of Capture Points</label>
-                <input
-                  type="number" min="10" max="500"
-                  value={pointCount}
-                  onChange={(e) => setPointCount(parseInt(e.target.value))}
-                  style={styles.input}
-                />
               </div>
             </div>
           )}

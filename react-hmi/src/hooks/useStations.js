@@ -171,35 +171,53 @@ export function useStations() {
     if (promptStationId) {
       const stationId = promptStationId;
       setStationQueueStatus(prev => {
-        const status = prev[stationId];
-        const nextIndex = status.currentIndex + 1;
+        const queue = stationQueues[stationId] || [];
+        const nextItem = queue[0];
         setStations(stPrev => stPrev.map(st =>
-          st.id === stationId ? { ...st, progress: 0, photoCount: 0 } : st,
+          st.id === stationId ? {
+            ...st,
+            progress: 0,
+            photoCount: 0,
+            product: nextItem ? nextItem.productName : 'None',
+            status: 'idle',
+            speed: 0.0
+          } : st,
         ));
-        return { ...prev, [stationId]: { isPlaying: true, currentIndex: nextIndex } };
+        return { ...prev, [stationId]: { isPlaying: false, currentIndex: 0 } };
       });
       setPromptStationId(null);
     }
   };
 
   const handleStationQueueItemFinished = (stationId) => {
-    setStationQueueStatus(prev => {
-      const status = prev[stationId];
-      const queue = stationQueues[stationId] || [];
-      const nextIndex = status.currentIndex + 1;
-      if (nextIndex < queue.length) {
-        setPromptStationId(stationId);
-        setShowObjectChangePrompt(true);
-        return { ...prev, [stationId]: { ...status, isPlaying: false } };
-      } else {
-        alert(`Station ${stationId} queue completed successfully!`);
-        setStations(stPrev => stPrev.map(st =>
-          st.id === stationId ? { ...st, status: 'idle', product: 'None', progress: 0, photoCount: 0, speed: 0.0 } : st,
-        ));
-        setStationQueues(qPrev => ({ ...qPrev, [stationId]: [] }));
-        return { ...prev, [stationId]: { isPlaying: false, currentIndex: 0 } };
-      }
+    const currentQueue = stationQueues[stationId] || [];
+    const hasMoreItems = currentQueue.length > 1;
+
+    // 1. Remove the finished item from the queue
+    setStationQueues(qPrev => {
+      const queue = [...(qPrev[stationId] || [])];
+      queue.shift(); // Remove index 0
+      return { ...qPrev, [stationId]: queue };
     });
+
+    // 2. Update status and prompt
+    if (hasMoreItems) {
+      setPromptStationId(stationId);
+      setShowObjectChangePrompt(true);
+      setStationQueueStatus(prev => ({
+        ...prev,
+        [stationId]: { isPlaying: false, currentIndex: 0 }
+      }));
+    } else {
+      alert(`Station ${stationId} queue completed successfully!`);
+      setStations(stPrev => stPrev.map(st =>
+        st.id === stationId ? { ...st, status: 'idle', product: 'None', progress: 0, photoCount: 0, speed: 0.0 } : st,
+      ));
+      setStationQueueStatus(prev => ({
+        ...prev,
+        [stationId]: { isPlaying: false, currentIndex: 0 }
+      }));
+    }
   };
 
   // ── Parallel Queue Runner ─────────────────────────────────────────────────
