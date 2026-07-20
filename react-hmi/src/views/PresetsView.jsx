@@ -83,6 +83,8 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
                   <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--accent-blue)', marginBottom: '8px' }}>{name}</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                     {[
+                      ['3D Model', cfg.objectModel ? (cfg.objectModel.charAt(0).toUpperCase() + cfg.objectModel.slice(1)) : 'Zapato'],
+                      ['Model Scale', `${(cfg.objectScale ?? 1.0).toFixed(2)}x`],
                       ['Fibonacci Points', cfg.pointCount ?? 100],
                       ['Spheroid Size', `${sSize.x.toFixed(2)}m`],
                       ['Center Height (Z)', `${(cfg.objectCenter?.y ?? 1.0).toFixed(2)}m`],

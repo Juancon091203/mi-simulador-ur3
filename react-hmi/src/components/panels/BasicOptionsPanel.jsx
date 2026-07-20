@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AVAILABLE_OBJECT_MODELS } from '../../constants/objectModels';
 
 /**
  * BasicOptionsPanel - Panel de interfaz principal simplificado para fotógrafos.
@@ -20,6 +21,10 @@ const BasicOptionsPanel = ({
   setColumnHeight,
   orbitRadius = 1.6,
   setOrbitRadius,
+  objectModel = 'zapato',
+  setObjectModel,
+  objectScale = 1.0,
+  setObjectScale,
   darkMode = false,
   setDarkMode,
   presets = {},
@@ -44,9 +49,11 @@ const BasicOptionsPanel = ({
   };
 
   const handleCenterChange = (axis, value) => {
+    const parsed = parseFloat(value);
+    const val = axis === 'y' ? Math.max(0.0, parsed) : parsed;
     setObjectCenter((prev) => ({
       ...prev,
-      [axis]: parseFloat(value)
+      [axis]: val
     }));
   };
 
@@ -199,6 +206,71 @@ const BasicOptionsPanel = ({
           />
         </div>
 
+        {/* 3D Object Model Selector */}
+        <div style={styles.sliderGroup}>
+          <div style={styles.sliderHeader}>
+            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>3D</span> Object Model</span>
+          </div>
+          <select
+            value={objectModel}
+            onChange={(e) => setObjectModel && setObjectModel(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              background: 'var(--input-bg)',
+              border: '1px solid var(--border-glass)',
+              color: 'var(--text-color)',
+              fontWeight: '600',
+              fontSize: '0.85rem',
+              outline: 'none',
+              cursor: 'pointer',
+              marginTop: '4px',
+            }}
+          >
+            {AVAILABLE_OBJECT_MODELS.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.name} ({m.id}.glb)
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* 3D Object Scale Factor */}
+        <div style={styles.sliderGroup}>
+          <div style={styles.sliderHeader}>
+            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>Model</span> Scale Factor</span>
+            <input
+              type="number"
+              value={objectScale}
+              min="0.2"
+              max="3.0"
+              step="0.05"
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val) && setObjectScale) setObjectScale(Math.max(0.1, val));
+              }}
+              style={{
+                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+              }}
+            />
+          </div>
+          <input
+            type="range"
+            min="0.2"
+            max="3.0"
+            step="0.05"
+            value={objectScale}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              if (!isNaN(val) && setObjectScale) setObjectScale(val);
+            }}
+            style={styles.rangeInput}
+          />
+        </div>
+
         {/* Center Height (Z) -> controla objectCenter.y (React altura vertical) */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
@@ -206,7 +278,7 @@ const BasicOptionsPanel = ({
             <input
               type="number"
               value={objectCenter.y}
-              min="-2.0"
+              min="0.0"
               max="2.0"
               step="0.05"
               onChange={(e) => {
@@ -222,7 +294,7 @@ const BasicOptionsPanel = ({
           </div>
           <input
             type="range"
-            min="-2.0"
+            min="0.0"
             max="2.0"
             step="0.05"
             value={objectCenter.y}

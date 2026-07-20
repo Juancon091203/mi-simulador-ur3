@@ -30,8 +30,9 @@ export function usePresets(calibrationState) {
     const {
       spheroidSize, objectCenter, zBounds,
       pointCount, columnHeight, orbitRadius,
+      objectModel, objectScale,
     } = calibrationState;
-    const config = { spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius };
+    const config = { spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius, objectModel, objectScale };
     try {
       const response = await fetch(`${API}/save_preset`, {
         method: 'POST',
@@ -62,13 +63,15 @@ export function usePresets(calibrationState) {
   const handleLoadPreset = (name, calibrationSetters) => {
     const config = presets[name];
     if (!config) return;
-    const { setSpheroidSize, setObjectCenter, setZBounds, setPointCount, setColumnHeight, setOrbitRadius } = calibrationSetters;
+    const { setSpheroidSize, setObjectCenter, setZBounds, setPointCount, setColumnHeight, setOrbitRadius, setObjectModel, setObjectScale } = calibrationSetters;
     if (config.spheroidSize) setSpheroidSize(config.spheroidSize);
     if (config.objectCenter) setObjectCenter(config.objectCenter);
     if (config.zBounds) setZBounds(config.zBounds);
     if (config.pointCount !== undefined) setPointCount(config.pointCount);
     if (config.columnHeight !== undefined) setColumnHeight(config.columnHeight);
     if (config.orbitRadius !== undefined) setOrbitRadius(config.orbitRadius);
+    if (config.objectModel !== undefined && setObjectModel) setObjectModel(config.objectModel);
+    if (config.objectScale !== undefined && setObjectScale) setObjectScale(config.objectScale);
   };
 
   return {

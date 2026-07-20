@@ -90,6 +90,8 @@ const App = () => {
     pointCount: calibration.pointCount,
     columnHeight: calibration.columnHeight,
     orbitRadius: calibration.orbitRadius,
+    objectModel: calibration.objectModel,
+    objectScale: calibration.objectScale,
   });
 
   // ── Camera / Photos ───────────────────────────────────────────────────────
@@ -139,6 +141,8 @@ const App = () => {
     darkMode,
     columnHeight: calibration.columnHeight,
     orbitRadius: calibration.orbitRadius,
+    objectModel: calibration.objectModel,
+    objectScale: calibration.objectScale,
     isGalleryOpen: cameraHook.isGalleryOpen,
   };
 
@@ -418,6 +422,8 @@ const App = () => {
                     setPointCount: calibration.setPointCount,
                     setColumnHeight: calibration.setColumnHeight,
                     setOrbitRadius: calibration.setOrbitRadius,
+                    setObjectModel: calibration.setObjectModel,
+                    setObjectScale: calibration.setObjectScale,
                   });
                   presetsHook.setEditingPresetName(name);
                   setActiveSubView('calibration');
@@ -443,6 +449,10 @@ const App = () => {
                 setShowSectors={calibration.setShowSectors}
                 setColumnHeight={calibration.setColumnHeight}
                 setOrbitRadius={calibration.setOrbitRadius}
+                objectModel={calibration.objectModel}
+                setObjectModel={calibration.setObjectModel}
+                objectScale={calibration.objectScale}
+                setObjectScale={calibration.setObjectScale}
                 presets={presetsHook.presets}
                 editingPresetName={presetsHook.editingPresetName}
                 editingPresetForm={presetsHook.editingPresetForm}

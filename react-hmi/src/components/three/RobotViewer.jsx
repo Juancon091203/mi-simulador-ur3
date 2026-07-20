@@ -38,24 +38,19 @@ const RobotColumn = ({ position = [0, 0, 0], height = 0.5 }) => {
   );
 };
 
-const Soporte = () => {
-  const gltf = useLoader(GLTFLoader, '/scenes/soporte.glb');
+const ObjectColumn = ({ objectCenter = { x: 0, y: 1.0, z: 0 } }) => {
+  // Altura del suelo en -0.543. Garantizar que la altura del objeto no baje de 0.0m
+  const clampedY = Math.max(0.0, objectCenter.y ?? 0.0);
+  const topY = clampedY - 0.1;
+  const height = Math.max(0.05, topY - (-0.543));
+  const posY = -0.543 + height / 2;
 
-  useEffect(() => {
-    gltf.scene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-        if (child.material) {
-          child.material = child.material.clone();
-          child.material.roughness = 0.5;
-          child.material.metalness = 0.4;
-        }
-      }
-    });
-  }, [gltf]);
-
-  return <primitive object={gltf.scene} position={[0, -0.543, 0]} />;
+  return (
+    <mesh position={[objectCenter.x, posY, objectCenter.z]} castShadow receiveShadow>
+      <boxGeometry args={[0.3, height, 0.3]} />
+      <meshStandardMaterial color="#64748b" roughness={0.5} metalness={0.2} />
+    </mesh>
+  );
 };
 
 /**
@@ -80,6 +75,8 @@ const RobotViewer = ({
   darkMode = false,
   columnHeight = 0.5,
   orbitRadius = 1.6,
+  objectModel = 'zapato',
+  objectScale = 1.0,
   isGalleryOpen = false
 }) => {
   const [matrixElements, setMatrixElements] = React.useState(null);
@@ -118,7 +115,7 @@ const RobotViewer = ({
           </mesh>
           <gridHelper args={[60, 60, darkMode ? '#00d2ff' : '#0284c7', darkMode ? '#1f2937' : '#cbd5e1']} position={[0, -0.542, 0]} opacity={0.12} transparent />
           <RobotColumn position={robotPosition} height={columnHeight} />
-          <Soporte />
+          <ObjectColumn objectCenter={objectCenter} />
           <ObjetoSujeto
             spheroidSize={spheroidSize}
             showSpheroid={showSpheroid}
@@ -129,6 +126,8 @@ const RobotViewer = ({
             zBounds={zBounds}
             showSectors={showSectors}
             darkMode={darkMode}
+            objectModel={objectModel}
+            objectScale={objectScale}
           />
           <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} hideLabels={isGalleryOpen} darkMode={darkMode} />
         </Suspense>

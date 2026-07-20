@@ -12,6 +12,7 @@ const CalibrationView = ({
   spheroidSize, showSpheroid, pendingPointsPositions, activePoint,
   robotPositionIndex, robotPosition, robotRotationY, nextFivePoints,
   objectCenter, zBounds, showSectors, darkMode, columnHeight, orbitRadius,
+  objectModel, setObjectModel, objectScale, setObjectScale,
   isGalleryOpen,
   // CameraViewer props
   stabilityThreshold, setStabilityThreshold,
@@ -52,6 +53,8 @@ const CalibrationView = ({
           darkMode={darkMode}
           columnHeight={columnHeight}
           orbitRadius={orbitRadius}
+          objectModel={objectModel}
+          objectScale={objectScale}
           isGalleryOpen={isGalleryOpen}
         />
       </Suspense>
@@ -81,6 +84,10 @@ const CalibrationView = ({
         setColumnHeight={setColumnHeight}
         orbitRadius={orbitRadius}
         setOrbitRadius={setOrbitRadius}
+        objectModel={objectModel}
+        setObjectModel={setObjectModel}
+        objectScale={objectScale}
+        setObjectScale={setObjectScale}
         presets={presets}
         editingPresetName={editingPresetName}
         editingPresetForm={editingPresetForm}

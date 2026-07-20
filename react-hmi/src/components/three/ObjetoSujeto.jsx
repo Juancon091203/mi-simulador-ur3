@@ -83,8 +83,10 @@ const getSpheroidArc = (p0, p1, steps, spheroidSize) => {
   return arc;
 };
 
+import { getObjectModelPath } from '../../constants/objectModels';
+
 /**
- * ObjetoSujeto - Componente para cargar el modelo 3D del objeto sujeto (zapato.glb)
+ * ObjetoSujeto - Componente para cargar el modelo 3D del objeto sujeto (escalable y dinámico)
  * y dibujar un esferoide translúcido y parametrizable a su alrededor.
  */
 const ObjetoSujeto = ({
@@ -96,9 +98,12 @@ const ObjetoSujeto = ({
   objectCenter = { x: 0.0, y: 1.0, z: 0.0 },
   zBounds = { min: -1.0, max: 1.0 },
   showSectors = false,
-  darkMode = false
+  darkMode = false,
+  objectModel = 'zapato',
+  objectScale = 1.0,
 }) => {
-  const gltf = useLoader(GLTFLoader, '/scenes/zapato.glb');
+  const modelPath = getObjectModelPath(objectModel);
+  const gltf = useLoader(GLTFLoader, modelPath);
   const sectorColor = darkMode ? "#ff9d00" : "#b45309";
 
   // Calcular la trayectoria curva que abraza la superficie de la esfera/esferoide
@@ -125,6 +130,7 @@ const ObjetoSujeto = ({
 
   // Clonamos la escena para evitar interferencias de estado compartido
   const modelScene = useMemo(() => {
+    if (!gltf || !gltf.scene) return null;
     const clone = gltf.scene.clone();
     clone.traverse((child) => {
       if (child.isMesh) {
@@ -156,8 +162,14 @@ const ObjetoSujeto = ({
 
   return (
     <group>
-      {/* Modelo 3D - posicionado 0.1m más abajo que el centro de la esfera para encajar visualmente */}
-      <primitive object={modelScene} position={[objectCenter.x, objectCenter.y - 0.1, objectCenter.z]} />
+      {/* Modelo 3D - posicionado y escalado dinámicamente */}
+      {modelScene && (
+        <primitive
+          object={modelScene}
+          position={[objectCenter.x, objectCenter.y - 0.1, objectCenter.z]}
+          scale={[objectScale, objectScale, objectScale]}
+        />
+      )}
 
       {/* Esferoide Translúcido (Volumen de Control) */}
       {showSpheroid && (

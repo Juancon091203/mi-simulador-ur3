@@ -15,6 +15,8 @@ export function useCalibration() {
   const [showSectors, setShowSectors] = useState(false);
   const [columnHeight, setColumnHeight] = useState(0.5);
   const [orbitRadius, setOrbitRadius] = useState(1.6);
+  const [objectModel, setObjectModel] = useState('zapato');
+  const [objectScale, setObjectScale] = useState(1.0);
   const [backendSequence, setBackendSequence] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [robotPositionIndex, setRobotPositionIndex] = useState(0);
@@ -120,6 +122,8 @@ export function useCalibration() {
     showSectors, setShowSectors,
     columnHeight, setColumnHeight,
     orbitRadius, setOrbitRadius,
+    objectModel, setObjectModel,
+    objectScale, setObjectScale,
     isCalculating,
     // Derived
     globalSequence,
