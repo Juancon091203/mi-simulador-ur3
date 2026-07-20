@@ -272,11 +272,11 @@ const ObjetoSujeto = ({
                 />
               </bufferGeometry>
               <pointsMaterial
-                color="#ffffff" // Blanco puro para los puntos objetivo
-                size={0.035}
+                color={darkMode ? "#ffffff" : "#0284c7"}
+                size={darkMode ? 0.035 : 0.045}
                 sizeAttenuation={true}
                 transparent={true}
-                opacity={0.9}
+                opacity={darkMode ? 0.9 : 1.0}
               />
             </points>
           )}
@@ -285,13 +285,13 @@ const ObjetoSujeto = ({
           {curvedLinePoints && curvedLinePoints.length > 1 && (
             <group>
               {curvedLinePoints.slice(0, -1).map((p, idx) => {
-                const opacity = Math.max(0.05, 1.0 - (idx / (curvedLinePoints.length - 1)));
+                const opacity = Math.max(0.08, 1.0 - (idx / (curvedLinePoints.length - 1)));
                 return (
                   <Line
                     key={idx}
                     points={[p, curvedLinePoints[idx + 1]]}
-                    color="#00ff88"
-                    lineWidth={2.5}
+                    color={darkMode ? "#00ff88" : "#047857"}
+                    lineWidth={darkMode ? 2.5 : 3.5}
                     transparent={true}
                     opacity={opacity}
                   />

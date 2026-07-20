@@ -153,7 +153,7 @@ const Sidebar = ({
       <div style={{ marginTop: 'auto', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-glass)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontWeight: 'bold' }}>{currentUser || 'Anonymous User'}</span>
-          <span style={{ fontSize: '0.55rem', fontWeight: '800', textTransform: 'uppercase', background: userRole === 'admin' ? 'rgba(0, 255, 136, 0.15)' : 'rgba(0, 210, 255, 0.15)', color: userRole === 'admin' ? '#00ff88' : 'var(--accent-blue)', padding: '1px 6px', borderRadius: '8px' }}>
+          <span style={{ fontSize: '0.55rem', fontWeight: '800', textTransform: 'uppercase', background: userRole === 'admin' ? 'var(--accent-green-bg)' : 'rgba(0, 210, 255, 0.15)', color: userRole === 'admin' ? 'var(--accent-green)' : 'var(--accent-blue)', padding: '1px 6px', borderRadius: '8px' }}>
             {userRole}
           </span>
         </div>

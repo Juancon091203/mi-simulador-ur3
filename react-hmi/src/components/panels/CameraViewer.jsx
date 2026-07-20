@@ -131,7 +131,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
             style={{
               fontSize: '0.8rem',
               fontWeight: 'bold',
-              color: status.stable ? '#00ff88' : '#ff4b2b',
+              color: status.stable ? 'var(--accent-green)' : '#ff4b2b',
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
@@ -150,7 +150,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
               style={{
                 ...styles.metricBar,
                 width: `${Math.min(100, (status.gyro_magnitude / (status.umbral_giro || 0.25)) * 100)}%`,
-                backgroundColor: status.gyro_magnitude < status.umbral_giro ? '#00ff88' : '#ff4b2b'
+                backgroundColor: status.gyro_magnitude < status.umbral_giro ? 'var(--accent-green)' : '#ff4b2b'
               }}
             />
           </div>
@@ -227,7 +227,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
           <span
             style={{
               ...styles.statusText,
-              color: status.stable ? '#00ff88' : '#ff4b2b',
+              color: status.stable ? 'var(--accent-green)' : '#ff4b2b',
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
@@ -246,7 +246,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
               style={{
                 ...styles.metricBar,
                 width: `${Math.min(100, (status.gyro_magnitude / (status.umbral_giro || 0.08)) * 100)}%`,
-                backgroundColor: status.gyro_magnitude < status.umbral_giro ? '#00ff88' : '#ff4b2b'
+                backgroundColor: status.gyro_magnitude < status.umbral_giro ? 'var(--accent-green)' : '#ff4b2b'
               }}
             />
           </div>

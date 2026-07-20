@@ -140,12 +140,12 @@ const BasicOptionsPanel = ({
             onClick={() => onSavePreset(editingPresetName)}
             style={{
               ...styles.savePresetBtn,
-              background: 'linear-gradient(135deg, #00ff88, #00d2ff)',
-              color: '#000000',
+              background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-cyan))',
+              color: '#ffffff',
               fontWeight: '900',
               width: '100%',
               fontSize: '0.8rem',
-              boxShadow: '0 0 10px rgba(0, 255, 136, 0.2)',
+              boxShadow: '0 0 10px rgba(2, 132, 199, 0.3)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -170,7 +170,7 @@ const BasicOptionsPanel = ({
         {/* Spheroid Size */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Spheroid</span> Size</span>
+            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-blue)' }}>Spheroid</span> Size</span>
             <input
               type="number"
               value={spheroidSize.x}
@@ -202,7 +202,7 @@ const BasicOptionsPanel = ({
         {/* Center Height (Z) -> controla objectCenter.y (React altura vertical) */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: '#00ff88' }}>Center</span> Height (Z)</span>
+            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>Center</span> Height (Z)</span>
             <input
               type="number"
               value={objectCenter.y}
@@ -408,7 +408,7 @@ const BasicOptionsPanel = ({
             {/* Z Dimension (Height) -> controla spheroidSize.y (React Y) */}
             <div style={styles.sliderGroup}>
               <div style={styles.sliderHeader}>
-                <span style={styles.axisLabel}><span style={{ color: '#00ff88' }}>Z</span> Dimension (Height)</span>
+                <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>Z</span> Dimension (Height)</span>
                 <input
                   type="number"
                   value={spheroidSize.y}

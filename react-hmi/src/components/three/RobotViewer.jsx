@@ -6,6 +6,7 @@ import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
 import RobotModel from './RobotModel';
 import ObjetoSujeto from './ObjetoSujeto';
 import RobotPathCircle from './RobotPathCircle';
+import { GizmoCameraSync, OrientationGizmoOverlay } from './OrientationGizmo';
 
 // Componente para cargar y renderizar el entorno de la cinta
 const ConveyorBelt = () => {
@@ -81,10 +82,23 @@ const RobotViewer = ({
   orbitRadius = 1.6,
   isGalleryOpen = false
 }) => {
+  const [matrixElements, setMatrixElements] = React.useState(null);
+  const cameraRef = React.useRef();
+
+  const handleSnapView = (axis) => {
+    if (!cameraRef.current) return;
+    const camera = cameraRef.current;
+    const dist = 4.5;
+    if (axis === 'X') camera.position.set(dist, 1, 0);
+    if (axis === 'Y') camera.position.set(0, dist, 0.001);
+    if (axis === 'Z') camera.position.set(0, 1, dist);
+    camera.lookAt(0, 0, 0);
+  };
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Canvas shadows dpr={[1, 2]}>
-        <PerspectiveCamera makeDefault position={[0, 2, 4]} fov={50} />
+        <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 2, 4]} fov={50} />
 
         <ambientLight intensity={0.4} />
         <directionalLight position={[10, 15, 10]} intensity={0.8} castShadow />
@@ -116,12 +130,18 @@ const RobotViewer = ({
             showSectors={showSectors}
             darkMode={darkMode}
           />
-          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} hideLabels={isGalleryOpen} />
+          <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} hideLabels={isGalleryOpen} darkMode={darkMode} />
         </Suspense>
 
         <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 1.75} />
+        <GizmoCameraSync onMatrixUpdate={setMatrixElements} />
       </Canvas>
 
+      <OrientationGizmoOverlay
+        matrixElements={matrixElements}
+        darkMode={darkMode}
+        onSnapView={handleSnapView}
+      />
     </div>
   );
 };

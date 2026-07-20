@@ -28,6 +28,9 @@
   --progress-track: rgba(255, 255, 255, 0.05);
   
   /* Additional UI Variables - Dark Theme */
+  --accent-green: #00ff88;
+  --accent-green-bg: rgba(0, 255, 136, 0.15);
+  --accent-green-border: rgba(0, 255, 136, 0.4);
   --switch-off-bg: rgba(255, 255, 255, 0.12);
   --border-inner-glass: rgba(255, 255, 255, 0.08);
   --slider-track-bg: rgba(255, 255, 255, 0.15);
@@ -51,8 +54,8 @@ body.light-mode {
   --bg-panel: rgba(255, 255, 255, 0.85);
   --accent-blue: #0284c7;
   --accent-cyan: #0ea5e9;
-  --accent-orange: #ea580c;
-  --border-glass: rgba(15, 23, 42, 0.12);
+  --accent-orange: #d97706;
+  --border-glass: rgba(15, 23, 42, 0.15);
   --text-dim: #334155; /* Slate 700 - high contrast readability */
   --text-color: #0f172a; /* Slate 900 */
   --card-bg: rgba(15, 23, 42, 0.04);
@@ -62,13 +65,16 @@ body.light-mode {
   --progress-track: rgba(15, 23, 42, 0.08);
   
   /* Additional UI Variables - Light Theme */
+  --accent-green: #047857; /* Deep emerald green for text and contrast in light mode */
+  --accent-green-bg: rgba(16, 185, 129, 0.18); /* High-contrast light green tint */
+  --accent-green-border: #047857;
   --switch-off-bg: rgba(15, 23, 42, 0.12);
   --border-inner-glass: rgba(15, 23, 42, 0.08);
-  --slider-track-bg: rgba(15, 23, 42, 0.1);
+  --slider-track-bg: rgba(15, 23, 42, 0.15);
   --button-disabled-bg: rgba(15, 23, 42, 0.05);
   --button-disabled-border: rgba(15, 23, 42, 0.1);
   --button-disabled-text: rgba(15, 23, 42, 0.35);
-  --button-active-orange-bg: rgba(234, 88, 12, 0.08);
+  --button-active-orange-bg: rgba(217, 119, 6, 0.12);
   --shadow-focus: 0 0 0 2px rgba(2, 132, 199, 0.2);
   
   --header-bg: rgba(15, 23, 42, 0.05);
@@ -605,7 +611,7 @@ input[type="range"]::-moz-range-thumb:active {
 }
 
 .status-pill-idle { background: rgba(0, 210, 255, 0.15); color: var(--accent-blue); }
-.status-pill-running { background: rgba(0, 255, 136, 0.15); color: #00ff88; }
+.status-pill-running { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
 .status-pill-warning { background: rgba(255, 157, 0, 0.15); color: var(--accent-orange); }
 .status-pill-emergency { background: rgba(255, 75, 43, 0.15); color: #ff4b2b; }
 

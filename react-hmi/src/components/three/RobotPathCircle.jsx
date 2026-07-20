@@ -15,9 +15,13 @@ const RobotPathCircle = ({
   center = [1.2, 0, 0],
   radius = 1.6,
   y = -0.543,
-  hideLabels = false
+  hideLabels = false,
+  darkMode = false
 }) => {
   const [centerX, , centerZ] = center;
+
+  const circleColor = darkMode ? "#3aedff" : "#0284c7";
+  const activeColor = darkMode ? "#ff9d00" : "#d97706";
 
   // Generamos las 6 posiciones equidistantes (cada 60 grados / PI/3 radianes)
   const points = Array.from({ length: 6 }).map((_, i) => {
@@ -34,22 +38,22 @@ const RobotPathCircle = ({
     <group>
       {/* Círculo base en el suelo (plano XZ) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.001, centerZ]}>
-        <ringGeometry args={[radius - 0.01, radius + 0.01, 64]} />
+        <ringGeometry args={[radius - 0.015, radius + 0.015, 64]} />
         <meshBasicMaterial 
-          color="#3aedff" 
+          color={circleColor} 
           transparent={true} 
-          opacity={0.3} 
+          opacity={darkMode ? 0.35 : 0.75} 
           side={THREE.DoubleSide} 
         />
       </mesh>
 
       {/* Línea exterior delgada adicional de adorno */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, y + 0.001, centerZ]}>
-        <ringGeometry args={[radius - 0.05, radius - 0.048, 64]} />
+        <ringGeometry args={[radius - 0.05, radius - 0.046, 64]} />
         <meshBasicMaterial 
-          color="#3aedff" 
+          color={circleColor} 
           transparent={true} 
-          opacity={0.15} 
+          opacity={darkMode ? 0.2 : 0.45} 
           side={THREE.DoubleSide} 
         />
       </mesh>
@@ -72,7 +76,7 @@ const RobotPathCircle = ({
               <mesh castShadow receiveShadow>
                 <cylinderGeometry args={[0.08, 0.09, 0.02, 16]} />
                 <meshStandardMaterial 
-                  color={isActive ? "#ff9d00" : "#1e222b"} 
+                  color={isActive ? activeColor : (darkMode ? "#1e222b" : "#cbd5e1")} 
                   roughness={0.4}
                   metalness={0.6}
                 />
@@ -82,9 +86,9 @@ const RobotPathCircle = ({
               <mesh position={[0, 0.015, 0]}>
                 <cylinderGeometry args={[0.03, 0.03, 0.01, 16]} />
                 <meshBasicMaterial 
-                  color={isActive ? "#ffa600" : "#3aedff"} 
+                  color={isActive ? activeColor : circleColor} 
                   transparent={true}
-                  opacity={isActive ? 0.9 : 0.6}
+                  opacity={isActive ? 0.95 : (darkMode ? 0.6 : 0.85)}
                 />
               </mesh>
 
@@ -93,9 +97,9 @@ const RobotPathCircle = ({
                 <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.011, 0]}>
                   <ringGeometry args={[0.08, 0.12, 32]} />
                   <meshBasicMaterial 
-                    color="#ff9d00" 
+                    color={activeColor} 
                     transparent={true} 
-                    opacity={0.5} 
+                    opacity={0.6} 
                     side={THREE.DoubleSide}
                   />
                 </mesh>
@@ -109,19 +113,19 @@ const RobotPathCircle = ({
                 <mesh position={[0, 0, -0.0005]}>
                   <planeGeometry args={[0.38, 0.16]} />
                   <meshBasicMaterial 
-                    color={isActive ? "#ff9d00" : "#3aedff"} 
+                    color={isActive ? activeColor : circleColor} 
                     transparent={true} 
-                    opacity={isActive ? 0.7 : 0.25}
+                    opacity={isActive ? 0.8 : (darkMode ? 0.3 : 0.6)}
                     depthWrite={false}
                   />
                 </mesh>
-                {/* Fondo oscuro */}
+                {/* Fondo */}
                 <mesh position={[0, 0, 0]}>
                   <planeGeometry args={[0.36, 0.14]} />
                   <meshBasicMaterial 
-                    color={isActive ? "#110b00" : "#0e0f14"} 
+                    color={isActive ? (darkMode ? "#110b00" : "#fef3c7") : (darkMode ? "#0e0f14" : "#ffffff")} 
                     transparent={true} 
-                    opacity={0.9} 
+                    opacity={0.95} 
                     depthWrite={false}
                   />
                 </mesh>
@@ -129,7 +133,7 @@ const RobotPathCircle = ({
                 <Text
                   position={[0, 0, 0.001]}
                   fontSize={0.10}
-                  color={isActive ? "#ff9d00" : "#3aedff"}
+                  color={isActive ? activeColor : (darkMode ? "#3aedff" : "#0284c7")}
                   anchorX="center"
                   anchorY="middle"
                   fontWeight="bold"
