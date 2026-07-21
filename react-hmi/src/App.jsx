@@ -143,6 +143,7 @@ const App = () => {
     orbitRadius: calibration.orbitRadius,
     objectModel: calibration.objectModel,
     objectScale: calibration.objectScale,
+    isCalculating: calibration.isCalculating,
     isGalleryOpen: cameraHook.isGalleryOpen,
   };
 
@@ -453,6 +454,7 @@ const App = () => {
                 setObjectModel={calibration.setObjectModel}
                 objectScale={calibration.objectScale}
                 setObjectScale={calibration.setObjectScale}
+                isCalculating={calibration.isCalculating}
                 presets={presetsHook.presets}
                 editingPresetName={presetsHook.editingPresetName}
                 editingPresetForm={presetsHook.editingPresetForm}

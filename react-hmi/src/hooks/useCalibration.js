@@ -26,6 +26,7 @@ export function useCalibration() {
     let active = true;
     setIsCalculating(true);
 
+    const startTime = Date.now();
     const fetchTrajectory = async () => {
       const reqSize = { x: spheroidSize.x, y: spheroidSize.y, z: spheroidSize.z };
       const reqCenter = { x: objectCenter.x, y: objectCenter.y, z: objectCenter.z };
@@ -62,7 +63,11 @@ export function useCalibration() {
           } else {
             setBackendSequence([]);
           }
-          setIsCalculating(false);
+          const elapsed = Date.now() - startTime;
+          const remaining = Math.max(0, 350 - elapsed);
+          setTimeout(() => {
+            if (active) setIsCalculating(false);
+          }, remaining);
         }
       } catch (err) {
         console.error('Failed to fetch trajectory from backend:', err);

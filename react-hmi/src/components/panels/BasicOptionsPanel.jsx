@@ -25,6 +25,7 @@ const BasicOptionsPanel = ({
   setObjectModel,
   objectScale = 1.0,
   setObjectScale,
+  isCalculating = false,
   darkMode = false,
   setDarkMode,
   presets = {},
@@ -333,6 +334,38 @@ const BasicOptionsPanel = ({
             onChange={(e) => setPointCount(parseInt(e.target.value))}
             style={styles.rangeInput}
           />
+        </div>
+
+        {/* Indicador permanente de estado del cálculo de Fibonacci (Altura fija 34px = CERO desplazamiento) */}
+        <div
+          style={{
+            height: '34px',
+            minHeight: '34px',
+            maxHeight: '34px',
+            borderRadius: '6px',
+            padding: '0 10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: isCalculating ? 'var(--accent-green-bg)' : 'var(--input-bg)',
+            border: `1px solid ${isCalculating ? 'var(--accent-cyan)' : 'var(--border-glass)'}`,
+            transition: 'all 0.2s ease',
+            fontSize: '0.75rem',
+            fontWeight: '600',
+            marginTop: '-4px',
+            marginBottom: '4px',
+          }}
+        >
+          {isCalculating ? (
+            <span style={{ color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '10px', height: '10px', border: '1.5px solid var(--accent-cyan)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
+              Calculando puntos Fibonacci...
+            </span>
+          ) : (
+            <span style={{ color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              ✓ Puntos calculados ({pointCount} pts)
+            </span>
+          )}
         </div>
 
         {/* Robot Orbit Radius */}

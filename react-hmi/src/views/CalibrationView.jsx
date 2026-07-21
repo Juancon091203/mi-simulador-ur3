@@ -13,6 +13,7 @@ const CalibrationView = ({
   robotPositionIndex, robotPosition, robotRotationY, nextFivePoints,
   objectCenter, zBounds, showSectors, darkMode, columnHeight, orbitRadius,
   objectModel, setObjectModel, objectScale, setObjectScale,
+  isCalculating = false,
   isGalleryOpen,
   // CameraViewer props
   stabilityThreshold, setStabilityThreshold,
@@ -88,6 +89,7 @@ const CalibrationView = ({
         setObjectModel={setObjectModel}
         objectScale={objectScale}
         setObjectScale={setObjectScale}
+        isCalculating={isCalculating}
         presets={presets}
         editingPresetName={editingPresetName}
         editingPresetForm={editingPresetForm}

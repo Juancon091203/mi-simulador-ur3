@@ -44,15 +44,15 @@ export const OrientationGizmoOverlay = ({ matrixElements, darkMode = false, onSn
     const cx = 35;
     const cy = 35;
 
-    // Proyección de los ejes locales X, Y, Z a la pantalla 2D
+    // Proyección de los ejes locales X, Y, Z a la pantalla 2D (Z = Altura Vertical, Y = Profundidad)
     const xX = cx + e[0] * radius;
     const xY = cy - e[1] * radius;
 
-    const yX = cx + e[3] * radius;
-    const yY = cy - e[4] * radius;
+    const yX = cx + e[6] * radius;
+    const yY = cy - e[7] * radius;
 
-    const zX = cx + e[6] * radius;
-    const zY = cy - e[7] * radius;
+    const zX = cx + e[3] * radius;
+    const zY = cy - e[4] * radius;
 
     if (lineX.current && headX.current && textX.current) {
       lineX.current.setAttribute('x2', xX.toFixed(1));

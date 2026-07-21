@@ -77,6 +77,7 @@ const RobotViewer = ({
   orbitRadius = 1.6,
   objectModel = 'zapato',
   objectScale = 1.0,
+  isCalculating = false,
   isGalleryOpen = false
 }) => {
   const [matrixElements, setMatrixElements] = React.useState(null);
@@ -87,13 +88,51 @@ const RobotViewer = ({
     const camera = cameraRef.current;
     const dist = 4.5;
     if (axis === 'X') camera.position.set(dist, 1, 0);
-    if (axis === 'Y') camera.position.set(0, dist, 0.001);
-    if (axis === 'Z') camera.position.set(0, 1, dist);
+    if (axis === 'Y') camera.position.set(0, 1, dist);
+    if (axis === 'Z') camera.position.set(0, dist, 0.001);
     camera.lookAt(0, 0, 0);
   };
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* Indicator Overlay cuando se están calculando los puntos Fibonacci (Top-Left flotante, sin alterar el layout) */}
+      {isCalculating && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '15px',
+            left: '15px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '6px 14px',
+            borderRadius: '20px',
+            background: darkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.90)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid var(--accent-cyan)',
+            boxShadow: '0 4px 14px rgba(0, 210, 255, 0.2)',
+            zIndex: 50,
+            color: 'var(--text-color)',
+            fontSize: '0.8rem',
+            fontWeight: '700',
+            pointerEvents: 'none',
+          }}
+        >
+          <span
+            style={{
+              width: '12px',
+              height: '12px',
+              border: '2px solid var(--accent-cyan)',
+              borderTopColor: 'transparent',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite',
+              display: 'inline-block',
+            }}
+          />
+          <span>Calculando puntos Fibonacci...</span>
+        </div>
+      )}
+
       <Canvas shadows dpr={[1, 2]}>
         <PerspectiveCamera ref={cameraRef} makeDefault position={[0, 2, 4]} fov={50} />
 
