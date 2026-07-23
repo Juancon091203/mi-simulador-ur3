@@ -84,28 +84,26 @@ const Sidebar = ({
               <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {t('queue_header')} ({sQueue.length})
               </span>
-              {userRole === 'admin' && (
-                <button
-                  onClick={() => onNewExecution(currentStation.id)}
-                  style={{
-                    background: 'var(--accent-blue)',
-                    color: '#000000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '4px 8px',
-                    fontSize: '0.65rem',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    width: 'auto',
-                  }}
-                  title={t('add_execution')}
-                >
-                  ➕ {t('add_execution')}
-                </button>
-              )}
+              <button
+                onClick={() => onNewExecution(currentStation.id)}
+                style={{
+                  background: 'var(--accent-blue)',
+                  color: '#000000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  fontSize: '0.65rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  width: 'auto',
+                }}
+                title={t('add_execution')}
+              >
+                ➕ {t('add_execution')}
+              </button>
             </div>
             <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '250px', paddingRight: '4px' }}>
               {sQueue.length === 0 ? (
@@ -182,14 +180,14 @@ const Sidebar = ({
           {language === 'es' ? 'ES' : 'EN'}
         </button>
 
-        {/* Botón 3: Autenticación / Login */}
+        {/* Botón 3: Autenticación / Modo Desarrollador */}
         <button
           className="sidebar-toolbar-btn"
           onClick={() => {
             if (onOpenLoginModal) onOpenLoginModal();
             else if (onLogout) onLogout();
           }}
-          title={`${currentUser || t('anonymous_user')} (${userRole}) - ${language === 'es' ? 'Autenticación / Rol' : 'Auth / Role'}`}
+          title={`${currentUser || t('anonymous_user')} - ${t('login_change_role')}`}
           style={{ fontSize: '1.15rem' }}
         >
           {userRole === 'admin' ? '🔐' : '👤'}

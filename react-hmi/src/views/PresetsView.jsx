@@ -10,7 +10,8 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredPresetNames = Object.keys(presets).filter(name =>
+  const safePresets = presets || {};
+  const filteredPresetNames = Object.keys(safePresets).filter(name =>
     name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 

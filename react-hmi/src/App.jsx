@@ -37,11 +37,27 @@ import styles from './styles/appStyles';
 // ─────────────────────────────────────────────────────────────────────────────
 const App = () => {
   const { t } = useLanguage();
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState('admin');
+  // ── Auth & Developer Mode ──────────────────────────────────────────────────
+  const [isDeveloperMode, setIsDeveloperMode] = useState(false);
+  const [isDevModalOpen, setIsDevModalOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
+  const [userRole, setUserRole] = useState('operator');
+
+  const handleUnlockDeveloper = () => {
+    const user = currentUser && currentUser.trim() !== '' ? currentUser : t('developer_user');
+    setCurrentUser(user);
+    setIsDeveloperMode(true);
+    setUserRole('admin');
+    setIsDevModalOpen(false);
+  };
+
+  const handleLockDeveloper = () => {
+    setCurrentUser('');
+    setIsDeveloperMode(false);
+    setUserRole('operator');
+    setIsDevModalOpen(false);
+  };
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useState(false);
@@ -110,21 +126,8 @@ const App = () => {
 
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // Login screen
-  if (!isAuthenticated) {
-    return (
-      <LoginView
-        currentUser={currentUser} setCurrentUser={setCurrentUser}
-        loginPass={loginPass} setLoginPass={setLoginPass}
-        userRole={userRole} setUserRole={setUserRole}
-        onLogin={() => setIsAuthenticated(true)}
-      />
-    );
-  }
-
   const currentStation = activeStationTab !== 'general'
-    ? stationsHook.stations.find(st => st.id === activeStationTab)
+    ? stationsHook.stations.find(st => String(st.id) === String(activeStationTab))
     : null;
 
   // Shared RobotViewer props to avoid repetition
@@ -223,9 +226,10 @@ const App = () => {
           stationsHook.setConfigStationId(stationId);
           stationsHook.setIsConfigModalOpen(true);
         }}
-        currentUser={currentUser} userRole={userRole}
-        onLogout={() => setIsAuthenticated(false)}
-        onOpenLoginModal={() => setIsAuthenticated(false)}
+        currentUser={isDeveloperMode ? (currentUser || t('developer_user')) : t('anonymous_user')}
+        userRole={isDeveloperMode ? 'admin' : 'operator'}
+        onLogout={() => setIsDevModalOpen(true)}
+        onOpenLoginModal={() => setIsDevModalOpen(true)}
         darkMode={darkMode} setDarkMode={setDarkMode}
         className={`sidebar-responsive ${isSidebarOpen ? 'open' : ''}`}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -433,7 +437,7 @@ const App = () => {
 
           {/* CALIBRATION / PRESET EDITOR ────────────────────────────────────── */}
           {activeSubView === 'calibration' && (
-            <main className="stations-container">
+            <main className="stations-container" style={{ flex: 1, overflow: 'hidden', padding: '12px 24px 16px 24px', height: 'calc(100vh - 145px)', boxSizing: 'border-box' }}>
               <CalibrationView
                 {...robotViewerProps}
                 stabilityThreshold={cameraHook.stabilityThreshold}
@@ -456,6 +460,13 @@ const App = () => {
                 editingPresetName={presetsHook.editingPresetName}
                 editingPresetForm={presetsHook.editingPresetForm}
                 setEditingPresetForm={presetsHook.setEditingPresetForm}
+                currentStation={currentStation}
+                stationQueues={stationsHook.stationQueues}
+                stationQueueStatus={stationsHook.stationQueueStatus}
+                handlePlayStationQueue={stationsHook.handlePlayStationQueue}
+                handlePauseStationQueue={stationsHook.handlePauseStationQueue}
+                handleUpdateActiveSpeed={handleUpdateActiveSpeed}
+                onRearmStation={onRearmStation}
                 onSavePreset={async (name) => {
                   await presetsHook.handleSavePreset(name);
                   setActiveSubView('presets');
@@ -554,6 +565,18 @@ const App = () => {
         isOpen={stationsHook.showObjectChangePrompt}
         stationName={stationsHook.stations.find(st => st.id === stationsHook.promptStationId)?.name || `Station ${stationsHook.promptStationId}`}
         onContinue={stationsHook.handleContinueQueue}
+      />
+
+      <LoginView
+        isOpen={isDevModalOpen}
+        onClose={() => setIsDevModalOpen(false)}
+        currentUser={currentUser}
+        setCurrentUser={setCurrentUser}
+        loginPass={loginPass}
+        setLoginPass={setLoginPass}
+        isDeveloperMode={isDeveloperMode}
+        onUnlockDeveloper={handleUnlockDeveloper}
+        onLockDeveloper={handleLockDeveloper}
       />
 
       <PhotosGalleryModal

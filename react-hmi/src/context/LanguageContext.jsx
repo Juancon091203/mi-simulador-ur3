@@ -158,12 +158,23 @@ const translations = {
     live_stream_connected: "● Streaming en Directo Conectado",
     camera_viewport: "📷 VISTA DE CÁMARA 2D",
 
-    // Auth & Modals
-    anonymous_user: "Usuario Anónimo",
-    login_change_role: "Iniciar Sesión / Cambiar Rol",
+    // Auth & Developer Unlock
+    anonymous_user: "Operador Estándar",
+    developer_user: "Desarrollador",
+    login_change_role: "Desbloquear Desarrollador",
     simulate_alert: "Simular Alerta",
     warning_stop_banner: "🔍 Inspección previa completada (4 fotos en Gajo 1 - Warning Stop)",
     warning_stop_banner_sub: "Pulsa ▶ PLAY de nuevo para ejecutar la captura completa de fotos.",
+
+    dev_unlock_title: "Desbloquear Funciones de Desarrollador",
+    dev_unlock_subtitle: "Accede como Desarrollador para desbloquear opciones de control avanzado de las estaciones.",
+    username_optional: "Usuario (opcional)",
+    username_placeholder: "ej. desarrollador",
+    password_optional: "Contraseña (opcional)",
+    password_placeholder: "••••••••",
+    unlock_developer: "🔓 DESBLOQUEAR DESARROLLADOR",
+    developer_mode_active: "Modo Desarrollador Activo",
+    lock_developer: "🔒 BLOQUEAR MODO DESARROLLADOR",
   },
   en: {
     // Header & Navigation
@@ -322,12 +333,23 @@ const translations = {
     live_stream_connected: "● Live Stream Connected",
     camera_viewport: "📷 2D CAMERA VIEWPORT",
 
-    // Auth & Modals
-    anonymous_user: "Anonymous User",
-    login_change_role: "Log In / Change Role",
+    // Auth & Developer Unlock
+    anonymous_user: "Standard Operator",
+    developer_user: "Developer",
+    login_change_role: "Unlock Developer",
     simulate_alert: "Simulate Alert",
     warning_stop_banner: "🔍 Pre-inspection completed (4 photos in Sector 1 - Warning Stop)",
     warning_stop_banner_sub: "Press ▶ PLAY again to run the full photo capture sequence.",
+
+    dev_unlock_title: "Unlock Developer Features",
+    dev_unlock_subtitle: "Access developer mode to manage advanced station control settings.",
+    username_optional: "Username (optional)",
+    username_placeholder: "e.g. developer",
+    password_optional: "Password (optional)",
+    password_placeholder: "••••••••",
+    unlock_developer: "🔓 UNLOCK DEVELOPER",
+    developer_mode_active: "Developer Mode Active",
+    lock_developer: "🔒 LOCK DEVELOPER MODE",
   }
 };
 

@@ -30,9 +30,10 @@ const StationDashboard = ({
   // Robot connection toggle
   isRobotConnected, setIsRobotConnected,
 }) => {
-  const { t } = useLanguage();
-  const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
-  const sQueue = stationQueues[currentStation.id] || [];
+  const { t, language } = useLanguage();
+  const st = currentStation || { id: 1, name: 'Station 1', speed: 0.5, status: 'idle' };
+  const status = (stationQueueStatus && stationQueueStatus[st.id]) || { isPlaying: false, currentIndex: 0 };
+  const sQueue = (stationQueues && stationQueues[st.id]) || [];
   const isPlayingQueue = status.isPlaying;
 
   return (
@@ -126,9 +127,9 @@ const StationDashboard = ({
             <button
               onClick={() => {
                 if (isPlayingQueue) {
-                  handlePauseStationQueue(currentStation.id);
+                  if (handlePauseStationQueue) handlePauseStationQueue(st.id);
                 } else {
-                  handlePlayStationQueue(currentStation.id);
+                  if (handlePlayStationQueue) handlePlayStationQueue(st.id);
                 }
               }}
               disabled={sQueue.length === 0}
@@ -152,19 +153,19 @@ const StationDashboard = ({
             </button>
             
             <button
-              onClick={() => onRearmStation(currentStation.id)}
+              onClick={() => onRearmStation && onRearmStation(st.id)}
               style={{
                 ...styles.button,
                 padding: '6px 12px',
                 fontSize: '0.75rem',
                 fontWeight: '800',
-                background: (currentStation.status === 'warning' || currentStation.status === 'emergency')
+                background: (st.status === 'warning' || st.status === 'emergency')
                   ? 'rgba(255, 75, 43, 0.15)'
                   : 'rgba(255, 255, 255, 0.05)',
-                borderColor: (currentStation.status === 'warning' || currentStation.status === 'emergency')
+                borderColor: (st.status === 'warning' || st.status === 'emergency')
                   ? '#ff4b2b'
                   : 'var(--border-glass)',
-                color: (currentStation.status === 'warning' || currentStation.status === 'emergency')
+                color: (st.status === 'warning' || st.status === 'emergency')
                   ? '#ff4b2b'
                   : 'var(--text-color)',
                 cursor: 'pointer',
@@ -172,7 +173,7 @@ const StationDashboard = ({
                 alignItems: 'center',
                 gap: '4px',
                 width: 'auto',
-                boxShadow: (currentStation.status === 'warning' || currentStation.status === 'emergency')
+                boxShadow: (st.status === 'warning' || st.status === 'emergency')
                   ? '0 0 10px rgba(255, 75, 43, 0.4)'
                   : 'none',
               }}
@@ -191,8 +192,8 @@ const StationDashboard = ({
               min="0.1"
               max="1.5"
               step="0.1"
-              value={currentStation.speed || 0.5}
-              onChange={(e) => handleUpdateActiveSpeed(currentStation.id, parseFloat(e.target.value))}
+              value={st.speed || 0.5}
+              onChange={(e) => handleUpdateActiveSpeed && handleUpdateActiveSpeed(st.id, parseFloat(e.target.value))}
               style={{ flex: 1, minWidth: '80px', margin: 0 }}
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -201,10 +202,10 @@ const StationDashboard = ({
                 min="0.1"
                 max="1.5"
                 step="0.1"
-                value={currentStation.speed || 0.5}
+                value={st.speed || 0.5}
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
-                  if (!isNaN(val)) handleUpdateActiveSpeed(currentStation.id, val);
+                  if (!isNaN(val) && handleUpdateActiveSpeed) handleUpdateActiveSpeed(st.id, val);
                 }}
                 style={{
                   width: '55px',

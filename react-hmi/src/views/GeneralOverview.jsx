@@ -11,28 +11,28 @@ const GeneralOverview = ({ stations, userRole, onOpenConfigModal, onSelectStatio
 
   return (
     <main className="stations-container">
-      {userRole === 'admin' && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-          <button
-            onClick={onOpenConfigModal}
-            style={{
-              ...styles.button,
-              width: '180px',
-              backgroundColor: 'var(--accent-blue)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              padding: '10px 16px',
-              fontSize: '0.8rem',
-              borderRadius: '8px',
-              cursor: 'pointer',
-            }}
-          >
-            ➕ {t('add_execution')}
-          </button>
-        </div>
-      )}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button
+          onClick={onOpenConfigModal}
+          style={{
+            ...styles.button,
+            width: '180px',
+            backgroundColor: 'var(--accent-blue)',
+            color: '#000000',
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            padding: '10px 16px',
+            fontSize: '0.8rem',
+            borderRadius: '8px',
+            cursor: 'pointer',
+          }}
+        >
+          ➕ {t('add_execution')}
+        </button>
+      </div>
 
       <div className="stations-grid">
         {stations.map(st => (

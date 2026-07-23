@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
  */
 const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => {
   const { t } = useLanguage();
+  const st = currentStation || { id: 1, name: 'Station 1', product: 'None', savePath: 'C:/Photos/Station1' };
 
   return (
     <div className="station-config-container" style={{ display: 'flex', gap: '25px', width: '100%', minHeight: 'calc(100vh - 170px)', flexWrap: 'wrap', overflowY: 'auto' }}>
@@ -24,8 +25,8 @@ const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => {
           <input
             type="text"
             placeholder="e.g. Carrera Sunglasses"
-            value={currentStation.product === 'None' ? t('none') : (currentStation.product === 'Running Shoes' ? t('running_shoes') : currentStation.product === 'Sunglasses' ? t('sunglasses') : currentStation.product === 'Wristwatch' ? t('wristwatch') : currentStation.product)}
-            onChange={(e) => handleUpdateStationConfig(currentStation.id, e.target.value, currentStation.savePath)}
+            value={st.product === 'None' ? t('none') : (st.product === 'Running Shoes' ? t('running_shoes') : st.product === 'Sunglasses' ? t('sunglasses') : st.product === 'Wristwatch' ? t('wristwatch') : st.product)}
+            onChange={(e) => handleUpdateStationConfig && handleUpdateStationConfig(st.id, e.target.value, st.savePath)}
             style={styles.input}
           />
         </div>
@@ -35,8 +36,8 @@ const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => {
           <input
             type="text"
             placeholder="e.g. C:/Photos/Station"
-            value={currentStation.savePath}
-            onChange={(e) => handleUpdateStationConfig(currentStation.id, currentStation.product, e.target.value)}
+            value={st.savePath}
+            onChange={(e) => handleUpdateStationConfig && handleUpdateStationConfig(st.id, st.product, e.target.value)}
             style={styles.input}
           />
         </div>
@@ -48,7 +49,7 @@ const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => {
         }}>
           ℹ️ {t('save_directory')}:<br />
           <strong>
-            {currentStation.savePath}/{currentStation.product.replace(/\s+/g, '_') || 'unnamed'}/
+            {st.savePath}/{(st.product || 'unnamed').replace(/\s+/g, '_')}/
           </strong>
         </div>
       </div>
