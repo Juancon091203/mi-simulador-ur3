@@ -1,9 +1,9 @@
 import React from 'react';
 import styles from '../../styles/appStyles';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
- * App sidebar — navigation, queue list, and user card.
- * Props: all navigation + queue + user state.
+ * App sidebar — navigation, queue list, and bottom 3-button toolbar.
  */
 const Sidebar = ({
   // Navigation
@@ -15,21 +15,24 @@ const Sidebar = ({
   stationQueues, stationQueueStatus,
   handleMoveQueueItem, handleEditQueueItem, handleRemoveQueueItem,
   onNewExecution,
-  // User / auth
+  // User / auth / theme
   currentUser, userRole,
-  onLogout,
+  onLogout, onOpenLoginModal,
+  darkMode, setDarkMode,
   className,
   setIsSidebarOpen,
 }) => {
+  const { language, toggleLanguage, t } = useLanguage();
+
   return (
     <aside className={`sidebar glass ${className || ''}`} style={styles.sidebar}>
       {/* Header */}
       <header style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 className="text-gradient" style={{ fontSize: '1.1rem', marginBottom: '5px' }}>
-            Automated Photography Studio
+            {t('app_title')}
           </h1>
-          <p style={styles.subtitle}>Industrial HMI Dashboard</p>
+          <p style={styles.subtitle}>{t('app_subtitle')}</p>
         </div>
         <button
           className="sidebar-close-btn"
@@ -51,7 +54,7 @@ const Sidebar = ({
 
       {/* Station / View selector */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label style={styles.label}>Active Station / Area</label>
+        <label style={styles.label}>{t('active_station_label')}</label>
         <select
           value={activeStationTab}
           onChange={(e) => {
@@ -62,7 +65,7 @@ const Sidebar = ({
           }}
           style={styles.select}
         >
-          <option value="general">🌐 General View (4 Stations)</option>
+          <option value="general">{t('general_view_option')}</option>
           {stations.map(st => (
             <option key={st.id} value={st.id}>🤖 {st.name} ({st.ip})</option>
           ))}
@@ -79,7 +82,7 @@ const Sidebar = ({
           <div className="queue-panel">
             <div className="queue-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
               <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Queue ({sQueue.length})
+                {t('queue_header')} ({sQueue.length})
               </span>
               {userRole === 'admin' && (
                 <button
@@ -98,16 +101,16 @@ const Sidebar = ({
                     gap: '2px',
                     width: 'auto',
                   }}
-                  title="Add new execution"
+                  title={t('add_execution')}
                 >
-                  ➕ Add
+                  ➕ {t('add_execution')}
                 </button>
               )}
             </div>
             <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '250px', paddingRight: '4px' }}>
               {sQueue.length === 0 ? (
                 <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
-                  No tasks in queue. Configure executions to start.
+                  {t('queue_empty')}
                 </div>
               ) : (
                 sQueue.map((item, idx) => (
@@ -149,23 +152,94 @@ const Sidebar = ({
         );
       })()}
 
-      {/* User card */}
-      <div style={{ marginTop: 'auto', padding: '10px', background: 'rgba(255, 255, 255, 0.02)', border: '1px solid var(--border-glass)', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontWeight: 'bold' }}>{currentUser || 'Anonymous User'}</span>
-          <span style={{ fontSize: '0.55rem', fontWeight: '800', textTransform: 'uppercase', background: userRole === 'admin' ? 'var(--accent-green-bg)' : 'rgba(0, 210, 255, 0.15)', color: userRole === 'admin' ? 'var(--accent-green)' : 'var(--accent-blue)', padding: '1px 6px', borderRadius: '8px' }}>
-            {userRole}
-          </span>
-        </div>
+      {/* Footer Toolbar: 3 Botones Cuadrados Horizontales (Tema, Idioma ES/EN, Autenticación) */}
+      <div style={{
+        marginTop: 'auto',
+        paddingTop: '12px',
+        borderTop: '1px solid var(--border-glass)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '8px',
+      }}>
+        {/* Botón 1: Modo Claro / Oscuro (Sol / Luna) */}
         <button
-          onClick={onLogout}
-          style={{ ...styles.button, padding: '6px 10px', fontSize: '0.7rem', background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)', marginTop: '2px', width: '100%' }}
+          onClick={() => setDarkMode && setDarkMode(!darkMode)}
+          title={darkMode ? (language === 'es' ? 'Modo Claro' : 'Light Mode') : (language === 'es' ? 'Modo Oscuro' : 'Dark Mode')}
+          style={{
+            flex: 1,
+            height: '42px',
+            borderRadius: '10px',
+            background: 'var(--input-bg)',
+            border: '1px solid var(--border-glass)',
+            color: 'var(--text-color)',
+            fontSize: '1.2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-soft)',
+            transition: 'all 0.2s ease',
+          }}
         >
-          Log Out / Change Role
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+
+        {/* Botón 2: Idioma (ES / EN) */}
+        <button
+          onClick={toggleLanguage}
+          title={language === 'es' ? 'Cambiar a Inglés' : 'Switch to Spanish'}
+          style={{
+            flex: 1,
+            height: '42px',
+            borderRadius: '10px',
+            background: 'var(--input-bg)',
+            border: '1px solid var(--accent-blue)',
+            color: 'var(--accent-blue)',
+            fontSize: '0.85rem',
+            fontWeight: '800',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-soft)',
+            letterSpacing: '0.5px',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {language === 'es' ? 'ES' : 'EN'}
+        </button>
+
+        {/* Botón 3: Autenticación / Login */}
+        <button
+          onClick={() => {
+            if (onOpenLoginModal) onOpenLoginModal();
+            else if (onLogout) onLogout();
+          }}
+          title={`${currentUser || t('anonymous_user')} (${userRole}) - ${language === 'es' ? 'Autenticación / Rol' : 'Auth / Role'}`}
+          style={{
+            flex: 1,
+            height: '42px',
+            borderRadius: '10px',
+            background: userRole === 'admin' ? 'var(--accent-green-bg)' : 'var(--input-bg)',
+            border: `1px solid ${userRole === 'admin' ? 'var(--accent-green)' : 'var(--border-glass)'}`,
+            color: userRole === 'admin' ? 'var(--accent-green)' : 'var(--text-color)',
+            fontSize: '1.15rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-soft)',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {userRole === 'admin' ? '🔐' : '👤'}
         </button>
       </div>
     </aside>
   );
 };
+
+export default Sidebar;
 
 export default Sidebar;
