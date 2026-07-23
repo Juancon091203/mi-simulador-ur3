@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * PhotoSimulationPanel - Panel flotante simplificado para controlar la secuencia de fotos.
@@ -10,6 +11,7 @@ const PhotoSimulationPanel = ({
   onNext,
   onPrev
 }) => {
+  const { t } = useLanguage();
   const isFinished = currentPhotoStep >= pointCount;
 
   const handleNext = () => {
@@ -36,7 +38,7 @@ const PhotoSimulationPanel = ({
             cursor: currentPhotoStep === 0 ? 'not-allowed' : 'pointer'
           }}
         >
-          ◀ PREV
+          {t('prev')}
         </button>
 
         <button
@@ -51,7 +53,7 @@ const PhotoSimulationPanel = ({
             cursor: (isFinished || pointCount === 0) ? 'not-allowed' : 'pointer'
           }}
         >
-          NEXT ▶
+          {t('next')}
         </button>
       </div>
 
@@ -59,7 +61,7 @@ const PhotoSimulationPanel = ({
         onClick={onViewPhotos}
         style={styles.galleryButton}
       >
-        📷 VIEW CAPTURES
+        {t('view_captures')}
       </button>
     </div>
   );

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * PhotosGalleryModal - Un modal premium simplificado para ver la galería de fotos capturadas
  * con la cámara FRAMOS. Incorpora navegación interactiva (Lightbox) y eliminación por paso.
  */
 const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDeletePhoto }) => {
+  const { t } = useLanguage();
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   if (!isOpen) return null;
@@ -29,13 +31,13 @@ const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDel
         <button onClick={onClose} style={styles.closeBtn}>✕</button>
         <header style={styles.header}>
           <div>
-            <h2 style={styles.title} className="text-gradient">PHOTO ALBUM</h2>
-            <p style={styles.subtitle}>Photos recorded by the system ({photos.length} photos)</p>
+            <h2 style={styles.title} className="text-gradient">{t('photo_album')}</h2>
+            <p style={styles.subtitle}>{t('photos_recorded_by_system')} ({photos.length} {t('photos')})</p>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginRight: '30px' }}>
             {photos.length > 0 && (
               <button onClick={onClearPhotos} style={styles.clearBtn}>
-                🗑️ Clear Album
+                🗑️ {t('clear_album')}
               </button>
             )}
           </div>
@@ -75,14 +77,14 @@ const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDel
                   <div className="photo-image-wrapper" onClick={() => setLightboxIndex(i)}>
                     <img src={photo.url} alt={`Step ${photo.step}`} className="photo-image" />
                     <div className="photo-card-overlay">
-                      <span>🔎 Enlarge</span>
+                      <span>🔎 {t('enlarge')}</span>
                     </div>
                   </div>
 
                   <div className="photo-card-details">
-                    <span className="photo-step-badge">Step {photo.step}</span>
+                    <span className="photo-step-badge">{t('step')} {photo.step}</span>
                     <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>
-                      Photo #{i + 1}
+                      {t('photo')} #{i + 1}
                     </span>
                   </div>
                 </div>
@@ -106,9 +108,9 @@ const PhotosGalleryModal = ({ isOpen, onClose, photos = [], onClearPhotos, onDel
             <img src={photos[lightboxIndex].url} alt={`Step ${photos[lightboxIndex].step}`} style={styles.lightboxImage} />
             <div style={styles.lightboxDetails}>
               <span style={{ fontWeight: '600' }}>
-                Station/Step {photos[lightboxIndex].step} (Photo {lightboxIndex + 1} of {photos.length})
+                {t('step')} {photos[lightboxIndex].step} ({t('photo')} {lightboxIndex + 1} {t('of')} {photos.length})
               </span>
-              <button onClick={() => setLightboxIndex(null)} style={styles.lightboxCloseBtn}>Close ✕</button>
+              <button onClick={() => setLightboxIndex(null)} style={styles.lightboxCloseBtn}>{t('close')} ✕</button>
             </div>
           </div>
 

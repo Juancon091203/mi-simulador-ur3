@@ -28,11 +28,15 @@ import VncView from './views/VncView';
 import CameraView from './views/CameraView';
 import StationConfigView from './views/StationConfigView';
 
+// ── Context ────────────────────────────────────────────────────────────────
+import { useLanguage } from './context/LanguageContext.jsx';
+
 // ── Styles ─────────────────────────────────────────────────────────────────
 import styles from './styles/appStyles';
 
 // ─────────────────────────────────────────────────────────────────────────────
 const App = () => {
+  const { t } = useLanguage();
   // ── Auth ──────────────────────────────────────────────────────────────────
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState('admin');
@@ -221,6 +225,8 @@ const App = () => {
         }}
         currentUser={currentUser} userRole={userRole}
         onLogout={() => setIsAuthenticated(false)}
+        onOpenLoginModal={() => setIsAuthenticated(false)}
+        darkMode={darkMode} setDarkMode={setDarkMode}
         className={`sidebar-responsive ${isSidebarOpen ? 'open' : ''}`}
         setIsSidebarOpen={setIsSidebarOpen}
       />
@@ -280,41 +286,28 @@ const App = () => {
             <div>
               {activeStationTab === 'general' ? (
                 <>
-                  <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>General View</h2>
+                  <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{t('general_view')}</h2>
                   <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                    Central Multi-Station Monitoring Console
+                    {t('general_view_subtitle')}
                   </p>
                 </>
               ) : (
                 currentStation && (
                   <>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                      <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{currentStation.name}</h2>
+                      <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{currentStation.name.replace('Station', t('station_name'))}</h2>
                       <span className={`station-status-pill status-pill-${currentStation.status}`}>
-                        {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'emergency' ? 'Emergency' : 'Warning Stop'}
+                        {currentStation.status === 'running' ? t('status_running') : currentStation.status === 'idle' ? t('status_idle') : currentStation.status === 'emergency' ? t('status_emergency') : t('status_warning')}
                       </span>
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                      Robot IP Address: {currentStation.ip}
+                      {t('robot_ip')}: {currentStation.ip}
                     </p>
                   </>
                 )
               )}
             </div>
           </div>
-
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            style={{
-              padding: '8px 12px', background: 'var(--input-bg)',
-              border: '1px solid var(--border-glass)', borderRadius: '20px',
-              color: 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold',
-              display: 'flex', alignItems: 'center', gap: '8px',
-              fontSize: '0.8rem', width: 'auto',
-            }}
-          >
-            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
         </header>
 
         {/* Sticky Horizontal Tabs Navigation (Scrollable en pantallas reducidas) */}
@@ -336,13 +329,13 @@ const App = () => {
                   onClick={() => setActiveSubView('dashboard')}
                   style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
                 >
-                  🌐 General Overview
+                  🌐 {t('general_view')}
                 </button>
                 <button
                   onClick={() => setActiveSubView('presets')}
                   style={(activeSubView === 'presets' || activeSubView === 'calibration') ? activeTabStyle : inactiveTabStyle}
                 >
-                  📐 Presets (3D Calibration)
+                  {t('presets_calibration')}
                 </button>
               </>
             ) : (
@@ -354,31 +347,31 @@ const App = () => {
                   }}
                   style={inactiveTabStyle}
                 >
-                  ← Back to Stations
+                  {t('back_to_stations')}
                 </button>
                 <button
                   onClick={() => setActiveSubView('dashboard')}
                   style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
                 >
-                  🖥️ Dashboard (3D)
+                  {t('dashboard_3d')}
                 </button>
                 <button
                   onClick={() => setActiveSubView('vnc')}
                   style={activeSubView === 'vnc' ? activeTabStyle : inactiveTabStyle}
                 >
-                  🎮 VNC Viewer (TeachPendant)
+                  {t('vnc_viewer')}
                 </button>
                 <button
                   onClick={() => setActiveSubView('camera')}
                   style={activeSubView === 'camera' ? activeTabStyle : inactiveTabStyle}
                 >
-                  📷 Camera (2D)
+                  {t('camera_2d')}
                 </button>
                 <button
                   onClick={() => setActiveSubView('config')}
                   style={activeSubView === 'config' ? activeTabStyle : inactiveTabStyle}
                 >
-                  ⚙️ Station Settings
+                  {t('station_settings')}
                 </button>
               </>
             )}
@@ -599,7 +592,7 @@ const App = () => {
             backdropFilter: 'blur(8px)',
           }}
         >
-          🚨 Simulate Alert {currentStation ? currentStation.name : 'Station 2'}
+          🚨 {t('simulate_alert')} ({currentStation ? currentStation.name.replace('Station', t('station_name')) : `${t('station_name')} 2`})
         </button>
       )}
     </div>

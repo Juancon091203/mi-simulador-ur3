@@ -1,28 +1,32 @@
 import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 
 /** Simple VNC snapshot viewer for the teach pendant. */
-const VncView = () => (
-  <div style={{
-    display: 'flex', flexDirection: 'column',
-    alignItems: 'center', justifyContent: 'center',
-    background: 'var(--bg-panel)', border: '1px solid var(--border-glass)',
-    borderRadius: '16px', padding: '20px',
-    maxWidth: '960px', width: '100%', margin: '0 auto',
-    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-    backdropFilter: 'blur(10px)',
-  }}>
-    {/* VNC Header info bar */}
+const VncView = () => {
+  const { t } = useLanguage();
+
+  return (
     <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-      width: '100%', marginBottom: '15px', paddingBottom: '10px',
-      borderBottom: '1px solid var(--border-glass)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg-panel)', border: '1px solid var(--border-glass)',
+      borderRadius: '16px', padding: '20px',
+      maxWidth: '960px', width: '100%', margin: '0 auto',
+      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
+      backdropFilter: 'blur(10px)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-color)' }}>
-          🎮 Robot TeachPendant Remote Control (VNC)
-        </span>
+      {/* VNC Header info bar */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        width: '100%', marginBottom: '15px', paddingBottom: '10px',
+        borderBottom: '1px solid var(--border-glass)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: 'var(--text-color)' }}>
+            {t('vnc_title')}
+          </span>
+        </div>
       </div>
-    </div>
 
     {/* VNC Screen Container */}
     <div style={{
@@ -44,6 +48,7 @@ const VncView = () => (
       />
     </div>
   </div>
-);
+  );
+};
 
 export default VncView;

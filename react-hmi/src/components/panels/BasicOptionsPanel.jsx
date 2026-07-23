@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AVAILABLE_OBJECT_MODELS } from '../../constants/objectModels';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * BasicOptionsPanel - Panel de interfaz principal simplificado para fotógrafos.
@@ -35,6 +36,7 @@ const BasicOptionsPanel = ({
   onSavePreset,             // callback para guardar
   onBackToPresets           // callback para volver
 }) => {
+  const { t } = useLanguage();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleSliderChange = (axis, value) => {
@@ -101,21 +103,46 @@ const BasicOptionsPanel = ({
               cursor: 'pointer'
             }}
           >
-            ← Back to Presets List
+            {t('back_to_presets_list')}
           </button>
           
           <div>
             <h2 style={styles.title} className="text-gradient">
-              {editingPresetName === '__new__' ? 'CREATE NEW PRESET' : 'EDIT PRESET'}
+              {editingPresetName === '__new__' ? t('create_new_preset_title') : t('edit_preset_title')}
             </h2>
             {editingPresetName !== '__new__' && (
               <p style={{ ...styles.subtitle, color: 'var(--accent-blue)', fontWeight: 'bold' }}>
-                Preset: {editingPresetName}
+                {t('preset')}: {editingPresetName}
               </p>
             )}
           </div>
         </div>
       </header>
+
+      {/* Indicador Fijo de Carga / Estado de Puntos Fibonacci (Sin desplazamiento de layout) */}
+      <div style={{
+        height: '34px',
+        marginBottom: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0 12px',
+        borderRadius: '8px',
+        background: isCalculating ? 'rgba(0, 210, 255, 0.1)' : 'rgba(0, 255, 136, 0.08)',
+        border: `1px solid ${isCalculating ? 'var(--accent-blue)' : 'rgba(0, 255, 136, 0.3)'}`,
+        transition: 'all 0.2s ease',
+      }}>
+        {isCalculating ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--accent-blue)', fontSize: '0.75rem', fontWeight: 'bold' }}>
+            <span className="spinner" style={{ width: '12px', height: '12px', border: '2px solid var(--accent-blue)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+            <span>{t('calculating_points')}</span>
+          </div>
+        ) : (
+          <span style={{ color: '#00ff88', fontSize: '0.75rem', fontWeight: 'bold' }}>
+            ✓ {t('points_calculated')} ({pointCount} pts)
+          </span>
+        )}
+      </div>
 
       {/* Preset Action Box (Save / Naming) */}
       <div style={{ ...styles.presetsSection, marginBottom: '20px' }}>
@@ -123,7 +150,7 @@ const BasicOptionsPanel = ({
           <div style={styles.savePresetRow}>
             <input
               type="text"
-              placeholder="Enter new preset name..."
+              placeholder={t('preset_name') + '...'}
               value={editingPresetForm}
               onChange={(e) => setEditingPresetForm(e.target.value)}
               style={styles.input}
@@ -140,7 +167,7 @@ const BasicOptionsPanel = ({
                 cursor: editingPresetForm.trim() ? 'pointer' : 'not-allowed'
               }}
             >
-              Create Preset
+              {t('save_preset')}
             </button>
           </div>
         ) : (
@@ -166,7 +193,7 @@ const BasicOptionsPanel = ({
               <polyline points="17 21 17 13 7 13 7 21"></polyline>
               <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            Save Preset Changes
+            {t('save_preset')}
           </button>
         )}
       </div>
@@ -178,7 +205,7 @@ const BasicOptionsPanel = ({
         {/* Spheroid Size */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-blue)' }}>Spheroid</span> Size</span>
+            <span style={styles.axisLabel}>{t('spheroid_size')}</span>
             <input
               type="number"
               value={spheroidSize.x}
@@ -210,7 +237,7 @@ const BasicOptionsPanel = ({
         {/* 3D Object Model Selector */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>3D</span> Object Model</span>
+            <span style={styles.axisLabel}>{t('object_model')}</span>
           </div>
           <select
             value={objectModel}
@@ -240,7 +267,7 @@ const BasicOptionsPanel = ({
         {/* 3D Object Scale Factor */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>Model</span> Scale Factor</span>
+            <span style={styles.axisLabel}>{t('model_scale_factor')}</span>
             <input
               type="number"
               value={objectScale}
@@ -275,7 +302,7 @@ const BasicOptionsPanel = ({
         {/* Center Height (Z) -> controla objectCenter.y (React altura vertical) */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: 'var(--accent-green)' }}>Center</span> Height (Z)</span>
+            <span style={styles.axisLabel}>{t('center_height_z')}</span>
             <input
               type="number"
               value={objectCenter.y}
@@ -307,7 +334,7 @@ const BasicOptionsPanel = ({
         {/* Fibonacci Points */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Fibonacci</span> Points</span>
+            <span style={styles.axisLabel}>{t('fibonacci_points')}</span>
             <input
               type="number"
               value={pointCount}
@@ -359,11 +386,11 @@ const BasicOptionsPanel = ({
           {isCalculating ? (
             <span style={{ color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ width: '10px', height: '10px', border: '1.5px solid var(--accent-cyan)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-              Calculando puntos Fibonacci...
+              {t('calculating_points')}
             </span>
           ) : (
             <span style={{ color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              ✓ Puntos calculados ({pointCount} pts)
+              ✓ {t('points_calculated')} ({pointCount} pts)
             </span>
           )}
         </div>
@@ -371,7 +398,7 @@ const BasicOptionsPanel = ({
         {/* Robot Orbit Radius */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: '#ff9d00' }}>Robot</span> Orbit Radius</span>
+            <span style={styles.axisLabel}>{t('robot_orbit_radius')}</span>
             <input
               type="number"
               value={orbitRadius}
@@ -403,7 +430,7 @@ const BasicOptionsPanel = ({
         {/* Robot Base Height */}
         <div style={styles.sliderGroup}>
           <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}><span style={{ color: '#00d2ff' }}>Robot</span> Base Height</span>
+            <span style={styles.axisLabel}>{t('robot_base_height')}</span>
             <input
               type="number"
               value={columnHeight}
@@ -439,7 +466,7 @@ const BasicOptionsPanel = ({
           onClick={() => setShowAdvanced(!showAdvanced)}
           style={styles.advancedToggleBtn}
         >
-          {showAdvanced ? 'Hide Advanced Options ▲' : 'Show Advanced Options (XYZ, Cuts) ▼'}
+          {showAdvanced ? t('hide_advanced_options') : t('show_advanced_options')}
         </button>
 
         {showAdvanced && (

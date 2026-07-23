@@ -22,6 +22,17 @@ const translations = {
     status_warning: "PARADA ADVERTENCIA",
     status_emergency: "EMERGENCIA",
 
+    // General Overview Station Cards
+    station_name: "Estación",
+    active_product: "PRODUCTO ACTIVO",
+    robot_speed: "VELOCIDAD ROBOT",
+    configure_station: "Configurar Estación",
+    none: "Ninguno",
+    inactive: "Inactivo",
+    running_shoes: "Zapatillas de Deporte",
+    sunglasses: "Gafas de Sol",
+    wristwatch: "Reloj de Pulsera",
+
     // Queue & Actions
     queue_header: "Cola de Ejecución",
     queue_empty: "Sin tareas en cola. Configura ejecuciones para empezar.",
@@ -32,23 +43,120 @@ const translations = {
     speed: "Velocidad",
     robot_ip: "Dirección IP del Robot",
 
-    // Fibonacci & 3D
+    // Configure Execution Modal
+    configure_execution_title: "Configurar Ejecución de Estación",
+    tab_basic_info: "INFORMACIÓN BÁSICA",
+    tab_camera: "CÁMARA",
+    tab_station: "ESTACIÓN",
+    scanning_preset: "PRESET DE ESCANEO",
+    no_preset_selected: "— Ningún preset seleccionado —",
+    new_preset_btn: "➕ Nuevo Preset",
+    product_name: "NOMBRE DEL PRODUCTO",
+    product_name_placeholder: "ej. Sandalia de cuero",
+    storage_location: "UBICACIÓN DE ALMACENAMIENTO",
+    local_path: "RUTA LOCAL",
+    remote_pc_network: "PC REMOTO (RED)",
+    photo_save_path: "RUTA DE GUARDADO DE FOTOS",
+    robot_speed_ms: "VELOCIDAD DEL ROBOT (M/S)",
+    cancel: "Cancelar",
+    next_tab: "Siguiente →",
+    add_to_queue: "Añadir a la Cola",
+    save_changes: "Guardar Cambios",
+    select_target_station: "SELECCIONAR ESTACIÓN DESTINO",
+    select_a_station: "Selecciona una estación...",
+    enable_auto_exposure: "Habilitar Exposición Automática",
+    shutter_speed_ms: "Tiempo de Obturación (ms)",
+    sensor_gain: "Ganancia del Sensor",
+
+    // Photo Album Modal & Cards
+    photo_album: "ÁLBUM DE FOTOS",
+    photos_recorded_by_system: "FOTOS REGISTRADAS POR EL SISTEMA",
+    photos: "FOTOS",
+    clear_album: "Vaciar Álbum",
+    empty_album: "Álbum Vacío",
+    step: "Paso",
+    photo: "Foto",
+    enlarge: "Ampliar",
+    of: "de",
+    close: "Cerrar",
+
+    // Camera 2D View Sensor Settings
+    auto_exposure: "EXPOSICIÓN AUTOMÁTICA",
+    enabled: "Habilitado",
+    exposure_time: "TIEMPO DE EXPOSICIÓN (MS)",
+    gain: "GANANCIA",
+
+    // Fibonacci & 3D Calibration Panel
     calculating_points: "Calculando puntos Fibonacci...",
     points_calculated: "Puntos calculados",
-
-    // Presets & Models
-    preset_name: "Nombre del Preset",
-    save_preset: "Guardar Preset",
-    new_preset: "Nuevo Preset",
+    spheroid_size: "Tamaño del Esferoide (m)",
+    object_center: "Centro del Objeto (m)",
+    z_bounds: "Límites Z (Filtro Vertical)",
+    point_count: "Número de Puntos",
     object_model: "Modelo del Objeto 3D",
     object_scale: "Escala del Objeto",
     shoe_model: "Zapato (zapato.glb)",
     bag_model: "Bolsito (bolsito.glb)",
+    show_spheroid_points: "Mostrar Puntos Esferoide",
+    show_sector_planes: "Mostrar Planos de Gajos",
+    orbit_radius: "Radio de Órbita",
+    column_height: "Altura de Columna",
 
-    // Camera & IMU
+    // Presets Panel Controls
+    back_to_presets_list: "← Volver a Lista de Presets",
+    create_new_preset_title: "CREAR NUEVO PRESET",
+    edit_preset_title: "EDITAR PRESET",
+    preset_name_placeholder: "Escribe el nombre del preset...",
+    model_scale_factor: "Factor de Escala del Modelo",
+    center_height_z: "Altura del Centro (Z)",
+    fibonacci_points: "Puntos Fibonacci",
+    robot_orbit_radius: "Radio Órbita Robot",
+    robot_base_height: "Altura Base Robot",
+    show_advanced_options: "Mostrar Opciones Avanzadas (XYZ, Cortes) ▼",
+    hide_advanced_options: "Ocultar Opciones Avanzadas ▲",
+
+    // Presets Management Cards
+    search_presets_placeholder: "🔍 Buscar presets por nombre...",
+    model_3d: "Modelo 3D",
+    model_scale: "Escala del Modelo",
+    spheroid_size_card: "Tamaño Esferoide",
+
+    // Photo Simulation Panel & Camera / IMU
+    photo_simulation_title: "Simulación de Captura de Fotos",
+    prev: "◄ ANTERIOR",
+    next: "SIGUIENTE ►",
+    view_captures: "📷 VER CAPTURAS",
+    vibration_tolerances: "TOLERANCIAS DE VIBRACIÓN (IMU)",
+    gyro_threshold: "Umbral Giroscopio (rad/s)",
     camera_connected: "Cámara Conectada",
     camera_disconnected: "Cámara Desconectada",
-    stability_threshold: "Tolerancia IMU (Giroscopio)",
+    imu_status: "ESTADO DEL IMU:",
+    imu_stable: "ESTABLE",
+    rotation_speed: "Velocidad de Rotación:",
+    vibration_tolerance_imu: "TOLERANCIA DE VIBRACIÓN (IMU)",
+    strict: "Estricto",
+    permissive: "Permisivo",
+
+    // Presets Management View
+    presets_title: "Gestión de Presets de Escaneo",
+    create_preset: "➕ Crear Nuevo Preset",
+    edit: "Editar",
+    delete: "Eliminar",
+    apply: "Aplicar",
+    save_preset: "Guardar Preset",
+    new_preset: "Nuevo Preset",
+    back_to_presets: "← Volver a Presets",
+
+    // Station Settings & Config
+    storage_settings: "Ajustes de Almacenamiento",
+    station_telemetry: "Telemetría de la Estación",
+    save_directory: "Directorio de Guardado",
+    auto_export_pdf: "Auto-Exportar Informe PDF",
+
+    // VNC & Camera Views
+    vnc_title: "🎮 Control Remoto UR3 TeachPendant (VNC)",
+    live_stream_connected: "● Streaming en Directo Conectado",
+    camera_viewport: "📷 VISTA DE CÁMARA 2D",
 
     // Auth & Modals
     anonymous_user: "Usuario Anónimo",
@@ -78,6 +186,17 @@ const translations = {
     status_warning: "WARNING STOP",
     status_emergency: "EMERGENCY",
 
+    // General Overview Station Cards
+    station_name: "Station",
+    active_product: "ACTIVE PRODUCT",
+    robot_speed: "ROBOT SPEED",
+    configure_station: "Configure Station",
+    none: "None",
+    inactive: "Inactive",
+    running_shoes: "Running Shoes",
+    sunglasses: "Sunglasses",
+    wristwatch: "Wristwatch",
+
     // Queue & Actions
     queue_header: "Execution Queue",
     queue_empty: "No tasks in queue. Configure executions to start.",
@@ -88,23 +207,120 @@ const translations = {
     speed: "Speed",
     robot_ip: "Robot IP Address",
 
-    // Fibonacci & 3D
+    // Configure Execution Modal
+    configure_execution_title: "Configure Station Execution",
+    tab_basic_info: "BASIC INFO",
+    tab_camera: "CAMERA",
+    tab_station: "STATION",
+    scanning_preset: "SCANNING PRESET",
+    no_preset_selected: "— No preset selected —",
+    new_preset_btn: "➕ New Preset",
+    product_name: "PRODUCT NAME",
+    product_name_placeholder: "e.g. Leather kitten-heel sandal",
+    storage_location: "STORAGE LOCATION",
+    local_path: "LOCAL PATH",
+    remote_pc_network: "REMOTE PC (NETWORK)",
+    photo_save_path: "PHOTO SAVE PATH",
+    robot_speed_ms: "ROBOT SPEED (M/S)",
+    cancel: "Cancel",
+    next_tab: "Next →",
+    add_to_queue: "Add to Queue",
+    save_changes: "Save Changes",
+    select_target_station: "SELECT TARGET STATION",
+    select_a_station: "Select a station...",
+    enable_auto_exposure: "Enable Auto Exposure",
+    shutter_speed_ms: "Shutter Speed (ms)",
+    sensor_gain: "Sensor Gain",
+
+    // Photo Album Modal & Cards
+    photo_album: "PHOTO ALBUM",
+    photos_recorded_by_system: "PHOTOS RECORDED BY THE SYSTEM",
+    photos: "PHOTOS",
+    clear_album: "Clear Album",
+    empty_album: "Empty Album",
+    step: "Step",
+    photo: "Photo",
+    enlarge: "Enlarge",
+    of: "of",
+    close: "Close",
+
+    // Camera 2D View Sensor Settings
+    auto_exposure: "AUTO EXPOSURE",
+    enabled: "Enabled",
+    exposure_time: "EXPOSURE TIME (MS)",
+    gain: "GAIN",
+
+    // Fibonacci & 3D Calibration Panel
     calculating_points: "Calculating Fibonacci points...",
     points_calculated: "Points calculated",
-
-    // Presets & Models
-    preset_name: "Preset Name",
-    save_preset: "Save Preset",
-    new_preset: "New Preset",
+    spheroid_size: "Spheroid Size (m)",
+    object_center: "Object Center (m)",
+    z_bounds: "Z Bounds (Vertical Cut)",
+    point_count: "Point Count",
     object_model: "3D Object Model",
     object_scale: "Object Scale",
     shoe_model: "Shoe (zapato.glb)",
     bag_model: "Handbag (bolsito.glb)",
+    show_spheroid_points: "Show Spheroid Points",
+    show_sector_planes: "Show Sector Planes",
+    orbit_radius: "Orbit Radius",
+    column_height: "Column Height",
 
-    // Camera & IMU
+    // Presets Panel Controls
+    back_to_presets_list: "← Back to Presets List",
+    create_new_preset_title: "CREATE NEW PRESET",
+    edit_preset_title: "EDIT PRESET",
+    preset_name_placeholder: "Enter preset name...",
+    model_scale_factor: "Model Scale Factor",
+    center_height_z: "Center Height (Z)",
+    fibonacci_points: "Fibonacci Points",
+    robot_orbit_radius: "Robot Orbit Radius",
+    robot_base_height: "Robot Base Height",
+    show_advanced_options: "Show Advanced Options (XYZ, Cuts) ▼",
+    hide_advanced_options: "Hide Advanced Options ▲",
+
+    // Presets Management Cards
+    search_presets_placeholder: "🔍 Search presets by name...",
+    model_3d: "3D Model",
+    model_scale: "Model Scale",
+    spheroid_size_card: "Spheroid Size",
+
+    // Photo Simulation Panel & Camera / IMU
+    photo_simulation_title: "Photo Capture Simulation",
+    prev: "◄ PREV",
+    next: "NEXT ►",
+    view_captures: "📷 VIEW CAPTURES",
+    vibration_tolerances: "VIBRATION TOLERANCES (IMU)",
+    gyro_threshold: "Gyro Threshold (rad/s)",
     camera_connected: "Camera Connected",
     camera_disconnected: "Camera Disconnected",
-    stability_threshold: "IMU Tolerance (Gyroscope)",
+    imu_status: "IMU STATUS:",
+    imu_stable: "STABLE",
+    rotation_speed: "Rotation Speed:",
+    vibration_tolerance_imu: "VIBRATION TOLERANCE (IMU)",
+    strict: "Strict",
+    permissive: "Permissive",
+
+    // Presets Management View
+    presets_title: "Scanning Presets Management",
+    create_preset: "➕ Create New Preset",
+    edit: "Edit",
+    delete: "Delete",
+    apply: "Apply",
+    save_preset: "Save Preset",
+    new_preset: "New Preset",
+    back_to_presets: "← Back to Presets",
+
+    // Station Settings & Config
+    storage_settings: "Storage Settings",
+    station_telemetry: "Station Telemetry",
+    save_directory: "Save Directory",
+    auto_export_pdf: "Auto-Export PDF Report",
+
+    // VNC & Camera Views
+    vnc_title: "🎮 UR3 TeachPendant Remote Control (VNC)",
+    live_stream_connected: "● Live Stream Connected",
+    camera_viewport: "📷 2D CAMERA VIEWPORT",
 
     // Auth & Modals
     anonymous_user: "Anonymous User",

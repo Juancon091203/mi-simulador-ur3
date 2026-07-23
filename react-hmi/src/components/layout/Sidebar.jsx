@@ -152,10 +152,10 @@ const Sidebar = ({
         );
       })()}
 
-      {/* Footer Toolbar: 3 Botones Cuadrados Horizontales (Tema, Idioma ES/EN, Autenticación) */}
+      {/* Footer Toolbar: 3 Botones Cuadrados Horizontales Estéticamente Unificados */}
       <div style={{
         marginTop: 'auto',
-        paddingTop: '12px',
+        paddingTop: '14px',
         borderTop: '1px solid var(--border-glass)',
         display: 'flex',
         alignItems: 'center',
@@ -164,74 +164,33 @@ const Sidebar = ({
       }}>
         {/* Botón 1: Modo Claro / Oscuro (Sol / Luna) */}
         <button
+          className="sidebar-toolbar-btn"
           onClick={() => setDarkMode && setDarkMode(!darkMode)}
           title={darkMode ? (language === 'es' ? 'Modo Claro' : 'Light Mode') : (language === 'es' ? 'Modo Oscuro' : 'Dark Mode')}
-          style={{
-            flex: 1,
-            height: '42px',
-            borderRadius: '10px',
-            background: 'var(--input-bg)',
-            border: '1px solid var(--border-glass)',
-            color: 'var(--text-color)',
-            fontSize: '1.2rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-soft)',
-            transition: 'all 0.2s ease',
-          }}
+          style={{ fontSize: '1.15rem' }}
         >
           {darkMode ? '☀️' : '🌙'}
         </button>
 
         {/* Botón 2: Idioma (ES / EN) */}
         <button
+          className="sidebar-toolbar-btn"
           onClick={toggleLanguage}
-          title={language === 'es' ? 'Cambiar a Inglés' : 'Switch to Spanish'}
-          style={{
-            flex: 1,
-            height: '42px',
-            borderRadius: '10px',
-            background: 'var(--input-bg)',
-            border: '1px solid var(--accent-blue)',
-            color: 'var(--accent-blue)',
-            fontSize: '0.85rem',
-            fontWeight: '800',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-soft)',
-            letterSpacing: '0.5px',
-            transition: 'all 0.2s ease',
-          }}
+          title={language === 'es' ? 'Cambiar a Inglés (EN)' : 'Switch to Spanish (ES)'}
+          style={{ fontSize: '0.85rem', fontWeight: '800', letterSpacing: '0.5px' }}
         >
           {language === 'es' ? 'ES' : 'EN'}
         </button>
 
         {/* Botón 3: Autenticación / Login */}
         <button
+          className="sidebar-toolbar-btn"
           onClick={() => {
             if (onOpenLoginModal) onOpenLoginModal();
             else if (onLogout) onLogout();
           }}
           title={`${currentUser || t('anonymous_user')} (${userRole}) - ${language === 'es' ? 'Autenticación / Rol' : 'Auth / Role'}`}
-          style={{
-            flex: 1,
-            height: '42px',
-            borderRadius: '10px',
-            background: userRole === 'admin' ? 'var(--accent-green-bg)' : 'var(--input-bg)',
-            border: `1px solid ${userRole === 'admin' ? 'var(--accent-green)' : 'var(--border-glass)'}`,
-            color: userRole === 'admin' ? 'var(--accent-green)' : 'var(--text-color)',
-            fontSize: '1.15rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-soft)',
-            transition: 'all 0.2s ease',
-          }}
+          style={{ fontSize: '1.15rem' }}
         >
           {userRole === 'admin' ? '🔐' : '👤'}
         </button>
@@ -239,7 +198,5 @@ const Sidebar = ({
     </aside>
   );
 };
-
-export default Sidebar;
 
 export default Sidebar;

@@ -3,6 +3,7 @@ import RobotViewer from '../components/three/RobotViewer';
 import CameraViewer from '../components/panels/CameraViewer';
 import PhotoSimulationPanel from '../components/panels/PhotoSimulationPanel';
 import styles from '../styles/appStyles';
+import { useLanguage } from '../context/LanguageContext';
 
 /**
  * Station-specific dashboard: 3D digital twin on the left, controls on the right.
@@ -29,6 +30,7 @@ const StationDashboard = ({
   // Robot connection toggle
   isRobotConnected, setIsRobotConnected,
 }) => {
+  const { t } = useLanguage();
   const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
   const sQueue = stationQueues[currentStation.id] || [];
   const isPlayingQueue = status.isPlaying;
@@ -44,7 +46,7 @@ const StationDashboard = ({
       <div className="dashboard-left-3d" style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
         <Suspense fallback={
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-dim)' }}>
-            Loading digital twin...
+            {language === 'es' ? 'Cargando gemelo digital...' : 'Loading digital twin...'}
           </div>
         }>
           <RobotViewer
@@ -68,8 +70,8 @@ const StationDashboard = ({
           />
         </Suspense>
         
-        {/* Banner de Inspección Previa cuando la estación está en parada Warning Stop (tras inspección) */}
-        {(currentStation.status === 'warning' || currentStation.status === 'waiting' || status.phase === 'waiting') && (
+        {/* Warning Stop Banner for Pre-inspection Phase */}
+        {status.phase === 'waiting' && currentStation.status === 'warning' && (
           <div
             style={{
               position: 'absolute',
@@ -92,10 +94,10 @@ const StationDashboard = ({
             <span style={{ fontSize: '1.4rem' }}>🔍</span>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: '800', fontSize: '0.85rem' }}>
-                Inspección previa completada (4 fotos en Gajo 1 - Warning Stop)
+                {t('warning_stop_banner')}
               </div>
               <div style={{ fontSize: '0.75rem', opacity: 0.95, fontWeight: '500' }}>
-                Revisa la orientación del objeto. Pulsa <strong>Play ▶</strong> para iniciar la captura completa.
+                {t('warning_stop_banner_sub')}
               </div>
             </div>
           </div>
@@ -146,7 +148,7 @@ const StationDashboard = ({
                 width: 'auto',
               }}
             >
-              {isPlayingQueue ? '❚❚ Pause' : '▶ Play'}
+              {isPlayingQueue ? t('pause') : t('play')}
             </button>
             
             <button
@@ -175,14 +177,14 @@ const StationDashboard = ({
                   : 'none',
               }}
             >
-              🔄 Rearm
+              {t('rearm')}
             </button>
           </div>
 
           {/* Speed slider & input numeric editor */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, justifyContent: 'flex-end', maxWidth: '350px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-dim)', whiteSpace: 'nowrap' }}>
-              Speed:
+              {t('speed')}:
             </span>
             <input
               type="range"
@@ -249,7 +251,7 @@ const StationDashboard = ({
         {/* Inline IMU / Vibration Tolerances */}
         <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-            Vibration Tolerances (IMU)
+            {t('vibration_tolerances')}
           </h3>
           <CameraViewer
             stabilityThreshold={stabilityThreshold}

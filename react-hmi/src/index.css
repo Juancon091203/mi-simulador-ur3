@@ -230,6 +230,36 @@ select option {
   color: var(--text-color);
 }
 
+/* Toolbar de 3 botones cuadrados inferiores unificados */
+.sidebar-toolbar-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--input-bg);
+  border: 1px solid var(--border-glass);
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  outline: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sidebar-toolbar-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 6px 16px rgba(0, 210, 255, 0.2) !important;
+}
+
+.sidebar-toolbar-btn:active {
+  transform: translateY(0);
+}
+
 /* Estilos adicionales de responsive para el panel del esferoide */
 @media (max-width: 768px) {
   .spheroid-panel {

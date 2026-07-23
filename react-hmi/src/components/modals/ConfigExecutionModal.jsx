@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../../styles/appStyles';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * Configure Execution modal with 3 tabs: Basic Info, Camera, Station.
@@ -19,6 +20,7 @@ const ConfigExecutionModal = ({
   editingQueueItem,
   onCreateNewPreset,
 }) => {
+  const { t } = useLanguage();
   const [saveLocation, setSaveLocation] = useState('local'); // 'local' or 'remote'
   const [remoteIp, setRemoteIp] = useState('192.168.1.150');
   const [remoteUser, setRemoteUser] = useState('operator');
@@ -48,7 +50,7 @@ const ConfigExecutionModal = ({
           ×
         </button>
         <header className="modal-header">
-          <h2 style={{ margin: 0 }}>Configure Station Execution</h2>
+          <h2 style={{ margin: 0 }}>{t('configure_execution_title')}</h2>
         </header>
 
         <nav className="modal-tabs">
@@ -58,7 +60,7 @@ const ConfigExecutionModal = ({
               className={`modal-tab-btn ${configActiveTab === tab ? 'active' : ''}`}
               onClick={() => setConfigActiveTab(tab)}
             >
-              {tab === 'basic' ? 'Basic Info' : tab === 'camera' ? 'Camera' : 'Station'}
+              {tab === 'basic' ? t('tab_basic_info') : tab === 'camera' ? t('tab_camera') : t('tab_station')}
             </button>
           ))}
         </nav>
@@ -69,14 +71,14 @@ const ConfigExecutionModal = ({
             <div className="form-grid">
               {/* Scanning Preset selector */}
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                <label>Scanning Preset</label>
+                <label>{t('scanning_preset')}</label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <select
                     style={{ ...styles.select, flex: 1 }}
                     value={configFormData.presetName || ''}
                     onChange={(e) => setConfigFormData(prev => ({ ...prev, presetName: e.target.value }))}
                   >
-                    <option value="">— No preset selected —</option>
+                    <option value="">{t('no_preset_selected')}</option>
                     {Object.keys(presets).map(name => {
                       const cfg = presets[name] || {};
                       const s = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
@@ -107,7 +109,7 @@ const ConfigExecutionModal = ({
                       width: 'auto',
                     }}
                   >
-                    ➕ New Preset
+                    {t('new_preset_btn')}
                   </button>
                 </div>
                 {configFormData.presetName && presets[configFormData.presetName] && (() => {
@@ -115,21 +117,21 @@ const ConfigExecutionModal = ({
                   const s = cfg.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 };
                   return (
                     <div style={{ marginTop: '8px', padding: '10px 14px', background: 'rgba(0, 210, 255, 0.05)', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '8px', fontSize: '0.72rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px', color: 'var(--text-dim)' }}>
-                      <span>Fibonacci Points: <strong style={{ color: 'var(--text-color)' }}>{cfg.pointCount ?? 100}</strong></span>
-                      <span>Spheroid Size: <strong style={{ color: 'var(--text-color)' }}>{s.x.toFixed(2)} m</strong></span>
-                      <span>Center Height (Z): <strong style={{ color: 'var(--text-color)' }}>{(cfg.objectCenter?.y ?? 1.0).toFixed(2)} m</strong></span>
-                      <span>Robot Orbit Radius: <strong style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)} m</strong></span>
-                      <span>Robot Base Height: <strong style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)} m</strong></span>
+                      <span>{t('fibonacci_points')}: <strong style={{ color: 'var(--text-color)' }}>{cfg.pointCount ?? 100}</strong></span>
+                      <span>{t('spheroid_size_card')}: <strong style={{ color: 'var(--text-color)' }}>{s.x.toFixed(2)} m</strong></span>
+                      <span>{t('center_height_z')}: <strong style={{ color: 'var(--text-color)' }}>{(cfg.objectCenter?.y ?? 1.0).toFixed(2)} m</strong></span>
+                      <span>{t('robot_orbit_radius')}: <strong style={{ color: 'var(--text-color)' }}>{(cfg.orbitRadius ?? 1.6).toFixed(2)} m</strong></span>
+                      <span>{t('robot_base_height')}: <strong style={{ color: 'var(--text-color)' }}>{(cfg.columnHeight ?? 0.5).toFixed(2)} m</strong></span>
                     </div>
                   );
                 })()}
               </div>
 
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                <label>Product Name</label>
+                <label>{t('product_name')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Leather kitten-heel sandal"
+                  placeholder={t('product_name_placeholder')}
                   value={configFormData.productName}
                   onChange={(e) => setConfigFormData(prev => ({ ...prev, productName: e.target.value }))}
                   style={styles.input}
@@ -138,7 +140,7 @@ const ConfigExecutionModal = ({
 
               {/* Save Location Selector */}
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                <label>Storage Location</label>
+                <label>{t('storage_location')}</label>
                 <div style={{ display: 'flex', gap: '20px', marginTop: '5px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', width: 'auto' }}>
                     <input
@@ -149,7 +151,7 @@ const ConfigExecutionModal = ({
                       onChange={() => setSaveLocation('local')}
                       style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                     />
-                    Local Path
+                    {t('local_path')}
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', width: 'auto' }}>
                     <input
@@ -160,14 +162,14 @@ const ConfigExecutionModal = ({
                       onChange={() => setSaveLocation('remote')}
                       style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                     />
-                    Remote PC (Network)
+                    {t('remote_pc_network')}
                   </label>
                 </div>
               </div>
 
               {saveLocation === 'local' ? (
                 <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                  <label>Photo Save Path</label>
+                  <label>{t('photo_save_path')}</label>
                   <input
                     type="text"
                     placeholder="e.g. C:/Photos/Nike"
@@ -237,7 +239,7 @@ const ConfigExecutionModal = ({
 
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                  <label>Robot Speed (m/s)</label>
+                  <label>{t('robot_speed_ms')}</label>
                   <input
                     type="number"
                     value={configFormData.robotSpeed}
@@ -276,14 +278,14 @@ const ConfigExecutionModal = ({
                     onChange={(e) => setConfigFormData(prev => ({ ...prev, cameraAutoExposure: e.target.checked }))}
                     style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                   />
-                  Enable Auto Exposure
+                  {t('enable_auto_exposure')}
                 </label>
               </div>
               {!configFormData.cameraAutoExposure && (
                 <>
                   <div className="form-field">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                      <label>Shutter Speed (ms)</label>
+                      <label>{t('shutter_speed_ms')}</label>
                       <input
                         type="number"
                         value={configFormData.cameraShutterMs}
@@ -310,7 +312,7 @@ const ConfigExecutionModal = ({
                   </div>
                   <div className="form-field">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                      <label>Sensor Gain</label>
+                      <label>{t('sensor_gain')}</label>
                       <input
                         type="number"
                         value={configFormData.cameraGain}
@@ -344,15 +346,15 @@ const ConfigExecutionModal = ({
           {configActiveTab === 'station' && (
             <div className="form-grid">
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                <label>Select Target Station</label>
+                <label>{t('select_target_station')}</label>
                 <select
                   value={configStationId || ''}
                   onChange={(e) => setConfigStationId(parseInt(e.target.value))}
                   style={styles.select}
                 >
-                  <option value="" disabled>Select a station...</option>
+                  <option value="" disabled>{t('select_a_station')}</option>
                   {stations.map(st => (
-                    <option key={st.id} value={st.id}>{st.name} ({st.ip})</option>
+                    <option key={st.id} value={st.id}>{st.name.replace('Station', t('station_name'))} ({st.ip})</option>
                   ))}
                 </select>
               </div>
@@ -365,7 +367,7 @@ const ConfigExecutionModal = ({
             onClick={onClose}
             style={{ ...styles.button, width: '120px', background: 'none', border: '1px solid var(--border-glass)', color: 'var(--text-color)' }}
           >
-            Cancel
+            {t('cancel')}
           </button>
           {configActiveTab !== 'station' ? (
             <button
@@ -383,7 +385,7 @@ const ConfigExecutionModal = ({
                 boxShadow: '0 0 15px rgba(0, 210, 255, 0.3)',
               }}
             >
-              Next →
+              {t('next_tab')}
             </button>
           ) : (
             <button
@@ -397,7 +399,7 @@ const ConfigExecutionModal = ({
                 boxShadow: !configStationId ? 'none' : '0 0 15px rgba(0, 210, 255, 0.3)',
               }}
             >
-              {editingQueueItem ? 'Save Changes' : 'Add to Queue'}
+              {editingQueueItem ? t('save_changes') : t('add_to_queue')}
             </button>
           )}
         </footer>

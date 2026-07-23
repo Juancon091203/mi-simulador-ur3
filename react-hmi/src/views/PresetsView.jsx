@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import styles from '../styles/appStyles';
+import { useLanguage } from '../context/LanguageContext';
 
 /**
  * Presets list view — shows all saved presets with their key params.
  * Props: presets, onCreateNew, onEditPreset, onDeletePreset
  */
 const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredPresetNames = Object.keys(presets).filter(name =>
@@ -21,9 +23,9 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>Configuration Presets</h3>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold' }}>{t('presets_title')}</h3>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-            Manage 3D scanning boundary and path presets
+            {t('presets_calibration')}
           </p>
         </div>
         <button
@@ -37,7 +39,7 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
             cursor: 'pointer',
           }}
         >
-          ➕ Create New Preset
+          {t('create_preset')}
         </button>
       </div>
 
@@ -45,7 +47,7 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
       <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
         <input
           type="text"
-          placeholder="🔍 Search presets by name..."
+          placeholder={t('search_presets_placeholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
@@ -83,13 +85,13 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
                   <h4 style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--accent-blue)', marginBottom: '8px' }}>{name}</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                     {[
-                      ['3D Model', cfg.objectModel ? (cfg.objectModel.charAt(0).toUpperCase() + cfg.objectModel.slice(1)) : 'Zapato'],
-                      ['Model Scale', `${(cfg.objectScale ?? 1.0).toFixed(2)}x`],
-                      ['Fibonacci Points', cfg.pointCount ?? 100],
-                      ['Spheroid Size', `${sSize.x.toFixed(2)}m`],
-                      ['Center Height (Z)', `${(cfg.objectCenter?.y ?? 1.0).toFixed(2)}m`],
-                      ['Robot Orbit Radius', `${(cfg.orbitRadius ?? 1.6).toFixed(2)}m`],
-                      ['Robot Base Height', `${(cfg.columnHeight ?? 0.5).toFixed(2)}m`],
+                      [t('model_3d'), cfg.objectModel ? (cfg.objectModel.charAt(0).toUpperCase() + cfg.objectModel.slice(1)) : 'Zapato'],
+                      [t('model_scale'), `${(cfg.objectScale ?? 1.0).toFixed(2)}x`],
+                      [t('fibonacci_points'), cfg.pointCount ?? 100],
+                      [t('spheroid_size_card'), `${sSize.x.toFixed(2)}m`],
+                      [t('center_height_z'), `${(cfg.objectCenter?.y ?? 1.0).toFixed(2)}m`],
+                      [t('robot_orbit_radius'), `${(cfg.orbitRadius ?? 1.6).toFixed(2)}m`],
+                      [t('robot_base_height'), `${(cfg.columnHeight ?? 0.5).toFixed(2)}m`],
                     ].map(([label, value]) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span>{label}:</span>
@@ -110,7 +112,7 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
                       color: 'var(--accent-blue)', cursor: 'pointer',
                     }}
                   >
-                    ✏️ Edit &amp; View
+                    ✏️ {t('edit')}
                   </button>
                   <button
                     onClick={() => {

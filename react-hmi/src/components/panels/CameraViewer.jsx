@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import vibrationIcon from '../../icon_vibracion-03.svg';
+import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * CameraViewer - Componente para visualizar la cámara FRAMOS D435e
  * y la estabilidad de su IMU en tiempo real.
  */
 const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = false }) => {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [autoExposure, setAutoExposure] = useState(true);
   const [exposureMs, setExposureMs] = useState(10);
@@ -23,10 +25,6 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
   useEffect(() => {
     const fetchStatus = async () => {
       try {
-        // TODO: BACKEND_ENDPOINT_REQUIRED
-        // ENDPOINT: GET /camera/status
-        // DESCRIPCIÓN: Consulta el estado de la cámara FRAMOS y lecturas de vibración IMU en tiempo real.
-        // RESPUESTA: { camera_connected: true, stable: true, gyro_magnitude: 0.04, accel_deviation: 0.01, umbral_giro: 0.25, auto_exposure: true, exposure_ms: 10.0, gain: 64 }
         const response = await fetch('http://127.0.0.1:5005/camera/status');
         const data = await response.json();
         setStatus(data);
@@ -36,12 +34,8 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
       }
     };
 
-    // Consultar inmediatamente
     fetchStatus();
 
-    // Intervalo de polling:
-    // - Si está abierto o inlineIMU es verdadero, consultamos rápido (250ms) para refrescar la IMU en tiempo real.
-    // - Si está cerrado, consultamos lento (3000ms) solo para monitorizar si se conecta/desconecta.
     const intervalTime = (isOpen || inlineIMU) ? 250 : 3000;
     const interval = setInterval(fetchStatus, intervalTime);
 
@@ -60,11 +54,6 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     setExposureMs(newExposureMs);
     setGain(newGain);
     try {
-      // TODO: BACKEND_ENDPOINT_REQUIRED
-      // ENDPOINT: POST /camera/settings
-      // DESCRIPCIÓN: Aplica la configuración de exposición automática, tiempo de obturación y ganancia a la cámara.
-      // PAYLOAD: { auto_exposure: true, exposure_ms: 10, gain: 64 }
-      // RESPUESTA: { status: 'success' }
       await fetch('http://127.0.0.1:5005/camera/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,16 +68,10 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     }
   };
 
-  // Manejo del slider de umbral de estabilidad
   const handleThresholdChange = async (e) => {
     const val = parseFloat(e.target.value);
     setStabilityThreshold(val);
     try {
-      // TODO: BACKEND_ENDPOINT_REQUIRED
-      // ENDPOINT: POST /camera/threshold
-      // DESCRIPCIÓN: Modifica el umbral de tolerancia de vibración del giroscopio IMU.
-      // PAYLOAD: { umbral_giro: 0.25 }
-      // RESPUESTA: { status: 'success' }
       await fetch('http://127.0.0.1:5005/camera/threshold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,7 +112,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
         </button>
         {!isConnected && (
           <span className="camera-tooltip" style={styles.tooltipText}>
-            IMU offline
+            {t('camera_disconnected')}
           </span>
         )}
       </div>
@@ -140,7 +123,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '5px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', textTransform: 'uppercase' }}>IMU STATUS:</span>
+          <span style={{ fontSize: '0.65rem', fontWeight: '700', color: 'var(--text-dim)', textTransform: 'uppercase' }}>{t('imu_status')}</span>
           <span
             style={{
               fontSize: '0.8rem',
@@ -149,14 +132,14 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
-            {status.stable ? 'STABLE' : 'UNSTABLE (VIBRATING)'}
+            {status.stable ? t('imu_stable') : (language === 'es' ? 'INESTABLE (VIBRANDO)' : 'UNSTABLE (VIBRATING)')}
           </span>
         </div>
 
         {/* Métrica de giro */}
         <div style={styles.imuMetric}>
           <div style={styles.metricHeader}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Rotation Speed:</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>{t('rotation_speed')}</span>
             <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-color)' }}>{status.gyro_magnitude.toFixed(3)} rad/s</span>
           </div>
           <div style={styles.metricTrack}>
@@ -173,7 +156,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
         {/* Umbral de estabilidad (Slider) */}
         <div style={styles.thresholdControl}>
           <div style={styles.sliderHeader}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 'bold' }}>VIBRATION TOLERANCE (IMU)</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 'bold' }}>{t('vibration_tolerance_imu')}</span>
             <span style={styles.sliderValue}>{stabilityThreshold.toFixed(2)}</span>
           </div>
           <input
@@ -186,8 +169,8 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
             style={styles.rangeInput}
           />
           <div style={styles.sliderLabels}>
-            <span>Strict (0.01)</span>
-            <span>Permissive (0.50)</span>
+            <span>{t('strict')} (0.01)</span>
+            <span>{t('permissive')} (0.50)</span>
           </div>
         </div>
       </div>
@@ -240,7 +223,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
       {/* Datos del Giroscopio y Estabilidad */}
       <div style={styles.statusPanel}>
         <div style={styles.statusRow}>
-          <span style={styles.label}>IMU STATUS:</span>
+          <span style={styles.label}>{t('imu_status')}</span>
           <span
             style={{
               ...styles.statusText,
@@ -248,14 +231,14 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
               textShadow: status.stable ? '0 0 8px rgba(0,255,136,0.3)' : '0 0 8px rgba(255,75,43,0.3)'
             }}
           >
-            {status.stable ? 'STABLE' : 'UNSTABLE (VIBRATING)'}
+            {status.stable ? t('imu_stable') : (language === 'es' ? 'INESTABLE (VIBRANDO)' : 'UNSTABLE (VIBRATING)')}
           </span>
         </div>
 
         {/* Métrica de giro */}
         <div style={styles.imuMetric}>
           <div style={styles.metricHeader}>
-            <span>Rotation Speed:</span>
+            <span>{t('rotation_speed')}</span>
             <span>{status.gyro_magnitude.toFixed(3)} rad/s</span>
           </div>
           <div style={styles.metricTrack}>
@@ -272,7 +255,7 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
         {/* Umbral de estabilidad (Slider integrado en el visor) */}
         <div style={styles.thresholdControl}>
           <div style={styles.sliderHeader}>
-            <span style={styles.label}>STABILITY TOLERANCE</span>
+            <span style={styles.label}>{t('vibration_tolerance_imu')}</span>
             <span style={styles.sliderValue}>{stabilityThreshold.toFixed(2)}</span>
           </div>
           <input
@@ -285,8 +268,8 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
             style={styles.rangeInput}
           />
           <div style={styles.sliderLabels}>
-            <span>Strict (0.01)</span>
-            <span>Permissive (0.50)</span>
+            <span>{t('strict')} (0.01)</span>
+            <span>{t('permissive')} (0.50)</span>
           </div>
         </div>
       </div>
