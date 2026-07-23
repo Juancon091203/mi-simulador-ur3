@@ -16,6 +16,7 @@ import Sidebar from './components/layout/Sidebar';
 import ConfigExecutionModal from './components/modals/ConfigExecutionModal';
 import EmergencyAlertModal from './components/modals/EmergencyAlertModal';
 import ObjectChangeModal from './components/modals/ObjectChangeModal';
+import ExecutionCompletedModal from './components/modals/ExecutionCompletedModal';
 import PhotosGalleryModal from './components/panels/PhotosGalleryModal';
 
 // ── Views ──────────────────────────────────────────────────────────────────
@@ -289,12 +290,7 @@ const App = () => {
             </button>
             <div>
               {activeStationTab === 'general' ? (
-                <>
-                  <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{t('general_view')}</h2>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
-                    {t('general_view_subtitle')}
-                  </p>
-                </>
+                <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{t('general_view')}</h2>
               ) : (
                 currentStation && (
                   <>
@@ -313,74 +309,6 @@ const App = () => {
             </div>
           </div>
         </header>
-
-        {/* Sticky Horizontal Tabs Navigation (Scrollable en pantallas reducidas) */}
-        <div style={{
-          display: 'flex',
-          padding: '0 24px 12px 24px',
-          borderBottom: '1px solid var(--border-glass)',
-          background: 'transparent',
-          zIndex: 100,
-          overflowX: 'auto',
-          maxWidth: '100%',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}>
-          <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'nowrap' }}>
-            {activeStationTab === 'general' ? (
-              <>
-                <button
-                  onClick={() => setActiveSubView('dashboard')}
-                  style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
-                >
-                  🌐 {t('general_view')}
-                </button>
-                <button
-                  onClick={() => setActiveSubView('presets')}
-                  style={(activeSubView === 'presets' || activeSubView === 'calibration') ? activeTabStyle : inactiveTabStyle}
-                >
-                  {t('presets_calibration')}
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setActiveStationTab('general');
-                    setActiveSubView('dashboard');
-                  }}
-                  style={inactiveTabStyle}
-                >
-                  {t('back_to_stations')}
-                </button>
-                <button
-                  onClick={() => setActiveSubView('dashboard')}
-                  style={activeSubView === 'dashboard' ? activeTabStyle : inactiveTabStyle}
-                >
-                  {t('dashboard_3d')}
-                </button>
-                <button
-                  onClick={() => setActiveSubView('vnc')}
-                  style={activeSubView === 'vnc' ? activeTabStyle : inactiveTabStyle}
-                >
-                  {t('vnc_viewer')}
-                </button>
-                <button
-                  onClick={() => setActiveSubView('camera')}
-                  style={activeSubView === 'camera' ? activeTabStyle : inactiveTabStyle}
-                >
-                  {t('camera_2d')}
-                </button>
-                <button
-                  onClick={() => setActiveSubView('config')}
-                  style={activeSubView === 'config' ? activeTabStyle : inactiveTabStyle}
-                >
-                  {t('station_settings')}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
 
         {/* Scrollable content container (Scrollbar único principal con amplio margen inferior) */}
         <div className="main-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
@@ -467,8 +395,15 @@ const App = () => {
                 handlePauseStationQueue={stationsHook.handlePauseStationQueue}
                 handleUpdateActiveSpeed={handleUpdateActiveSpeed}
                 onRearmStation={onRearmStation}
+                userRole={userRole}
+                selectedPreInspectionPoints={calibration.selectedPreInspectionPoints}
+                setSelectedPreInspectionPoints={calibration.setSelectedPreInspectionPoints}
+                isPointSelectionMode={calibration.isPointSelectionMode}
+                setIsPointSelectionMode={calibration.setIsPointSelectionMode}
+                handleToggleSelectPoint={calibration.handleToggleSelectPoint}
+                globalSequence={calibration.globalSequence}
                 onSavePreset={async (name) => {
-                  await presetsHook.handleSavePreset(name);
+                  await presetsHook.handleSavePreset(name, calibration.selectedPreInspectionPoints);
                   setActiveSubView('presets');
                 }}
                 onBackToPresets={() => setActiveSubView('presets')}
@@ -585,6 +520,13 @@ const App = () => {
         photos={cameraHook.photos}
         onClearPhotos={cameraHook.handleClearPhotos}
         onDeletePhoto={cameraHook.handleDeletePhoto}
+      />
+
+      <ExecutionCompletedModal
+        isOpen={stationsHook.showCompletionPrompt}
+        stationName={stationsHook.completionStationId ? (stationsHook.stations.find(s => s.id === stationsHook.completionStationId)?.name || `Station ${stationsHook.completionStationId}`) : ''}
+        onRepeat={stationsHook.handleRepeatExecution}
+        onFinish={stationsHook.handleFinishExecution}
       />
 
       {/* Admin: Simulate alert button */}

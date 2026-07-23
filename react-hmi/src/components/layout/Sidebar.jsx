@@ -3,18 +3,14 @@ import styles from '../../styles/appStyles';
 import { useLanguage } from '../../context/LanguageContext';
 
 /**
- * App sidebar — navigation, queue list, and bottom 3-button toolbar.
+ * App sidebar — navigation with vertical subview buttons and bottom toolbar.
  */
 const Sidebar = ({
   // Navigation
   activeStationTab, setActiveStationTab,
   activeSubView, setActiveSubView,
   stations,
-  // Queue
   currentStation,
-  stationQueues, stationQueueStatus,
-  handleMoveQueueItem, handleEditQueueItem, handleRemoveQueueItem,
-  onNewExecution,
   // User / auth / theme
   currentUser, userRole,
   onLogout, onOpenLoginModal,
@@ -24,15 +20,55 @@ const Sidebar = ({
 }) => {
   const { language, toggleLanguage, t } = useLanguage();
 
+  const getStatusDot = (status) => {
+    switch (status) {
+      case 'running': return '🟢';
+      case 'warning': return '🟡';
+      case 'emergency': return '🔴';
+      case 'off': return '⚪';
+      case 'idle':
+      default: return '🔵';
+    }
+  };
+
+  const navBtnBaseStyle = {
+    ...styles.button,
+    width: '100%',
+    textAlign: 'left',
+    justifyContent: 'flex-start',
+    padding: '10px 14px',
+    fontSize: '0.85rem',
+    fontWeight: '600',
+    borderRadius: '10px',
+    border: '1px solid var(--border-glass)',
+    background: 'rgba(255, 255, 255, 0.03)',
+    color: 'var(--text-color)',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    outline: 'none',
+    boxSizing: 'border-box',
+    transition: 'all 0.2s ease',
+  };
+
+  const navBtnActiveStyle = {
+    ...navBtnBaseStyle,
+    background: 'var(--accent-blue)',
+    color: '#ffffff',
+    fontWeight: '600',
+    borderColor: 'var(--accent-blue)',
+    boxShadow: '0 0 10px rgba(0, 210, 255, 0.3)',
+  };
+
   return (
     <aside className={`sidebar glass ${className || ''}`} style={styles.sidebar}>
-      {/* Header */}
+      {/* Header (Subtitle removed as requested) */}
       <header style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 className="text-gradient" style={{ fontSize: '1.1rem', marginBottom: '5px' }}>
+          <h1 className="text-gradient" style={{ fontSize: '1.15rem', fontWeight: '800' }}>
             {t('app_title')}
           </h1>
-          <p style={styles.subtitle}>{t('app_subtitle')}</p>
         </div>
         <button
           className="sidebar-close-btn"
@@ -52,7 +88,7 @@ const Sidebar = ({
         </button>
       </header>
 
-      {/* Station / View selector */}
+      {/* Station / View selector with color dot status indicators */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         <label style={styles.label}>{t('active_station_label')}</label>
         <select
@@ -67,88 +103,91 @@ const Sidebar = ({
         >
           <option value="general">{t('general_view_option')}</option>
           {stations.map(st => (
-            <option key={st.id} value={st.id}>🤖 {st.name} ({st.ip})</option>
+            <option key={st.id} value={st.id}>
+              {getStatusDot(st.status)} {st.name.replace('Station', t('station_name'))} ({st.ip})
+            </option>
           ))}
         </select>
       </div>
 
-      <div style={{ ...styles.divider, opacity: 0.15 }} />
+      <div style={{ ...styles.divider, opacity: 0.15, margin: '14px 0' }} />
 
-      {/* Execution Queue (only in station view) */}
-      {activeStationTab !== 'general' && currentStation && (() => {
-        const sQueue = stationQueues[currentStation.id] || [];
-        const status = stationQueueStatus[currentStation.id] || { isPlaying: false, currentIndex: 0 };
-        return (
-          <div className="queue-panel">
-            <div className="queue-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <span style={{ fontWeight: '800', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {t('queue_header')} ({sQueue.length})
-              </span>
+      {/* Vertical Navigation Menu */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
+        <button
+          className={`sidebar-subview-btn ${activeStationTab === 'general' && activeSubView === 'dashboard' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveStationTab('general');
+            setActiveSubView('dashboard');
+            if (setIsSidebarOpen) setIsSidebarOpen(false);
+          }}
+          style={activeStationTab === 'general' && activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
+        >
+          🌐 {t('general_view')}
+        </button>
+
+        {activeStationTab !== 'general' && (
+          <>
+            <button
+              className={`sidebar-subview-btn ${activeSubView === 'dashboard' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveSubView('dashboard');
+                if (setIsSidebarOpen) setIsSidebarOpen(false);
+              }}
+              style={activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
+            >
+              {t('dashboard_3d')}
+            </button>
+
+            {/* VNC Viewer restricted to Developer Mode */}
+            {userRole === 'admin' && (
               <button
-                onClick={() => onNewExecution(currentStation.id)}
-                style={{
-                  background: 'var(--accent-blue)',
-                  color: '#000000',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '4px 8px',
-                  fontSize: '0.65rem',
-                  fontWeight: 'bold',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '2px',
-                  width: 'auto',
+                className={`sidebar-subview-btn ${activeSubView === 'vnc' ? 'active' : ''}`}
+                onClick={() => {
+                  setActiveSubView('vnc');
+                  if (setIsSidebarOpen) setIsSidebarOpen(false);
                 }}
-                title={t('add_execution')}
+                style={activeSubView === 'vnc' ? navBtnActiveStyle : navBtnBaseStyle}
               >
-                ➕ {t('add_execution')}
+                {t('vnc_viewer')}
               </button>
-            </div>
-            <div className="queue-list" style={{ overflowY: 'auto', maxHeight: '250px', paddingRight: '4px' }}>
-              {sQueue.length === 0 ? (
-                <div style={{ textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.7rem', padding: '15px' }}>
-                  {t('queue_empty')}
-                </div>
-              ) : (
-                sQueue.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className={`queue-item ${idx === status.currentIndex ? 'active' : ''}`}
-                    style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '6px', marginBottom: '6px' }}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
-                      <span style={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.75rem' }}>{item.productName}</span>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.6rem' }}>Preset: {item.presetName || 'None'}</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {idx === status.currentIndex && status.isPlaying && (
-                        <span className="spinner" style={{ width: '8px', height: '8px', border: '1px solid var(--text-dim)', borderTopColor: 'var(--accent-blue)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '6px' }} />
-                      )}
-                      <button onClick={() => handleMoveQueueItem(currentStation.id, idx, 'up')} disabled={idx === 0} style={{ background: 'none', border: 'none', color: idx === 0 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }} title="Move Up">▲</button>
-                      <button onClick={() => handleMoveQueueItem(currentStation.id, idx, 'down')} disabled={idx === sQueue.length - 1} style={{ background: 'none', border: 'none', color: idx === sQueue.length - 1 ? 'var(--text-dim)' : 'var(--text-color)', cursor: idx === sQueue.length - 1 ? 'not-allowed' : 'pointer', padding: '2px', fontSize: '0.7rem', opacity: idx === sQueue.length - 1 ? 0.3 : 1 }} title="Move Down">▼</button>
-                      <button onClick={() => handleEditQueueItem(item)} style={{ background: 'none', border: 'none', color: '#00d2ff', cursor: 'pointer', padding: '2px', fontSize: '0.85rem' }} title="Edit task">✏️</button>
-                      <button
-                        onClick={() => handleRemoveQueueItem(currentStation.id, item.id)}
-                        style={{
-                          background: 'none', border: 'none', color: '#ff4b2b', cursor: 'pointer',
-                          padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                        }}
-                        title="Remove task"
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        );
-      })()}
+            )}
+
+            <button
+              className={`sidebar-subview-btn ${activeSubView === 'camera' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveSubView('camera');
+                if (setIsSidebarOpen) setIsSidebarOpen(false);
+              }}
+              style={activeSubView === 'camera' ? navBtnActiveStyle : navBtnBaseStyle}
+            >
+              {t('camera_2d')}
+            </button>
+
+            <button
+              className={`sidebar-subview-btn ${activeSubView === 'config' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveSubView('config');
+                if (setIsSidebarOpen) setIsSidebarOpen(false);
+              }}
+              style={activeSubView === 'config' ? navBtnActiveStyle : navBtnBaseStyle}
+            >
+              {t('station_settings')}
+            </button>
+          </>
+        )}
+
+        <button
+          className={`sidebar-subview-btn ${activeSubView === 'presets' || activeSubView === 'calibration' ? 'active' : ''}`}
+          onClick={() => {
+            setActiveSubView('presets');
+            if (setIsSidebarOpen) setIsSidebarOpen(false);
+          }}
+          style={(activeSubView === 'presets' || activeSubView === 'calibration') ? navBtnActiveStyle : navBtnBaseStyle}
+        >
+          {t('presets_calibration')}
+        </button>
+      </div>
 
       {/* Footer Toolbar: 3 Botones Cuadrados Horizontales Estéticamente Unificados */}
       <div style={{

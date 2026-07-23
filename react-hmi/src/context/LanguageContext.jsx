@@ -4,9 +4,9 @@ const translations = {
   es: {
     // Header & Navigation
     app_title: "Estudio de Fotografía Automatizado",
-    app_subtitle: "HMI Industrial UR3",
+    app_subtitle: "",
     general_view: "Vista General",
-    general_view_subtitle: "Consola Central de Monitorización Multi-Estación",
+    general_view_subtitle: "",
     active_station_label: "Estación Activa / Área",
     general_view_option: "🌐 Vista General (4 Estaciones)",
     back_to_stations: "← Volver a Estaciones",
@@ -21,6 +21,7 @@ const translations = {
     status_running: "EJECUTANDO",
     status_warning: "PARADA ADVERTENCIA",
     status_emergency: "EMERGENCIA",
+    status_off: "APAGADO",
 
     // General Overview Station Cards
     station_name: "Estación",
@@ -33,15 +34,17 @@ const translations = {
     sunglasses: "Gafas de Sol",
     wristwatch: "Reloj de Pulsera",
 
-    // Queue & Actions
-    queue_header: "Cola de Ejecución",
-    queue_empty: "Sin tareas en cola. Configura ejecuciones para empezar.",
-    add_execution: "Añadir",
+    // Actions & Prompts
+    add_execution: "Añadir Ejecución",
     play: "▶ Ejecutar",
     pause: "❚❚ Pausar",
     rearm: "🔄 Rearmar",
     speed: "Velocidad",
     robot_ip: "Dirección IP del Robot",
+    repeat_execution: "Repetir Ejecución",
+    finish_execution: "Finalizar",
+    execution_completed: "Ejecución Completada",
+    execution_completed_prompt: "¿Deseas repetir la misma ejecución o finalizar?",
 
     // Configure Execution Modal
     configure_execution_title: "Configurar Ejecución de Estación",
@@ -55,12 +58,10 @@ const translations = {
     product_name_placeholder: "ej. Sandalia de cuero",
     storage_location: "UBICACIÓN DE ALMACENAMIENTO",
     local_path: "RUTA LOCAL",
-    remote_pc_network: "PC REMOTO (RED)",
     photo_save_path: "RUTA DE GUARDADO DE FOTOS",
     robot_speed_ms: "VELOCIDAD DEL ROBOT (M/S)",
     cancel: "Cancelar",
     next_tab: "Siguiente →",
-    add_to_queue: "Añadir a la Cola",
     save_changes: "Guardar Cambios",
     select_target_station: "SELECCIONAR ESTACIÓN DESTINO",
     select_a_station: "Selecciona una estación...",
@@ -89,6 +90,10 @@ const translations = {
     // Fibonacci & 3D Calibration Panel
     calculating_points: "Calculando puntos Fibonacci...",
     points_calculated: "Puntos calculados",
+    pre_inspection_points: "Puntos de Pre-inspección (4 Puntos)",
+    select_4_points_mode: "🎯 Seleccionar Puntos 3D",
+    finish_selection: "✓ Finalizar Selección",
+    clear_selection: "🧹 Limpiar",
     spheroid_size: "Tamaño del Esferoide (m)",
     object_center: "Centro del Objeto (m)",
     z_bounds: "Límites Z (Filtro Vertical)",
@@ -97,6 +102,7 @@ const translations = {
     object_scale: "Escala del Objeto",
     shoe_model: "Zapato (zapato.glb)",
     bag_model: "Bolsito (bolsito.glb)",
+    upload_glb_model: "➕ Añadir Modelo (.glb)",
     show_spheroid_points: "Mostrar Puntos Esferoide",
     show_sector_planes: "Mostrar Planos de Gajos",
     orbit_radius: "Radio de Órbita",
@@ -125,7 +131,7 @@ const translations = {
     photo_simulation_title: "Simulación de Captura de Fotos",
     prev: "◄ ANTERIOR",
     next: "SIGUIENTE ►",
-    view_captures: "📷 VER CAPTURAS",
+    view_captures: "📁 ABRIR CARPETA DE FOTOS",
     vibration_tolerances: "TOLERANCIAS DE VIBRACIÓN (IMU)",
     gyro_threshold: "Umbral Giroscopio (rad/s)",
     camera_connected: "Cámara Conectada",
@@ -179,9 +185,9 @@ const translations = {
   en: {
     // Header & Navigation
     app_title: "Automated Photography Studio",
-    app_subtitle: "Industrial UR3 HMI Dashboard",
+    app_subtitle: "",
     general_view: "General View",
-    general_view_subtitle: "Central Multi-Station Monitoring Console",
+    general_view_subtitle: "",
     active_station_label: "Active Station / Area",
     general_view_option: "🌐 General View (4 Stations)",
     back_to_stations: "← Back to Stations",
@@ -196,6 +202,7 @@ const translations = {
     status_running: "RUNNING",
     status_warning: "WARNING STOP",
     status_emergency: "EMERGENCY",
+    status_off: "OFF",
 
     // General Overview Station Cards
     station_name: "Station",
@@ -208,15 +215,17 @@ const translations = {
     sunglasses: "Sunglasses",
     wristwatch: "Wristwatch",
 
-    // Queue & Actions
-    queue_header: "Execution Queue",
-    queue_empty: "No tasks in queue. Configure executions to start.",
-    add_execution: "Add",
+    // Actions & Prompts
+    add_execution: "Add Execution",
     play: "▶ Play",
     pause: "❚❚ Pause",
     rearm: "🔄 Rearm",
     speed: "Speed",
     robot_ip: "Robot IP Address",
+    repeat_execution: "Repeat Execution",
+    finish_execution: "Finish",
+    execution_completed: "Execution Completed",
+    execution_completed_prompt: "Do you want to repeat the same execution or finish?",
 
     // Configure Execution Modal
     configure_execution_title: "Configure Station Execution",
@@ -230,12 +239,10 @@ const translations = {
     product_name_placeholder: "e.g. Leather kitten-heel sandal",
     storage_location: "STORAGE LOCATION",
     local_path: "LOCAL PATH",
-    remote_pc_network: "REMOTE PC (NETWORK)",
     photo_save_path: "PHOTO SAVE PATH",
     robot_speed_ms: "ROBOT SPEED (M/S)",
     cancel: "Cancel",
     next_tab: "Next →",
-    add_to_queue: "Add to Queue",
     save_changes: "Save Changes",
     select_target_station: "SELECT TARGET STATION",
     select_a_station: "Select a station...",
@@ -264,6 +271,10 @@ const translations = {
     // Fibonacci & 3D Calibration Panel
     calculating_points: "Calculating Fibonacci points...",
     points_calculated: "Points calculated",
+    pre_inspection_points: "Pre-inspection Points (4 Points)",
+    select_4_points_mode: "🎯 Select 3D Points",
+    finish_selection: "✓ Finish Selection",
+    clear_selection: "🧹 Clear",
     spheroid_size: "Spheroid Size (m)",
     object_center: "Object Center (m)",
     z_bounds: "Z Bounds (Vertical Cut)",
@@ -272,6 +283,7 @@ const translations = {
     object_scale: "Object Scale",
     shoe_model: "Shoe (zapato.glb)",
     bag_model: "Handbag (bolsito.glb)",
+    upload_glb_model: "➕ Add Model (.glb)",
     show_spheroid_points: "Show Spheroid Points",
     show_sector_planes: "Show Sector Planes",
     orbit_radius: "Orbit Radius",
@@ -300,7 +312,7 @@ const translations = {
     photo_simulation_title: "Photo Capture Simulation",
     prev: "◄ PREV",
     next: "NEXT ►",
-    view_captures: "📷 VIEW CAPTURES",
+    view_captures: "📁 OPEN PHOTOS FOLDER",
     vibration_tolerances: "VIBRATION TOLERANCES (IMU)",
     gyro_threshold: "Gyro Threshold (rad/s)",
     camera_connected: "Camera Connected",

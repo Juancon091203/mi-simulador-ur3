@@ -669,11 +669,44 @@ input[type="range"]::-moz-range-thumb:active {
   letter-spacing: 0.5px;
 }
 
+.station-card.status-off {
+  border-left: 6px solid #64748b;
+  box-shadow: inset 0 0 20px rgba(100, 116, 139, 0.05);
+  opacity: 0.75;
+}
+.station-card.status-off:hover {
+  border-color: #64748b;
+  opacity: 1;
+}
+
 .status-pill-idle { background: rgba(0, 210, 255, 0.15); color: var(--accent-blue); }
 .status-pill-running { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
 .status-pill-waiting { background: rgba(217, 119, 6, 0.18); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
 .status-pill-warning { background: rgba(255, 157, 0, 0.15); color: var(--accent-orange); }
 .status-pill-emergency { background: rgba(255, 75, 43, 0.15); color: #ff4b2b; }
+.status-pill-off { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid #64748b; }
+
+.sidebar-subview-btn {
+  outline: none !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  border: 1px solid var(--border-glass) !important;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.sidebar-subview-btn:focus,
+.sidebar-subview-btn:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.sidebar-subview-btn.active {
+  background-color: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.3) !important;
+}
 
 .station-body {
   display: flex;

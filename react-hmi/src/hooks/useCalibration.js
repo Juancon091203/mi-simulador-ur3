@@ -20,6 +20,32 @@ export function useCalibration() {
   const [backendSequence, setBackendSequence] = useState([]);
   const [isCalculating, setIsCalculating] = useState(false);
   const [robotPositionIndex, setRobotPositionIndex] = useState(0);
+  const [selectedPreInspectionPoints, setSelectedPreInspectionPoints] = useState([]);
+  const [isPointSelectionMode, setIsPointSelectionMode] = useState(false);
+
+  const handleToggleSelectPoint = (pointIdx) => {
+    if (typeof pointIdx !== 'number' || isNaN(pointIdx)) return;
+    setSelectedPreInspectionPoints(prev => {
+      const current = Array.isArray(prev) ? prev : [];
+      if (current.includes(pointIdx)) {
+        return current.filter(idx => idx !== pointIdx);
+      }
+      if (current.length >= 4) {
+        return [...current.slice(1), pointIdx];
+      }
+      return [...current, pointIdx];
+    });
+  };
+
+  // Reset selected 4 points whenever sphere parameters change
+  useEffect(() => {
+    setSelectedPreInspectionPoints([]);
+  }, [
+    pointCount,
+    spheroidSize.x, spheroidSize.y, spheroidSize.z,
+    objectCenter.x, objectCenter.y, objectCenter.z,
+    zBounds.min, zBounds.max,
+  ]);
 
   // Fetch trajectory from backend with 250ms debounce
   useEffect(() => {
@@ -135,6 +161,9 @@ export function useCalibration() {
     objectModel, setObjectModel,
     objectScale, setObjectScale,
     isCalculating,
+    selectedPreInspectionPoints, setSelectedPreInspectionPoints,
+    isPointSelectionMode, setIsPointSelectionMode,
+    handleToggleSelectPoint,
     // Derived
     globalSequence,
     robotPosition,

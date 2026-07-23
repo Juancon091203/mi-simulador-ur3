@@ -29,6 +29,10 @@ const CalibrationView = ({
   currentStation, stationQueues = {}, stationQueueStatus = {},
   handlePlayStationQueue, handlePauseStationQueue,
   handleUpdateActiveSpeed, onRearmStation,
+  userRole,
+  selectedPreInspectionPoints, setSelectedPreInspectionPoints,
+  isPointSelectionMode, setIsPointSelectionMode,
+  handleToggleSelectPoint, globalSequence,
 }) => {
   const { t, language } = useLanguage();
   const st = currentStation || { id: 1, speed: 0.5, status: 'idle' };
@@ -72,9 +76,47 @@ const CalibrationView = ({
             orbitRadius={orbitRadius}
             objectModel={objectModel}
             objectScale={objectScale}
+            isCalculating={isCalculating}
+            selectedPreInspectionPoints={selectedPreInspectionPoints}
+            isPointSelectionMode={isPointSelectionMode}
+            onToggleSelectPoint={handleToggleSelectPoint}
+            globalSequence={globalSequence}
             isGalleryOpen={isGalleryOpen}
           />
         </Suspense>
+
+        {/* Warning Stop Banner if station is in warning */}
+        {status.phase === 'waiting' && st.status === 'warning' && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '80px',
+              right: '90px',
+              background: 'rgba(217, 119, 6, 0.92)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid #f59e0b',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: '#ffffff',
+              zIndex: 30,
+              boxShadow: '0 4px 16px rgba(217, 119, 6, 0.3)',
+            }}
+          >
+            <span style={{ fontSize: '1.4rem' }}>🔍</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '800', fontSize: '0.85rem' }}>
+                {t('warning_stop_banner')}
+              </div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.95, fontWeight: '500' }}>
+                {t('warning_stop_banner_sub')}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Floating Control Bar at the bottom of the 3D Viewer */}
         <div style={{
@@ -90,9 +132,9 @@ const CalibrationView = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '15px',
-          zIndex: 10,
+          zIndex: 35,
           backdropFilter: 'blur(10px)',
-          boxShadow: 'var(--shadow-focus)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
         }}>
           {/* Buttons: Play/Pause and Rearm */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -183,12 +225,12 @@ const CalibrationView = ({
                   width: '55px',
                   background: 'var(--input-bg)',
                   border: '1px solid var(--border-glass)',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   color: 'var(--text-color)',
                   fontSize: '0.75rem',
                   textAlign: 'right',
                   fontWeight: 'bold',
-                  padding: '3px 4px',
+                  padding: '2px 4px',
                   outline: 'none',
                 }}
               />
@@ -239,6 +281,11 @@ const CalibrationView = ({
         setEditingPresetForm={setEditingPresetForm}
         onSavePreset={onSavePreset}
         onBackToPresets={onBackToPresets}
+        userRole={userRole}
+        selectedPreInspectionPoints={selectedPreInspectionPoints}
+        setSelectedPreInspectionPoints={setSelectedPreInspectionPoints}
+        isPointSelectionMode={isPointSelectionMode}
+        setIsPointSelectionMode={setIsPointSelectionMode}
       />
     </div>
   </div>

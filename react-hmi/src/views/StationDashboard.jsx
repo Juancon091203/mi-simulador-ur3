@@ -240,13 +240,39 @@ const StationDashboard = ({
           currentPhotoStep={currentPhotoStep}
           setCurrentPhotoStep={setCurrentPhotoStep}
           pointCount={pointCount}
+          savePath={st.savePath || 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos'}
           photos={photos}
           setPhotos={setPhotos}
           isGalleryOpen={isGalleryOpen}
           setIsGalleryOpen={setIsGalleryOpen}
-          onNext={onNext}
-          onPrev={onPrev}
-          onViewPhotos={() => setIsGalleryOpen(true)}
+          onNext={() => {
+            if (currentPhotoStep < pointCount) {
+              const nextStep = currentPhotoStep + 1;
+              setCurrentPhotoStep(nextStep);
+              if (setRobotPositionIndex) setRobotPositionIndex(nextStep);
+            }
+          }}
+          onPrev={() => {
+            if (currentPhotoStep > 0) {
+              const prevStep = currentPhotoStep - 1;
+              setCurrentPhotoStep(prevStep);
+              if (setRobotPositionIndex) setRobotPositionIndex(prevStep);
+            }
+          }}
+          onViewPhotos={() => {
+            const folderPath = st.savePath || 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos';
+            // TODO: BACKEND_ENDPOINT_REQUIRED
+            // ENDPOINT: POST /api/open_folder
+            // DESCRIPCIÓN: Endpoint para solicitar la apertura de la carpeta física local en Windows Explorer.
+            // PAYLOAD: { save_path: 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos' }
+            fetch('http://127.0.0.1:5005/api/open_folder', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ save_path: folderPath }),
+            }).catch(() => {
+              window.open(`file:///${folderPath.replace(/\\/g, '/')}`, '_blank');
+            });
+          }}
         />
 
         {/* Inline IMU / Vibration Tolerances */}

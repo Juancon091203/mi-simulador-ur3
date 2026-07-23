@@ -30,19 +30,26 @@ export function usePresets(calibrationState) {
     fetchPresets();
   }, []);
 
-  const handleSavePreset = async (name) => {
+  const handleSavePreset = async (name, selectedPoints = []) => {
     const {
       spheroidSize, objectCenter, zBounds,
       pointCount, columnHeight, orbitRadius,
       objectModel, objectScale,
     } = calibrationState;
-    const config = { spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius, objectModel, objectScale };
+    const pointsToSave = selectedPoints.length > 0
+      ? selectedPoints
+      : (calibrationState.selectedPreInspectionPoints || []);
+
+    const config = {
+      spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius,
+      objectModel, objectScale,
+      selectedPreInspectionPoints: pointsToSave,
+    };
     try {
       // TODO: BACKEND_ENDPOINT_REQUIRED
       // ENDPOINT: POST /save_preset
-      // DESCRIPCIÓN: Guarda o actualiza un preset en el servidor con su geometría y modelo 3D asignado.
-      // PAYLOAD: { name: "Preset 1", config: { pointCount, spheroidSize, objectCenter, zBounds, objectModel, objectScale } }
-      // RESPUESTA: { status: 'success', presets: { ... } }
+      // DESCRIPCIÓN: Guarda o actualiza un preset en el servidor con su geometría, modelo 3D y 4 puntos de pre-inspección.
+      // PAYLOAD: { name: "Preset 1", config: { pointCount, spheroidSize, objectCenter, zBounds, objectModel, objectScale, selectedPreInspectionPoints } }
       const response = await fetch(`${API}/save_preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,18 +57,15 @@ export function usePresets(calibrationState) {
       });
       const data = await response.json();
       if (data.status === 'success') setPresets(data.presets);
+      else setPresets(prev => ({ ...prev, [name]: config }));
     } catch (err) {
       console.error('Failed to save preset:', err);
+      setPresets(prev => ({ ...prev, [name]: config }));
     }
   };
 
   const handleDeletePreset = async (name) => {
     try {
-      // TODO: BACKEND_ENDPOINT_REQUIRED
-      // ENDPOINT: POST /delete_preset
-      // DESCRIPCIÓN: Elimina un preset por nombre de la base de datos o archivo JSON.
-      // PAYLOAD: { name: "Preset 1" }
-      // RESPUESTA: { status: 'success', presets: { ... } }
       const response = await fetch(`${API}/delete_preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,7 +81,7 @@ export function usePresets(calibrationState) {
   const handleLoadPreset = (name, calibrationSetters) => {
     const config = presets[name];
     if (!config) return;
-    const { setSpheroidSize, setObjectCenter, setZBounds, setPointCount, setColumnHeight, setOrbitRadius, setObjectModel, setObjectScale } = calibrationSetters;
+    const { setSpheroidSize, setObjectCenter, setZBounds, setPointCount, setColumnHeight, setOrbitRadius, setObjectModel, setObjectScale, setSelectedPreInspectionPoints } = calibrationSetters;
     if (config.spheroidSize) setSpheroidSize(config.spheroidSize);
     if (config.objectCenter) setObjectCenter(config.objectCenter);
     if (config.zBounds) setZBounds(config.zBounds);
@@ -86,6 +90,9 @@ export function usePresets(calibrationState) {
     if (config.orbitRadius !== undefined) setOrbitRadius(config.orbitRadius);
     if (config.objectModel !== undefined && setObjectModel) setObjectModel(config.objectModel);
     if (config.objectScale !== undefined && setObjectScale) setObjectScale(config.objectScale);
+    if (config.selectedPreInspectionPoints !== undefined && setSelectedPreInspectionPoints) {
+      setSelectedPreInspectionPoints(config.selectedPreInspectionPoints);
+    }
   };
 
   return {

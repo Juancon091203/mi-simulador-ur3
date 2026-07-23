@@ -89,6 +89,7 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
                       [t('model_3d'), cfg.objectModel ? (cfg.objectModel.charAt(0).toUpperCase() + cfg.objectModel.slice(1)) : 'Zapato'],
                       [t('model_scale'), `${(cfg.objectScale ?? 1.0).toFixed(2)}x`],
                       [t('fibonacci_points'), cfg.pointCount ?? 100],
+                      [t('pre_inspection_points'), cfg.selectedPreInspectionPoints && cfg.selectedPreInspectionPoints.length > 0 ? `${cfg.selectedPreInspectionPoints.length}/4 pts` : 'Sin asignar (0/4)'],
                       [t('spheroid_size_card'), `${sSize.x.toFixed(2)}m`],
                       [t('center_height_z'), `${(cfg.objectCenter?.y ?? 1.0).toFixed(2)}m`],
                       [t('robot_orbit_radius'), `${(cfg.orbitRadius ?? 1.6).toFixed(2)}m`],

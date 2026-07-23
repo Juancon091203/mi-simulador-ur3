@@ -78,7 +78,11 @@ const RobotViewer = ({
   objectModel = 'zapato',
   objectScale = 1.0,
   isCalculating = false,
-  isGalleryOpen = false
+  isGalleryOpen = false,
+  selectedPreInspectionPoints = [],
+  isPointSelectionMode = false,
+  onToggleSelectPoint,
+  globalSequence = [],
 }) => {
   const [matrixElements, setMatrixElements] = React.useState(null);
   const cameraRef = React.useRef();
@@ -167,6 +171,10 @@ const RobotViewer = ({
             darkMode={darkMode}
             objectModel={objectModel}
             objectScale={objectScale}
+            selectedPreInspectionPoints={selectedPreInspectionPoints}
+            isPointSelectionMode={isPointSelectionMode}
+            onToggleSelectPoint={onToggleSelectPoint}
+            globalSequence={globalSequence}
           />
           <RobotPathCircle activeIndex={robotPositionIndex} center={[objectCenter.x, -0.543, objectCenter.z]} radius={orbitRadius} y={-0.543} hideLabels={isGalleryOpen} darkMode={darkMode} />
         </Suspense>

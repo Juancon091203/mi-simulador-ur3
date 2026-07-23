@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from '../../styles/appStyles';
 import { useLanguage } from '../../context/LanguageContext';
 
 /**
  * Configure Execution modal with 3 tabs: Basic Info, Camera, Station.
+ * Storage is strictly Local Path.
  */
 const ConfigExecutionModal = ({
   isOpen,
@@ -21,11 +22,6 @@ const ConfigExecutionModal = ({
   onCreateNewPreset,
 }) => {
   const { t } = useLanguage();
-  const [saveLocation, setSaveLocation] = useState('local'); // 'local' or 'remote'
-  const [remoteIp, setRemoteIp] = useState('192.168.1.150');
-  const [remoteUser, setRemoteUser] = useState('operator');
-  const [remotePass, setRemotePass] = useState('password123');
-  const [remoteMemory, setRemoteMemory] = useState(15); // in GB
 
   if (!isOpen) return null;
 
@@ -138,104 +134,17 @@ const ConfigExecutionModal = ({
                 />
               </div>
 
-              {/* Save Location Selector */}
+              {/* Storage Path (Strictly Local Path) */}
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                <label>{t('storage_location')}</label>
-                <div style={{ display: 'flex', gap: '20px', marginTop: '5px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', width: 'auto' }}>
-                    <input
-                      type="radio"
-                      name="saveLocation"
-                      value="local"
-                      checked={saveLocation === 'local'}
-                      onChange={() => setSaveLocation('local')}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    {t('local_path')}
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.8rem', width: 'auto' }}>
-                    <input
-                      type="radio"
-                      name="saveLocation"
-                      value="remote"
-                      checked={saveLocation === 'remote'}
-                      onChange={() => setSaveLocation('remote')}
-                      style={{ cursor: 'pointer', width: '16px', height: '16px' }}
-                    />
-                    {t('remote_pc_network')}
-                  </label>
-                </div>
+                <label>{t('photo_save_path')}</label>
+                <input
+                  type="text"
+                  placeholder="e.g. C:/Photos/Nike"
+                  value={configFormData.savePath}
+                  onChange={(e) => setConfigFormData(prev => ({ ...prev, savePath: e.target.value }))}
+                  style={styles.input}
+                />
               </div>
-
-              {saveLocation === 'local' ? (
-                <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                  <label>{t('photo_save_path')}</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. C:/Photos/Nike"
-                    value={configFormData.savePath}
-                    onChange={(e) => setConfigFormData(prev => ({ ...prev, savePath: e.target.value }))}
-                    style={styles.input}
-                  />
-                </div>
-              ) : (
-                <div className="form-grid" style={{ gridColumn: 'span 2', padding: '16px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-glass)', borderRadius: '8px', gap: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                  <div className="form-field">
-                    <label>Remote PC IP Address</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 192.168.1.100"
-                      value={remoteIp}
-                      onChange={(e) => setRemoteIp(e.target.value)}
-                      style={styles.input}
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Remote Path</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. D:/NetworkPhotos"
-                      value={configFormData.savePath}
-                      onChange={(e) => setConfigFormData(prev => ({ ...prev, savePath: e.target.value }))}
-                      style={styles.input}
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Username</label>
-                    <input
-                      type="text"
-                      value={remoteUser}
-                      onChange={(e) => setRemoteUser(e.target.value)}
-                      style={styles.input}
-                    />
-                  </div>
-                  <div className="form-field">
-                    <label>Password</label>
-                    <input
-                      type="password"
-                      value={remotePass}
-                      onChange={(e) => setRemotePass(e.target.value)}
-                      style={styles.input}
-                    />
-                  </div>
-                  <div className="form-field" style={{ gridColumn: 'span 2' }}>
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '12px 16px',
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid var(--border-glass)',
-                      borderRadius: '8px'
-                    }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontWeight: '500' }}>Available Space on Remote PC:</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--text-color)' }}>
-                        15 GB
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="form-field" style={{ gridColumn: 'span 2' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
@@ -399,7 +308,7 @@ const ConfigExecutionModal = ({
                 boxShadow: !configStationId ? 'none' : '0 0 15px rgba(0, 210, 255, 0.3)',
               }}
             >
-              {editingQueueItem ? t('save_changes') : t('add_to_queue')}
+              {editingQueueItem ? t('save_changes') : t('add_execution')}
             </button>
           )}
         </footer>

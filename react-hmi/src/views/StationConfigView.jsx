@@ -8,7 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
  */
 const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => {
   const { t } = useLanguage();
-  const st = currentStation || { id: 1, name: 'Station 1', product: 'None', savePath: 'C:/Photos/Station1' };
+  const st = currentStation || { id: 1, name: 'Station 1', product: 'None', savePath: 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos' };
 
   return (
     <div className="station-config-container" style={{ display: 'flex', gap: '25px', width: '100%', minHeight: 'calc(100vh - 170px)', flexWrap: 'wrap', overflowY: 'auto' }}>

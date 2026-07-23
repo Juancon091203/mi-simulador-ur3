@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 
+const FRAMOS_PHOTOS_PATH = 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos';
+
 const INITIAL_STATIONS = [
-  { id: 1, name: 'Station 1', ip: '192.168.3.10', status: 'idle',      product: 'None',          savePath: 'C:/Photos/Station1', progress: 0,  photoCount: 0,  maxPhotos: 100, speed: 0.0 },
-  { id: 2, name: 'Station 2', ip: '192.168.3.11', status: 'running',   product: 'Running Shoes', savePath: 'C:/Photos/Station2', progress: 45, photoCount: 45, maxPhotos: 100, speed: 0.8 },
-  { id: 3, name: 'Station 3', ip: '192.168.3.12', status: 'warning',   product: 'Sunglasses',    savePath: 'C:/Photos/Station3', progress: 75, photoCount: 75, maxPhotos: 100, speed: 0.5 },
-  { id: 4, name: 'Station 4', ip: '192.168.3.13', status: 'emergency', product: 'Wristwatch',    savePath: 'C:/Photos/Station4', progress: 20, photoCount: 20, maxPhotos: 100, speed: 0.2 },
+  { id: 1, name: 'Station 1', ip: '192.168.3.10', status: 'idle',      product: 'None',          savePath: FRAMOS_PHOTOS_PATH, progress: 0,  photoCount: 0,  maxPhotos: 100, speed: 0.0 },
+  { id: 2, name: 'Station 2', ip: '192.168.3.11', status: 'running',   product: 'Running Shoes', savePath: FRAMOS_PHOTOS_PATH, progress: 45, photoCount: 45, maxPhotos: 100, speed: 0.8 },
+  { id: 3, name: 'Station 3', ip: '192.168.3.12', status: 'warning',   product: 'Sunglasses',    savePath: FRAMOS_PHOTOS_PATH, progress: 75, photoCount: 75, maxPhotos: 100, speed: 0.5 },
+  { id: 4, name: 'Station 4', ip: '192.168.3.13', status: 'emergency', product: 'Wristwatch',    savePath: FRAMOS_PHOTOS_PATH, progress: 20, photoCount: 20, maxPhotos: 100, speed: 0.2 },
 ];
 
 const INITIAL_QUEUE_STATUS = {
@@ -33,13 +35,17 @@ export function useStations() {
   // Emergency alert
   const [emergencyAlert, setEmergencyAlert] = useState(null);
 
+  // Completion prompt modal state
+  const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
+  const [completionStationId, setCompletionStationId] = useState(null);
+
   // Config modal state (lifted here so queue operations can open it)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configStationId, setConfigStationId] = useState(null);
   const [configActiveTab, setConfigActiveTab] = useState('basic');
   const [configFormData, setConfigFormData] = useState({
     productName: '',
-    savePath: 'C:/Photos/Product',
+    savePath: FRAMOS_PHOTOS_PATH,
     robotSpeed: 0.5,
     cameraAutoExposure: true,
     cameraShutterMs: 5.0,
@@ -100,7 +106,7 @@ export function useStations() {
 
     setIsConfigModalOpen(false);
     setConfigFormData({
-      productName: '', savePath: 'C:/Photos/Product',
+      productName: '', savePath: FRAMOS_PHOTOS_PATH,
       robotSpeed: 0.5, cameraAutoExposure: true,
       cameraShutterMs: 5.0, cameraGain: 64, presetName: '',
     });
@@ -225,33 +231,40 @@ export function useStations() {
   };
 
   const handleStationQueueItemFinished = (stationId) => {
-    const currentQueue = stationQueues[stationId] || [];
-    const hasMoreItems = currentQueue.length > 1;
+    setCompletionStationId(stationId);
+    setShowCompletionPrompt(true);
+    setStations(stPrev => stPrev.map(st =>
+      st.id === stationId ? { ...st, status: 'idle', progress: 100, speed: 0.0 } : st,
+    ));
+    setStationQueueStatus(prev => ({
+      ...prev,
+      [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
+    }));
+  };
 
-    // 1. Remove the finished item from the queue
-    setStationQueues(qPrev => {
-      const queue = [...(qPrev[stationId] || [])];
-      queue.shift(); // Remove index 0
-      return { ...qPrev, [stationId]: queue };
-    });
-
-    // 2. Update status and prompt
-    if (hasMoreItems) {
-      setPromptStationId(stationId);
-      setShowObjectChangePrompt(true);
-      setStationQueueStatus(prev => ({
-        ...prev,
-        [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
-      }));
-    } else {
-      alert(`Station ${stationId} queue completed successfully!`);
+  const handleRepeatExecution = () => {
+    if (completionStationId) {
+      const stationId = completionStationId;
+      setShowCompletionPrompt(false);
       setStations(stPrev => stPrev.map(st =>
-        st.id === stationId ? { ...st, status: 'idle', product: 'None', progress: 0, photoCount: 0, speed: 0.0 } : st,
+        st.id === stationId ? { ...st, status: 'running', progress: 0, photoCount: 0 } : st
       ));
       setStationQueueStatus(prev => ({
         ...prev,
-        [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
+        [stationId]: { isPlaying: true, currentIndex: 0, phase: 'full' }
       }));
+      setCompletionStationId(null);
+    }
+  };
+
+  const handleFinishExecution = () => {
+    if (completionStationId) {
+      const stationId = completionStationId;
+      setShowCompletionPrompt(false);
+      setStations(stPrev => stPrev.map(st =>
+        st.id === stationId ? { ...st, status: 'idle', progress: 0, photoCount: 0 } : st
+      ));
+      setCompletionStationId(null);
     }
   };
 
@@ -412,6 +425,11 @@ export function useStations() {
     showObjectChangePrompt, setShowObjectChangePrompt,
     promptStationId,
     handleContinueQueue,
+    // Execution completion prompt
+    showCompletionPrompt, setShowCompletionPrompt,
+    completionStationId,
+    handleRepeatExecution,
+    handleFinishExecution,
     // Alerts
     emergencyAlert,
     handleClearAlert,

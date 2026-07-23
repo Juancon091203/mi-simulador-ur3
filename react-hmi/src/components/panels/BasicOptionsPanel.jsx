@@ -34,10 +34,36 @@ const BasicOptionsPanel = ({
   editingPresetForm,        // state del input de texto del nombre
   setEditingPresetForm,     // setter del input
   onSavePreset,             // callback para guardar
-  onBackToPresets           // callback para volver
+  onBackToPresets,          // callback para volver
+  userRole,
+  selectedPreInspectionPoints = [],
+  setSelectedPreInspectionPoints,
+  isPointSelectionMode = false,
+  setIsPointSelectionMode,
 }) => {
   const { t } = useLanguage();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [customModels, setCustomModels] = useState([]);
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const modelName = file.name.replace(/\.glb$/i, '');
+    const newModel = { id: modelName.toLowerCase(), name: modelName };
+    setCustomModels(prev => [...prev, newModel]);
+    if (setObjectModel) setObjectModel(newModel.id);
+
+    // TODO: BACKEND_ENDPOINT_REQUIRED
+    // ENDPOINT: POST /api/upload_model
+    // DESCRIPCIÓN: Endpoint para subir un nuevo archivo de modelo 3D (.glb) al servidor.
+    // PAYLOAD: FormData (file: .glb)
+    const formData = new FormData();
+    formData.append('file', file);
+    fetch('http://127.0.0.1:5005/api/upload_model', {
+      method: 'POST',
+      body: formData,
+    }).catch(() => console.log('Mock GLB upload recorded for:', file.name));
+  };
 
   const handleSliderChange = (axis, value) => {
     setSpheroidSize((prev) => ({
@@ -256,12 +282,41 @@ const BasicOptionsPanel = ({
               marginTop: '4px',
             }}
           >
-            {AVAILABLE_OBJECT_MODELS.map((m) => (
+            {[...AVAILABLE_OBJECT_MODELS, ...customModels].map((m) => (
               <option key={m.id} value={m.id}>
                 {m.name} ({m.id}.glb)
               </option>
             ))}
           </select>
+
+          {/* Developer-Only: Add new .glb model button */}
+          {userRole === 'admin' && (
+            <label
+              style={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                background: 'rgba(0, 210, 255, 0.1)',
+                border: '1px solid var(--accent-blue)',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                color: 'var(--accent-blue)',
+                marginTop: '6px',
+              }}
+            >
+              {t('upload_glb_model')}
+              <input
+                type="file"
+                accept=".glb"
+                onChange={handleFileUpload}
+                style={{ display: 'none' }}
+              />
+            </label>
+          )}
         </div>
 
         {/* 3D Object Scale Factor */}
@@ -363,101 +418,165 @@ const BasicOptionsPanel = ({
           />
         </div>
 
-        {/* Indicador permanente de estado del cálculo de Fibonacci (Altura fija 34px = CERO desplazamiento) */}
-        <div
-          style={{
-            height: '34px',
-            minHeight: '34px',
-            maxHeight: '34px',
-            borderRadius: '6px',
-            padding: '0 10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            background: isCalculating ? 'var(--accent-green-bg)' : 'var(--input-bg)',
-            border: `1px solid ${isCalculating ? 'var(--accent-cyan)' : 'var(--border-glass)'}`,
-            transition: 'all 0.2s ease',
-            fontSize: '0.75rem',
-            fontWeight: '600',
-            marginTop: '-4px',
-            marginBottom: '4px',
-          }}
-        >
-          {isCalculating ? (
-            <span style={{ color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '10px', height: '10px', border: '1.5px solid var(--accent-cyan)', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-              {t('calculating_points')}
+        {/* 4-Point Pre-Inspection Selection Box */}
+        <div style={{
+          padding: '14px',
+          borderRadius: '10px',
+          background: isPointSelectionMode ? 'rgba(0, 255, 136, 0.12)' : 'rgba(255, 255, 255, 0.03)',
+          border: `1px solid ${isPointSelectionMode ? 'var(--accent-green)' : 'var(--border-glass)'}`,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          transition: 'all 0.2s ease',
+          margin: '4px 0 10px 0',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: isPointSelectionMode ? 'var(--accent-green)' : 'var(--text-color)' }}>
+              🎯 {t('pre_inspection_points')} ({selectedPreInspectionPoints.length}/4)
             </span>
-          ) : (
-            <span style={{ color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              ✓ {t('points_calculated')} ({pointCount} pts)
-            </span>
-          )}
+            <button
+              onClick={() => setIsPointSelectionMode && setIsPointSelectionMode(!isPointSelectionMode)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                background: isPointSelectionMode ? 'var(--accent-green)' : 'rgba(0, 210, 255, 0.1)',
+                border: `1px solid ${isPointSelectionMode ? 'var(--accent-green)' : 'var(--accent-blue)'}`,
+                color: isPointSelectionMode ? '#000000' : 'var(--accent-blue)',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                width: 'auto',
+                boxShadow: isPointSelectionMode ? '0 0 12px rgba(0, 255, 136, 0.4)' : 'none',
+              }}
+            >
+              {isPointSelectionMode ? t('finish_selection') : t('select_4_points_mode')}
+            </button>
+          </div>
+
+          {/* Badges for the 4 Selected Points */}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {[0, 1, 2, 3].map((slotIdx) => {
+              const pointIndex = selectedPreInspectionPoints[slotIdx];
+              const isSet = pointIndex !== undefined;
+              return (
+                <div
+                  key={slotIdx}
+                  style={{
+                    flex: 1,
+                    minWidth: '60px',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
+                    background: isSet ? 'rgba(0, 255, 136, 0.18)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${isSet ? 'var(--accent-green)' : 'var(--border-glass)'}`,
+                    color: isSet ? 'var(--accent-green)' : 'var(--text-dim)',
+                    fontSize: '0.75rem',
+                    fontWeight: '800',
+                    textAlign: 'center',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  <span>#{slotIdx + 1}:</span>
+                  <span>{isSet ? `Pt ${pointIndex + 1}` : '—'}</span>
+                </div>
+              );
+            })}
+
+            {selectedPreInspectionPoints.length > 0 && (
+              <button
+                onClick={() => setSelectedPreInspectionPoints && setSelectedPreInspectionPoints([])}
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: '6px',
+                  background: 'rgba(255, 75, 43, 0.1)',
+                  border: '1px solid rgba(255, 75, 43, 0.3)',
+                  color: '#ff4b2b',
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  width: 'auto',
+                }}
+                title="Limpiar selección"
+              >
+                {t('clear_selection')}
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Robot Orbit Radius */}
-        <div style={styles.sliderGroup}>
-          <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}>{t('robot_orbit_radius')}</span>
-            <input
-              type="number"
-              value={orbitRadius}
-              min="0.5"
-              max="3.0"
-              step="0.05"
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                if (!isNaN(val)) setOrbitRadius(val);
-              }}
-              style={{
-                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
-                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
-                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
-              }}
-            />
-          </div>
-          <input
-            type="range"
-            min="0.5"
-            max="3.0"
-            step="0.05"
-            value={orbitRadius}
-            onChange={(e) => setOrbitRadius(parseFloat(e.target.value))}
-            style={styles.rangeInput}
-          />
-        </div>
+        {/* Developer-Only: Robot Orbit Radius & Robot Base Height */}
+        {userRole === 'admin' && (
+          <>
+            {/* Robot Orbit Radius */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}>{t('robot_orbit_radius')}</span>
+                <input
+                  type="number"
+                  value={orbitRadius}
+                  min="0.5"
+                  max="3.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) setOrbitRadius(val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
+              </div>
+              <input
+                type="range"
+                min="0.5"
+                max="3.0"
+                step="0.05"
+                value={orbitRadius}
+                onChange={(e) => setOrbitRadius(parseFloat(e.target.value))}
+                style={styles.rangeInput}
+              />
+            </div>
 
-        {/* Robot Base Height */}
-        <div style={styles.sliderGroup}>
-          <div style={styles.sliderHeader}>
-            <span style={styles.axisLabel}>{t('robot_base_height')}</span>
-            <input
-              type="number"
-              value={columnHeight}
-              min="0.0"
-              max="2.0"
-              step="0.05"
-              onChange={(e) => {
-                const val = parseFloat(e.target.value);
-                if (!isNaN(val)) setColumnHeight(val);
-              }}
-              style={{
-                width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
-                borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
-                textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
-              }}
-            />
-          </div>
-          <input
-            type="range"
-            min="0.0"
-            max="2.0"
-            step="0.05"
-            value={columnHeight}
-            onChange={(e) => setColumnHeight(parseFloat(e.target.value))}
-            style={styles.rangeInput}
-          />
-        </div>
+            {/* Robot Base Height */}
+            <div style={styles.sliderGroup}>
+              <div style={styles.sliderHeader}>
+                <span style={styles.axisLabel}>{t('robot_base_height')}</span>
+                <input
+                  type="number"
+                  value={columnHeight}
+                  min="0.0"
+                  max="2.0"
+                  step="0.05"
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (!isNaN(val)) setColumnHeight(val);
+                  }}
+                  style={{
+                    width: '60px', background: 'var(--input-bg)', border: '1px solid var(--border-glass)',
+                    borderRadius: '4px', color: 'var(--text-color)', fontSize: '0.75rem',
+                    textAlign: 'right', fontWeight: 'bold', padding: '2px 4px', outline: 'none'
+                  }}
+                />
+              </div>
+              <input
+                type="range"
+                min="0.0"
+                max="2.0"
+                step="0.05"
+                value={columnHeight}
+                onChange={(e) => setColumnHeight(parseFloat(e.target.value))}
+                style={styles.rangeInput}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Advanced Options Collapsible */}

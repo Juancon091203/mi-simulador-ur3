@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import { useLoader, useFrame } from '@react-three/fiber';
+import { useLoader, useFrame, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 import { Line } from '@react-three/drei';
@@ -101,9 +101,16 @@ const ObjetoSujeto = ({
   darkMode = false,
   objectModel = 'zapato',
   objectScale = 1.0,
+  selectedPreInspectionPoints = [],
+  isPointSelectionMode = false,
+  onToggleSelectPoint,
+  globalSequence = [],
 }) => {
   const modelPath = getObjectModelPath(objectModel);
   const gltf = useLoader(GLTFLoader, modelPath);
+  const { size } = useThree();
+  // Factor de escala adaptativo según la resolución del visor 3D
+  const responsiveScale = Math.max(1.0, Math.min(2.6, (size?.height || 700) / 420));
   const sectorColor = darkMode ? "#ff9d00" : "#b45309";
 
   // Calcular la trayectoria curva que abraza la superficie de la esfera/esferoide
@@ -316,6 +323,66 @@ const ObjetoSujeto = ({
           {activePoint && (
             <ActiveTargetPoint position={[activePoint.x, activePoint.y, activePoint.z]} />
           )}
+
+          {/* Interactive Clickable Point Spheres in Selection Mode */}
+          {isPointSelectionMode && Array.isArray(globalSequence) && globalSequence.length > 0 && (
+            <group>
+              {globalSequence.map((pt, idx) => {
+                if (!pt || typeof pt.x !== 'number') return null;
+                const isSelected = Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.includes(idx);
+                const radius = (isSelected ? 0.065 : 0.042) * responsiveScale;
+                return (
+                  <mesh
+                    key={idx}
+                    position={[pt.x, pt.y, pt.z]}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const targetIdx = idx;
+                      setTimeout(() => {
+                        if (onToggleSelectPoint) onToggleSelectPoint(targetIdx);
+                      }, 0);
+                    }}
+                    onPointerOver={(e) => {
+                      e.stopPropagation();
+                      document.body.style.cursor = 'pointer';
+                    }}
+                    onPointerOut={() => {
+                      document.body.style.cursor = 'auto';
+                    }}
+                  >
+                    <sphereGeometry args={[radius, 16, 16]} />
+                    <meshStandardMaterial
+                      color={isSelected ? "#00ff88" : "#00d2ff"}
+                      emissive={isSelected ? "#00cc66" : "#004466"}
+                      emissiveIntensity={isSelected ? 2.5 : 0.4}
+                      roughness={0.2}
+                    />
+                  </mesh>
+                );
+              })}
+            </group>
+          )}
+
+          {/* Glowing Green 3D Spheres for Selected Pre-Inspection Points (halo removed) */}
+          {Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.map((pointIdx, slotIdx) => {
+            const pt = Array.isArray(globalSequence) && globalSequence[pointIdx];
+            if (!pt || typeof pt.x !== 'number' || typeof pt.y !== 'number' || typeof pt.z !== 'number') return null;
+
+            const selectedRadius = 0.075 * responsiveScale;
+
+            return (
+              <mesh key={`sel_pt_${pointIdx}_${slotIdx}`} position={[pt.x, pt.y, pt.z]} castShadow>
+                <sphereGeometry args={[selectedRadius, 20, 20]} />
+                <meshStandardMaterial
+                  color="#00ff88"
+                  emissive="#00cc66"
+                  emissiveIntensity={2.8}
+                  roughness={0.1}
+                  metalness={0.3}
+                />
+              </mesh>
+            );
+          })}
         </group>
       )}
     </group>

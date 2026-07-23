@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 
 /**
@@ -7,11 +7,13 @@ import { useLanguage } from '../../context/LanguageContext';
 const PhotoSimulationPanel = ({
   currentPhotoStep = 0,
   pointCount = 100,
+  savePath = 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos',
   onViewPhotos,
   onNext,
   onPrev
 }) => {
   const { t } = useLanguage();
+  const [showNotification, setShowNotification] = useState(false);
   const isFinished = currentPhotoStep >= pointCount;
 
   const handleNext = () => {
@@ -23,6 +25,15 @@ const PhotoSimulationPanel = ({
   const handlePrev = () => {
     if (currentPhotoStep > 0 && onPrev) {
       onPrev();
+    }
+  };
+
+  const handleOpenFolderClick = () => {
+    setShowNotification(true);
+    setTimeout(() => setShowNotification(false), 3500);
+
+    if (onViewPhotos) {
+      onViewPhotos(savePath);
     }
   };
 
@@ -58,11 +69,45 @@ const PhotoSimulationPanel = ({
       </div>
 
       <button
-        onClick={onViewPhotos}
+        onClick={handleOpenFolderClick}
         style={styles.galleryButton}
       >
         {t('view_captures')}
       </button>
+
+      {/* Info box displaying the exact Windows save path */}
+      <div style={{
+        padding: '8px 12px',
+        background: 'rgba(0, 210, 255, 0.05)',
+        border: '1px solid rgba(0, 210, 255, 0.2)',
+        borderRadius: '8px',
+        fontSize: '0.7rem',
+        color: 'var(--text-dim)',
+        wordBreak: 'break-all',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+      }}>
+        <span>📂</span>
+        <span><strong>{t('save_directory')}:</strong> {savePath}</span>
+      </div>
+
+      {/* Notification Toast when clicked */}
+      {showNotification && (
+        <div style={{
+          padding: '8px 12px',
+          background: 'rgba(0, 255, 136, 0.15)',
+          border: '1px solid var(--accent-green)',
+          borderRadius: '8px',
+          fontSize: '0.7rem',
+          fontWeight: 'bold',
+          color: 'var(--accent-green)',
+          animation: 'fadeIn 0.3s ease-in-out',
+          textAlign: 'center',
+        }}>
+          ✓ Abriendo explorador en: {savePath}
+        </div>
+      )}
     </div>
   );
 };
