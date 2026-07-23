@@ -24,14 +24,14 @@ const CalibrationView = ({
   editingPresetName, editingPresetForm, setEditingPresetForm,
   onSavePreset, onBackToPresets,
 }) => (
-  <div style={{
+  <div className="dashboard-container calibration-container" style={{
     display: 'flex', flex: 1, overflow: 'hidden',
     height: 'calc(100vh - 170px)', borderRadius: '16px',
     border: '1px solid var(--border-glass)',
     background: 'var(--bg-panel)', backdropFilter: 'blur(10px)',
   }}>
     {/* Left: 3D Viewer */}
-    <div style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
+    <div className="dashboard-left-3d" style={{ flex: 1, position: 'relative', borderRight: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.1)' }}>
       <Suspense fallback={
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-dim)' }}>
           Loading digital twin...
@@ -67,7 +67,7 @@ const CalibrationView = ({
     </div>
 
     {/* Right: Spheroid / Preset config panel */}
-    <div style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
+    <div className="dashboard-right-panel" style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
       <BasicOptionsPanel
         spheroidSize={spheroidSize}
         setSpheroidSize={setSpheroidSize}

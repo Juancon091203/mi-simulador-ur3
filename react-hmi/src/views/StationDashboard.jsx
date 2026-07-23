@@ -68,6 +68,39 @@ const StationDashboard = ({
           />
         </Suspense>
         
+        {/* Banner de Inspección Previa cuando la estación está en parada Warning Stop (tras inspección) */}
+        {(currentStation.status === 'warning' || currentStation.status === 'waiting' || status.phase === 'waiting') && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '20px',
+              left: '80px',
+              right: '90px',
+              background: 'rgba(217, 119, 6, 0.92)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid #f59e0b',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              color: '#ffffff',
+              zIndex: 30,
+              boxShadow: '0 4px 16px rgba(217, 119, 6, 0.3)',
+            }}
+          >
+            <span style={{ fontSize: '1.4rem' }}>🔍</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: '800', fontSize: '0.85rem' }}>
+                Inspección previa completada (4 fotos en Gajo 1 - Warning Stop)
+              </div>
+              <div style={{ fontSize: '0.75rem', opacity: 0.95, fontWeight: '500' }}>
+                Revisa la orientación del objeto. Pulsa <strong>Play ▶</strong> para iniciar la captura completa.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Floating Control Bar at the bottom of the 3D Viewer */}
         <div style={{
           position: 'absolute',

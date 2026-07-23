@@ -23,6 +23,10 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
   useEffect(() => {
     const checkCamera = async () => {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: GET /camera/status
+        // DESCRIPCIÓN: Retorna si la cámara FRAMOS está conectada e información del sensor IMU.
+        // RESPUESTA: { camera_connected: true, stable: true, gyro_magnitude: 0.05 }
         const res = await fetch(`${API}/camera/status`);
         const data = await res.json();
         setCameraConnected(data.camera_connected);
@@ -39,6 +43,10 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
   useEffect(() => {
     const fetchPhotos = async () => {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: GET /camera/photos
+        // DESCRIPCIÓN: Retorna el listado de imágenes capturadas en la sesión actual.
+        // RESPUESTA: [ { step: 0, url: '...', filename: 'photo_000.jpg' }, ... ]
         const res = await fetch(`${API}/camera/photos`);
         const data = await res.json();
         setPhotos(data);
@@ -77,6 +85,11 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
             if (hasSeenUnstable || (!hasPhotoForStep && currentPhotoStep === 0)) {
               isCapturing = true;
               try {
+                // TODO: BACKEND_ENDPOINT_REQUIRED
+                // ENDPOINT: POST /camera/capture
+                // DESCRIPCIÓN: Toma una foto física con la cámara FRAMOS y la guarda en la carpeta del producto.
+                // PAYLOAD: { step: 0 }
+                // RESPUESTA: { status: 'success', photos: [{ step: 0, url: '...', filename: 'photo_000.jpg' }, ...] }
                 const captureRes = await fetch(`${API}/camera/capture`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
@@ -144,6 +157,11 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
   const handleManualNext = async () => {
     if (currentPhotoStep < pointCount) {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: POST /camera/capture
+        // DESCRIPCIÓN: Captura manual de fotografía en el paso actual.
+        // PAYLOAD: { step: currentPhotoStep }
+        // RESPUESTA: { status: 'success', photos: [...] }
         const res = await fetch(`${API}/camera/capture`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -164,6 +182,10 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
 
   const handleClearPhotos = async () => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /camera/clear_photos
+      // DESCRIPCIÓN: Borra todas las fotografías de la galería temporal actual.
+      // RESPUESTA: { status: 'success', photos: [] }
       const res = await fetch(`${API}/camera/clear_photos`, { method: 'POST' });
       const data = await res.json();
       setPhotos(data.photos || []);
@@ -174,6 +196,11 @@ export function useCamera({ globalSequence, pointCount, setRobotPositionIndex })
 
   const handleDeletePhoto = async (stepIndex) => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /camera/delete
+      // DESCRIPCIÓN: Elimina una fotografía específica por su índice de paso (step).
+      // PAYLOAD: { step: stepIndex }
+      // RESPUESTA: { status: 'success', photos: [...] }
       const res = await fetch(`${API}/camera/delete`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

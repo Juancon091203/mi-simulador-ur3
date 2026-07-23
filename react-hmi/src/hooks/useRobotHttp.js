@@ -15,6 +15,10 @@ export const useRobotHttp = (ip) => {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 1000);
                 
+                // TODO: BACKEND_ENDPOINT_REQUIRED
+                // ENDPOINT: GET http://<IP_ROBOT>:7000/joints
+                // DESCRIPCIÓN: Driver del robot UR3 que devuelve la posición articular de los 6 ejes en tiempo real.
+                // RESPUESTA ESPERADA: { joints: [q0, q1, q2, q3, q4, q5] }  (grados o radianes)
                 const response = await fetch(`http://${ip}:7000/joints`, { signal: controller.signal });
                 clearTimeout(timeoutId);
 

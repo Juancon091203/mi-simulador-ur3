@@ -23,6 +23,10 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
   useEffect(() => {
     const fetchStatus = async () => {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: GET /camera/status
+        // DESCRIPCIÓN: Consulta el estado de la cámara FRAMOS y lecturas de vibración IMU en tiempo real.
+        // RESPUESTA: { camera_connected: true, stable: true, gyro_magnitude: 0.04, accel_deviation: 0.01, umbral_giro: 0.25, auto_exposure: true, exposure_ms: 10.0, gain: 64 }
         const response = await fetch('http://127.0.0.1:5005/camera/status');
         const data = await response.json();
         setStatus(data);
@@ -56,6 +60,11 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     setExposureMs(newExposureMs);
     setGain(newGain);
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /camera/settings
+      // DESCRIPCIÓN: Aplica la configuración de exposición automática, tiempo de obturación y ganancia a la cámara.
+      // PAYLOAD: { auto_exposure: true, exposure_ms: 10, gain: 64 }
+      // RESPUESTA: { status: 'success' }
       await fetch('http://127.0.0.1:5005/camera/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,6 +84,11 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
     const val = parseFloat(e.target.value);
     setStabilityThreshold(val);
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /camera/threshold
+      // DESCRIPCIÓN: Modifica el umbral de tolerancia de vibración del giroscopio IMU.
+      // PAYLOAD: { umbral_giro: 0.25 }
+      // RESPUESTA: { status: 'success' }
       await fetch('http://127.0.0.1:5005/camera/threshold', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -193,6 +207,9 @@ const CameraViewer = ({ stabilityThreshold, setStabilityThreshold, inlineIMU = f
       {/* Stream de Vídeo de Flask (MJPEG) con retícula CSS súper fina */}
       <div style={styles.videoContainer}>
         {isConnected ? (
+          // TODO: BACKEND_ENDPOINT_REQUIRED
+          // ENDPOINT: GET /camera/stream
+          // DESCRIPCIÓN: Servir el stream de vídeo en tiempo real en formato MJPEG (multipart/x-mixed-replace).
           <img
             src={`http://127.0.0.1:5005/camera/stream?t=${Date.now()}`}
             alt="FRAMOS Stream"

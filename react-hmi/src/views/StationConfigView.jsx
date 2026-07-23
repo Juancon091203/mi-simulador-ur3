@@ -6,12 +6,12 @@ import styles from '../styles/appStyles';
  * Props: currentStation, handleUpdateStationConfig
  */
 const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => (
-  <div style={{ display: 'flex', gap: '25px', height: 'calc(100vh - 170px)', width: '100%' }}>
+  <div className="station-config-container" style={{ display: 'flex', gap: '25px', width: '100%', minHeight: 'calc(100vh - 170px)', flexWrap: 'wrap', overflowY: 'auto' }}>
     {/* Storage settings */}
     <div style={{
-      flex: 1, display: 'flex', flexDirection: 'column', gap: '20px',
+      flex: 1, minWidth: '280px', display: 'flex', flexDirection: 'column', gap: '20px',
       background: 'var(--card-bg)', border: '1px solid var(--border-glass)',
-      padding: '30px', borderRadius: '16px', overflowY: 'auto',
+      padding: '24px', borderRadius: '16px',
     }}>
       <h3 style={{ fontSize: '1.2rem', marginBottom: '10px', fontWeight: 'bold' }}>Storage Settings</h3>
 
@@ -53,7 +53,7 @@ const StationConfigView = ({ currentStation, handleUpdateStationConfig }) => (
     </div>
 
     {/* Telemetry summary */}
-    <div style={{ width: '380px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div style={{ flex: '1', minWidth: '280px', maxWidth: '420px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
       <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <h3 style={{ fontSize: '0.9rem', marginBottom: '5px', fontWeight: 'bold' }}>Station Telemetry</h3>
         <div style={styles.section}>

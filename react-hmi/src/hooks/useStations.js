@@ -108,10 +108,45 @@ export function useStations() {
 
   const handlePlayStationQueue = (stationId) => {
     setStationQueueStatus(prev => {
-      const status = prev[stationId] || { isPlaying: false, currentIndex: 0 };
+      const current = prev[stationId] || { isPlaying: false, currentIndex: 0, phase: 'idle' };
       const queue = stationQueues[stationId] || [];
       if (queue.length === 0) return prev;
-      return { ...prev, [stationId]: { ...status, isPlaying: true } };
+
+      let nextPhase = current.phase;
+
+      if (current.phase === 'waiting') {
+        // Segundo clic en PLAY: Reanudar para la ejecución completa de la secuencia
+        nextPhase = 'full';
+        setStations(stPrev => stPrev.map(st =>
+          st.id === stationId ? {
+            ...st,
+            status: 'running',
+            progress: 0,
+            photoCount: 0,
+            maxPhotos: 100,
+            speed: queue[current.currentIndex]?.robotSpeed || 0.5,
+          } : st
+        ));
+      } else if (current.phase === 'idle' || !current.phase) {
+        // Primer clic en PLAY: Iniciar la inspección previa de 4 fotos en el primer gajo
+        nextPhase = 'inspection';
+        setStations(stPrev => stPrev.map(st =>
+          st.id === stationId ? {
+            ...st,
+            status: 'running',
+            progress: 0,
+            photoCount: 0,
+            maxPhotos: 4, // 4 fotos del primer gajo
+            product: queue[current.currentIndex]?.productName || st.product,
+            speed: queue[current.currentIndex]?.robotSpeed || 0.5,
+          } : st
+        ));
+      }
+
+      return {
+        ...prev,
+        [stationId]: { ...current, isPlaying: true, phase: nextPhase }
+      };
     });
   };
 
@@ -133,7 +168,7 @@ export function useStations() {
       const removedIndex = queue.findIndex(item => item.id === itemId);
       if (removedIndex !== -1 && status.currentIndex >= removedIndex) {
         const nextIndex = Math.max(0, status.currentIndex - 1);
-        return { ...prev, [stationId]: { ...status, currentIndex: nextIndex, isPlaying: queue.length > 1 ? status.isPlaying : false } };
+        return { ...prev, [stationId]: { ...status, currentIndex: nextIndex, isPlaying: queue.length > 1 ? status.isPlaying : false, phase: 'idle' } };
       }
       return prev;
     });
@@ -183,7 +218,7 @@ export function useStations() {
             speed: 0.0
           } : st,
         ));
-        return { ...prev, [stationId]: { isPlaying: false, currentIndex: 0 } };
+        return { ...prev, [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' } };
       });
       setPromptStationId(null);
     }
@@ -206,7 +241,7 @@ export function useStations() {
       setShowObjectChangePrompt(true);
       setStationQueueStatus(prev => ({
         ...prev,
-        [stationId]: { isPlaying: false, currentIndex: 0 }
+        [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
       }));
     } else {
       alert(`Station ${stationId} queue completed successfully!`);
@@ -215,7 +250,7 @@ export function useStations() {
       ));
       setStationQueueStatus(prev => ({
         ...prev,
-        [stationId]: { isPlaying: false, currentIndex: 0 }
+        [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
       }));
     }
   };
@@ -234,28 +269,76 @@ export function useStations() {
     const interval = setInterval(() => {
       activeStationsList.forEach(idStr => {
         const stationId = parseInt(idStr);
-        const status = stationQueueStatus[stationId];
+        const qStatus = stationQueueStatus[stationId];
         const queue = stationQueues[stationId];
-        const currentItem = queue[status.currentIndex];
+        const currentItem = queue[qStatus.currentIndex];
 
         setStations(prev => {
+          let inspectionFinished = false;
           let itemFinished = false;
+
           const updated = prev.map(st => {
             if (st.id === stationId) {
-              const nextCount = st.photoCount + 5;
-              if (nextCount >= st.maxPhotos) {
-                itemFinished = true;
-                return { ...st, status: 'idle', photoCount: st.maxPhotos, progress: 100 };
+              if (qStatus.phase === 'inspection') {
+                // TODO: BACKEND_ENDPOINT_REQUIRED
+                // ENDPOINT: POST /api/robot/move_to_point  (o RTDE / URScript socket)
+                // DESCRIPCIÓN: Enviar comando de movimiento al UR3 para posicionar la cámara en el punto N del Gajo 1 durante la inspección previa.
+                // PAYLOAD: { station_ip: st.ip, point_index: st.photoCount, sector: 0, speed: st.speed }
+                const nextCount = st.photoCount + 1;
+                if (nextCount >= 4) {
+                  inspectionFinished = true;
+                  return {
+                    ...st,
+                    status: 'warning',
+                    photoCount: 4,
+                    maxPhotos: 4,
+                    progress: 100,
+                    speed: 0.0,
+                  };
+                }
+                return {
+                  ...st,
+                  status: 'running',
+                  product: currentItem?.productName || st.product,
+                  speed: currentItem?.robotSpeed || 0.5,
+                  photoCount: nextCount,
+                  progress: Math.round((nextCount / 4) * 100),
+                };
+              } else {
+                // TODO: BACKEND_ENDPOINT_REQUIRED
+                // ENDPOINT: POST /api/robot/execute_trajectory  (o RTDE / URScript socket)
+                // DESCRIPCIÓN: Enviar secuencia completa de movimiento al UR3 para ejecutar el escaneo total.
+                // PAYLOAD: { station_ip: st.ip, preset_name: currentItem?.presetName, speed: st.speed }
+                const stepIncrement = 5;
+                const nextCount = st.photoCount + stepIncrement;
+                if (nextCount >= st.maxPhotos) {
+                  itemFinished = true;
+                  return { ...st, status: 'idle', photoCount: st.maxPhotos, progress: 100, speed: 0.0 };
+                }
+                return {
+                  ...st,
+                  status: 'running',
+                  product: currentItem?.productName || st.product,
+                  speed: currentItem?.robotSpeed || 0.5,
+                  photoCount: nextCount,
+                  progress: Math.round((nextCount / st.maxPhotos) * 100),
+                };
               }
-              return {
-                ...st, status: 'running', product: currentItem.productName,
-                speed: currentItem.robotSpeed, photoCount: nextCount,
-                progress: Math.round((nextCount / st.maxPhotos) * 100),
-              };
             }
             return st;
           });
-          if (itemFinished) setTimeout(() => handleStationQueueItemFinished(stationId), 50);
+
+          if (inspectionFinished) {
+            setTimeout(() => {
+              setStationQueueStatus(sqPrev => ({
+                ...sqPrev,
+                [stationId]: { ...(sqPrev[stationId] || {}), isPlaying: false, phase: 'waiting' }
+              }));
+            }, 50);
+          } else if (itemFinished) {
+            setTimeout(() => handleStationQueueItemFinished(stationId), 50);
+          }
+
           return updated;
         });
       });
@@ -269,6 +352,10 @@ export function useStations() {
   useEffect(() => {
     const checkAlerts = async () => {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: GET /api/alert_status
+        // DESCRIPCIÓN: Polling periódico para detectar si ha saltado una parada de emergencia o error de máquina.
+        // RESPUESTA: { alert: null } O { alert: { station: 'Station 1', problem: 'Emergency Stop pressed' } }
         const res = await fetch('http://127.0.0.1:5005/api/alert_status');
         if (res.ok) {
           const data = await res.json();
@@ -289,6 +376,11 @@ export function useStations() {
 
   const handleClearAlert = async () => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /api/clear_alert
+      // DESCRIPCIÓN: Rearma la estación y limpia la alerta de parada en el backend.
+      // PAYLOAD: { station: stationName }
+      // RESPUESTA: { status: 'success' }
       await fetch('http://127.0.0.1:5005/api/clear_alert', { method: 'POST' });
       setStations(prev => prev.map(st =>
         st.name === emergencyAlert?.station ? { ...st, status: 'idle' } : st,

@@ -11,6 +11,10 @@ export const useRobotConnection = (serverUrl = 'http://localhost:5005') => {
 
   const connect = async (ipAddress) => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: GET /publish_ip/<ip_address>
+      // DESCRIPCIÓN: Inicia la suscripción/conexión con la IP del robot UR3 de una estación específica.
+      // RESPUESTA ESPERADA: { status: 'success', message: 'Connected' }
       const response = await fetch(`${serverUrl}/publish_ip/${ipAddress}`);
       const data = await response.json();
 
@@ -37,6 +41,10 @@ export const useRobotConnection = (serverUrl = 'http://localhost:5005') => {
 
   const disconnect = async () => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: GET /disconnect
+      // DESCRIPCIÓN: Desconecta el driver del robot UR3 de la estación activa.
+      // RESPUESTA ESPERADA: { status: 'success' }
       await fetch(`${serverUrl}/disconnect`);
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
@@ -50,6 +58,9 @@ export const useRobotConnection = (serverUrl = 'http://localhost:5005') => {
   };
 
   const startDataStream = () => {
+    // TODO: BACKEND_ENDPOINT_REQUIRED
+    // ENDPOINT: GET /digital (SSE Server-Sent Events)
+    // DESCRIPCIÓN: Canal SSE para streaming continuo de ángulos articulares [q0..q5].
     const es = new EventSource(`${serverUrl}/digital`);
     eventSourceRef.current = es;
 

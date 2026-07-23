@@ -58,7 +58,7 @@ const App = () => {
   const [isRobotConnected, setIsRobotConnected] = useState(false);
 
   const sseConn = useRobotConnection();
-  const wsConn  = useRobotWebSocket();
+  const wsConn = useRobotWebSocket();
   const httpConn = useRobotHttp(ipAddress);
 
   const activeConn = connectionMode === 'websocket' ? wsConn : (connectionMode === 'sse' ? sseConn : httpConn);
@@ -291,7 +291,7 @@ const App = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                       <h2 style={{ fontSize: '1.6rem', margin: 0, fontWeight: '700' }}>{currentStation.name}</h2>
                       <span className={`station-status-pill status-pill-${currentStation.status}`}>
-                        {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'warning' ? 'Warning Stop' : 'Emergency'}
+                        {currentStation.status === 'running' ? 'Running' : currentStation.status === 'idle' ? 'Idle' : currentStation.status === 'emergency' ? 'Emergency' : 'Warning Stop'}
                       </span>
                     </div>
                     <p style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '4px' }}>
@@ -317,15 +317,19 @@ const App = () => {
           </button>
         </header>
 
-        {/* Sticky Horizontal Tabs Navigation */}
+        {/* Sticky Horizontal Tabs Navigation (Scrollable en pantallas reducidas) */}
         <div style={{
           display: 'flex',
           padding: '0 24px 12px 24px',
           borderBottom: '1px solid var(--border-glass)',
           background: 'transparent',
-          zIndex: 100
+          zIndex: 100,
+          overflowX: 'auto',
+          maxWidth: '100%',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
         }}>
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexShrink: 0, flexWrap: 'nowrap' }}>
             {activeStationTab === 'general' ? (
               <>
                 <button
@@ -381,8 +385,8 @@ const App = () => {
           </div>
         </div>
 
-        {/* Scrollable content container */}
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+        {/* Scrollable content container (Scrollbar único principal con amplio margen inferior) */}
+        <div className="main-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* GENERAL VIEW ──────────────────────────────────────────────────── */}
           {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && (
             <GeneralOverview
@@ -573,6 +577,10 @@ const App = () => {
           onClick={async () => {
             try {
               const targetName = currentStation ? currentStation.name : 'Station 2';
+              // TODO: BACKEND_ENDPOINT_REQUIRED
+              // ENDPOINT: POST /api/trigger_alert
+              // DESCRIPCIÓN: Endpoint de desarrollo/administración para simular el salto de una alerta física de estación.
+              // PAYLOAD: { station: 'Station 1', problem: 'Emergency Stop physically pressed' }
               await fetch('http://127.0.0.1:5005/api/trigger_alert', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -583,11 +591,12 @@ const App = () => {
             }
           }}
           style={{
-            position: 'fixed', bottom: '20px', right: '20px',
-            width: 'auto', zIndex: 10, padding: '10px 15px',
-            backgroundColor: '#ff4b2b', color: 'white', border: 'none',
-            borderRadius: '20px', fontSize: '0.75rem', cursor: 'pointer',
-            boxShadow: '0 0 10px rgba(255,75,43,0.3)', fontWeight: 'bold',
+            position: 'fixed', bottom: '24px', right: '24px',
+            width: 'auto', zIndex: 100, padding: '10px 18px',
+            backgroundColor: '#ff4b2b', color: 'white', border: '1px solid rgba(255,255,255,0.3)',
+            borderRadius: '24px', fontSize: '0.75rem', cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(255,75,43,0.4)', fontWeight: 'bold',
+            backdropFilter: 'blur(8px)',
           }}
         >
           🚨 Simulate Alert {currentStation ? currentStation.name : 'Station 2'}

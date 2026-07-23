@@ -156,37 +156,66 @@ h3 {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .main-content-scroll {
+    overflow-y: auto !important;
+  }
   .dashboard-container {
     flex-direction: column !important;
-    overflow-y: auto !important;
+    overflow: visible !important;
     height: auto !important;
-    min-height: calc(100vh - 170px) !important;
+    min-height: auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 20px !important;
+    padding-bottom: 20px !important;
   }
   .dashboard-left-3d {
     width: 100% !important;
-    height: 450px !important;
-    min-height: 450px !important;
-    border-right: none !important;
-    border-bottom: 1px solid var(--border-glass) !important;
+    height: 460px !important;
+    min-height: 380px !important;
+    border: 1px solid var(--border-glass) !important;
+    border-radius: 16px !important;
+    background: var(--bg-panel) !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(10px) !important;
   }
   .dashboard-right-panel {
     width: 100% !important;
-    border-left: none !important;
+    border: 1px solid var(--border-glass) !important;
+    border-radius: 16px !important;
+    background: var(--bg-panel) !important;
     height: auto !important;
     overflow: visible !important;
+    backdrop-filter: blur(10px) !important;
   }
   .stations-container {
-    overflow-y: auto !important;
+    overflow: visible !important;
     height: auto !important;
   }
 }
 
-/* Fix para asegurar que nada se salga del sidebar */
+@media (max-width: 768px) {
+  .dashboard-left-3d {
+    height: 380px !important;
+    min-height: 340px !important;
+  }
+  .stations-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Modals responsivos para pantallas pequeñas */
+.modal-content-full {
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+/* Fix para asegurar que nada se salga del sidebar o paneles */
 input,
 select,
 button {
-  width: 100%;
   max-width: 100%;
 }
 
@@ -213,16 +242,19 @@ select option {
   }
 }
 
-/* Custom premium scrollbar for panels container and sidebar */
+/* Custom premium scrollbar for panels container, sidebar, and main content */
+.main-content-scroll::-webkit-scrollbar,
 .right-panels-container::-webkit-scrollbar,
 .sidebar::-webkit-scrollbar {
   width: 6px;
 }
+.main-content-scroll::-webkit-scrollbar-track,
 .right-panels-container::-webkit-scrollbar-track,
 .sidebar::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.05);
   border-radius: 3px;
 }
+.main-content-scroll::-webkit-scrollbar-thumb,
 .right-panels-container::-webkit-scrollbar-thumb,
 .sidebar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
@@ -506,13 +538,10 @@ input[type="range"]::-moz-range-thumb:active {
 /* Stations Grid Layout */
 .stations-container {
   flex: 1;
-  padding: 30px;
+  padding: 24px 24px 60px 24px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
-  height: 100%;
-  max-height: 100%;
-  overflow-y: auto;
+  gap: 25px;
 }
 
 .stations-header-row {
@@ -612,6 +641,7 @@ input[type="range"]::-moz-range-thumb:active {
 
 .status-pill-idle { background: rgba(0, 210, 255, 0.15); color: var(--accent-blue); }
 .status-pill-running { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid var(--accent-green-border); }
+.status-pill-waiting { background: rgba(217, 119, 6, 0.18); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
 .status-pill-warning { background: rgba(255, 157, 0, 0.15); color: var(--accent-orange); }
 .status-pill-emergency { background: rgba(255, 75, 43, 0.15); color: #ff4b2b; }
 

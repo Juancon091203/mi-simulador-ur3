@@ -32,6 +32,11 @@ export function useCalibration() {
       const reqCenter = { x: objectCenter.x, y: objectCenter.y, z: objectCenter.z };
       const reqBounds = { min: zBounds.min, max: zBounds.max };
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: POST /calculate_trajectory
+        // DESCRIPCIÓN: Calcula los puntos 3D de la espiral Fibonacci sobre el esferoide y asigna sectores (sector 0 = gajo 1).
+        // PAYLOAD: { n, radius, cx, cy, cz, sx, sy, sz, min_z, max_z }
+        // RESPUESTA: { status: 'success', points: [{ x, y, z, sector: 0, rx, ry, rz }, ...] }
         const response = await fetch(`${API}/calculate_trajectory`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

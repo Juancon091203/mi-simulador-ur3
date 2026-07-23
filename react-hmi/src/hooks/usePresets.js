@@ -16,6 +16,10 @@ export function usePresets(calibrationState) {
   useEffect(() => {
     const fetchPresets = async () => {
       try {
+        // TODO: BACKEND_ENDPOINT_REQUIRED
+        // ENDPOINT: GET /presets
+        // DESCRIPCIÓN: Carga el diccionario de presets guardados en el servidor o archivo JSON.
+        // RESPUESTA: { "Preset 1": { pointCount: 100, spheroidSize, objectCenter, zBounds, objectModel: 'zapato', objectScale: 1.0 }, ... }
         const response = await fetch(`${API}/presets`);
         const data = await response.json();
         setPresets(data);
@@ -34,6 +38,11 @@ export function usePresets(calibrationState) {
     } = calibrationState;
     const config = { spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius, objectModel, objectScale };
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /save_preset
+      // DESCRIPCIÓN: Guarda o actualiza un preset en el servidor con su geometría y modelo 3D asignado.
+      // PAYLOAD: { name: "Preset 1", config: { pointCount, spheroidSize, objectCenter, zBounds, objectModel, objectScale } }
+      // RESPUESTA: { status: 'success', presets: { ... } }
       const response = await fetch(`${API}/save_preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,6 +57,11 @@ export function usePresets(calibrationState) {
 
   const handleDeletePreset = async (name) => {
     try {
+      // TODO: BACKEND_ENDPOINT_REQUIRED
+      // ENDPOINT: POST /delete_preset
+      // DESCRIPCIÓN: Elimina un preset por nombre de la base de datos o archivo JSON.
+      // PAYLOAD: { name: "Preset 1" }
+      // RESPUESTA: { status: 'success', presets: { ... } }
       const response = await fetch(`${API}/delete_preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
