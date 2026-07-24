@@ -23,7 +23,7 @@ const styles = {
     transition: 'background 0.3s ease',
   },
   sidebar: {
-    width: '260px',
+    width: '310px',
     height: 'calc(100vh - 40px)',
     margin: '20px',
     padding: '20px',

@@ -29,6 +29,7 @@ const StationDashboard = ({
   handleUpdateActiveSpeed, onRearmStation,
   // Robot connection toggle
   isRobotConnected, setIsRobotConnected,
+  onNewExecution,
 }) => {
   const { t, language } = useLanguage();
   const st = currentStation || { id: 1, name: 'Station 1', speed: 0.5, status: 'idle' };
@@ -225,15 +226,10 @@ const StationDashboard = ({
           </div>
         </div>
 
-        <CameraViewer
-          stabilityThreshold={stabilityThreshold}
-          setStabilityThreshold={setStabilityThreshold}
-          inlineIMU={false}
-        />
       </div>
 
       {/* Right: Controls panel */}
-      <div className="dashboard-right-panel" style={{ width: '340px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', borderLeft: '1px solid var(--border-glass)' }}>
+      <div className="dashboard-right-panel" style={{ width: '360px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'hidden', height: '100%', boxSizing: 'border-box', borderLeft: '1px solid var(--border-glass)' }}>
         <PhotoSimulationPanel
           isPlaying={isPlaying}
           setIsPlaying={setIsPlaying}
@@ -261,10 +257,6 @@ const StationDashboard = ({
           }}
           onViewPhotos={() => {
             const folderPath = st.savePath || 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos';
-            // TODO: BACKEND_ENDPOINT_REQUIRED
-            // ENDPOINT: POST /api/open_folder
-            // DESCRIPCIÓN: Endpoint para solicitar la apertura de la carpeta física local en Windows Explorer.
-            // PAYLOAD: { save_path: 'C:/Users/FA507/Documents/UNI/PracticasCFZ/ProyectoFotos/UR3_Web-HMI-main/flask-server/static/photos' }
             fetch('http://127.0.0.1:5005/api/open_folder', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -276,8 +268,8 @@ const StationDashboard = ({
         />
 
         {/* Inline IMU / Vibration Tolerances */}
-        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <h3 style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+        <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border-glass)', padding: '12px 14px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <h3 style={{ fontSize: '0.78rem', fontWeight: 'bold', color: 'var(--text-color)', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
             {t('vibration_tolerances')}
           </h3>
           <CameraViewer
@@ -286,6 +278,35 @@ const StationDashboard = ({
             inlineIMU={true}
           />
         </div>
+
+        {/* New Execution Button at bottom of right panel */}
+        <button
+          onClick={() => onNewExecution && onNewExecution(st.id)}
+          style={{
+            width: '100%',
+            padding: '10px 14px',
+            borderRadius: '10px',
+            backgroundColor: '#0284c7',
+            color: '#ffffff',
+            fontWeight: '700',
+            fontSize: '0.82rem',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+            transition: 'all 0.2s ease',
+            marginTop: 'auto',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>{t('add_execution')}</span>
+        </button>
       </div>
     </div>
   );

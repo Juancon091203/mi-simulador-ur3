@@ -131,7 +131,7 @@ const BasicOptionsPanel = ({
           >
             {t('back_to_presets_list')}
           </button>
-          
+
           <div>
             <h2 style={styles.title} className="text-gradient">
               {editingPresetName === '__new__' ? t('create_new_preset_title') : t('edit_preset_title')}
@@ -420,92 +420,89 @@ const BasicOptionsPanel = ({
 
         {/* 4-Point Pre-Inspection Selection Box */}
         <div style={{
-          padding: '14px',
-          borderRadius: '10px',
-          background: isPointSelectionMode ? 'rgba(0, 255, 136, 0.12)' : 'rgba(255, 255, 255, 0.03)',
-          border: `1px solid ${isPointSelectionMode ? 'var(--accent-green)' : 'var(--border-glass)'}`,
+          padding: '12px 14px',
+          borderRadius: '12px',
+          background: isPointSelectionMode ? 'var(--accent-green-bg)' : 'var(--card-bg)',
+          border: `1px solid ${isPointSelectionMode ? 'var(--accent-green-border)' : 'var(--border-glass)'}`,
           display: 'flex',
           flexDirection: 'column',
           gap: '10px',
-          transition: 'all 0.2s ease',
-          margin: '4px 0 10px 0',
+          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          margin: '4px 0 12px 0',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 'bold', color: isPointSelectionMode ? 'var(--accent-green)' : 'var(--text-color)' }}>
-              🎯 {t('pre_inspection_points')} ({selectedPreInspectionPoints.length}/4)
-            </span>
-            <button
-              onClick={() => setIsPointSelectionMode && setIsPointSelectionMode(!isPointSelectionMode)}
-              style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
-                background: isPointSelectionMode ? 'var(--accent-green)' : 'rgba(0, 210, 255, 0.1)',
-                border: `1px solid ${isPointSelectionMode ? 'var(--accent-green)' : 'var(--accent-blue)'}`,
-                color: isPointSelectionMode ? '#000000' : 'var(--accent-blue)',
-                fontSize: '0.75rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                width: 'auto',
-                boxShadow: isPointSelectionMode ? '0 0 12px rgba(0, 255, 136, 0.4)' : 'none',
-              }}
-            >
-              {isPointSelectionMode ? t('finish_selection') : t('select_4_points_mode')}
-            </button>
+          {/* Row 1: Section Title */}
+          <div style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--text-color)' }}>
+            🎯 {t('pre_inspection_points')}
           </div>
 
-          {/* Badges for the 4 Selected Points */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {[0, 1, 2, 3].map((slotIdx) => {
-              const pointIndex = selectedPreInspectionPoints[slotIdx];
-              const isSet = pointIndex !== undefined;
-              return (
-                <div
-                  key={slotIdx}
-                  style={{
-                    flex: 1,
-                    minWidth: '60px',
-                    padding: '6px 8px',
-                    borderRadius: '6px',
-                    background: isSet ? 'rgba(0, 255, 136, 0.18)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${isSet ? 'var(--accent-green)' : 'var(--border-glass)'}`,
-                    color: isSet ? 'var(--accent-green)' : 'var(--text-dim)',
-                    fontSize: '0.75rem',
-                    fontWeight: '800',
-                    textAlign: 'center',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <span>#{slotIdx + 1}:</span>
-                  <span>{isSet ? `Pt ${pointIndex + 1}` : '—'}</span>
-                </div>
-              );
-            })}
+          {/* Row 2: Counter Badge + Select Mode Button + Trash Bin Button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+            <span style={{
+              fontSize: '0.72rem',
+              fontWeight: '700',
+              padding: '4px 10px',
+              borderRadius: '10px',
+              background: isPointSelectionMode ? 'var(--accent-green-bg)' : 'var(--border-inner-glass)',
+              color: isPointSelectionMode ? 'var(--accent-green)' : 'var(--text-dim)',
+              border: `1px solid ${isPointSelectionMode ? 'var(--accent-green-border)' : 'var(--border-glass)'}`,
+            }}>
+              {selectedPreInspectionPoints.length}/4
+            </span>
 
-            {selectedPreInspectionPoints.length > 0 && (
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
               <button
-                onClick={() => setSelectedPreInspectionPoints && setSelectedPreInspectionPoints([])}
+                onClick={() => setIsPointSelectionMode && setIsPointSelectionMode(!isPointSelectionMode)}
                 style={{
-                  padding: '6px 8px',
-                  borderRadius: '6px',
-                  background: 'rgba(255, 75, 43, 0.1)',
-                  border: '1px solid rgba(255, 75, 43, 0.3)',
-                  color: '#ff4b2b',
-                  fontSize: '0.7rem',
-                  fontWeight: 'bold',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  background: isPointSelectionMode ? 'var(--accent-green-bg)' : 'var(--input-bg)',
+                  border: `1px solid ${isPointSelectionMode ? 'var(--accent-green-border)' : 'var(--border-glass)'}`,
+                  color: isPointSelectionMode ? 'var(--accent-green)' : 'var(--text-color)',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
                   cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
                   width: 'auto',
+                  transition: 'all 0.2s ease',
+                  boxShadow: isPointSelectionMode ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none',
                 }}
-                title="Limpiar selección"
               >
-                {t('clear_selection')}
+                {isPointSelectionMode ? `✓ ${t('finish_selection')}` : `🎯 ${t('select_4_points_mode')}`}
               </button>
-            )}
+
+              <button
+                onClick={() => {
+                  if (selectedPreInspectionPoints.length > 0 && setSelectedPreInspectionPoints) {
+                    setSelectedPreInspectionPoints([]);
+                  }
+                }}
+                disabled={selectedPreInspectionPoints.length === 0}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  background: selectedPreInspectionPoints.length > 0 ? 'rgba(255, 75, 43, 0.08)' : 'var(--input-bg)',
+                  border: `1px solid ${selectedPreInspectionPoints.length > 0 ? '#ff4b2b' : 'var(--border-glass)'}`,
+                  color: selectedPreInspectionPoints.length > 0 ? '#ff4b2b' : 'var(--text-dim)',
+                  opacity: selectedPreInspectionPoints.length > 0 ? 1 : 0.5,
+                  cursor: selectedPreInspectionPoints.length > 0 ? 'pointer' : 'not-allowed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 'auto',
+                  transition: 'all 0.2s ease',
+                }}
+                title={t('clear_selection')}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 

@@ -14,14 +14,14 @@ const ActiveTargetPoint = ({ position }) => {
   useFrame(({ clock }) => {
     if (meshRef.current) {
       // Pulsación suave de la escala
-      const pulse = 1 + Math.sin(clock.getElapsedTime() * 12) * 0.18;
+      const pulse = 1 + Math.sin(clock.getElapsedTime() * 12) * 0.15;
       meshRef.current.scale.set(pulse, pulse, pulse);
     }
   });
 
   return (
     <mesh ref={meshRef} position={position}>
-      <sphereGeometry args={[0.045, 16, 16]} />
+      <sphereGeometry args={[0.022, 16, 16]} />
       <meshStandardMaterial
         color="#ff3333"
         emissive="#ff1111"
@@ -108,9 +108,14 @@ const ObjetoSujeto = ({
 }) => {
   const modelPath = getObjectModelPath(objectModel);
   const gltf = useLoader(GLTFLoader, modelPath);
-  const { size } = useThree();
-  // Factor de escala adaptativo según la resolución del visor 3D
-  const responsiveScale = Math.max(1.0, Math.min(2.6, (size?.height || 700) / 420));
+
+  // Escalar el tamaño de los puntos proporcionalmente al eje mínimo del esferoide (con un mínimo de seguridad)
+  const minSpheroidAxis = Math.min(
+    spheroidSize?.x || 0.6,
+    spheroidSize?.y || 0.6,
+    spheroidSize?.z || 0.6
+  );
+  const spheroidScale = Math.max(0.65, Math.min(2.5, minSpheroidAxis / 0.6));
   const sectorColor = darkMode ? "#ff9d00" : "#b45309";
 
   // Calcular la trayectoria curva que abraza la superficie de la esfera/esferoide
@@ -292,7 +297,7 @@ const ObjetoSujeto = ({
               </bufferGeometry>
               <pointsMaterial
                 color={darkMode ? "#ffffff" : "#0284c7"}
-                size={darkMode ? 0.035 : 0.045}
+                size={Math.max(0.012, (darkMode ? 0.015 : 0.02) * spheroidScale)}
                 sizeAttenuation={true}
                 transparent={true}
                 opacity={darkMode ? 0.9 : 1.0}
@@ -330,7 +335,7 @@ const ObjetoSujeto = ({
               {globalSequence.map((pt, idx) => {
                 if (!pt || typeof pt.x !== 'number') return null;
                 const isSelected = Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.includes(idx);
-                const radius = (isSelected ? 0.065 : 0.042) * responsiveScale;
+                const radius = Math.max(0.012, (isSelected ? 0.026 : 0.015) * spheroidScale);
                 return (
                   <mesh
                     key={idx}
@@ -352,9 +357,9 @@ const ObjetoSujeto = ({
                   >
                     <sphereGeometry args={[radius, 16, 16]} />
                     <meshStandardMaterial
-                      color={isSelected ? "#00ff88" : "#00d2ff"}
-                      emissive={isSelected ? "#00cc66" : "#004466"}
-                      emissiveIntensity={isSelected ? 2.5 : 0.4}
+                      color={isSelected ? "#059669" : "#00d2ff"}
+                      emissive={isSelected ? "#047857" : "#004466"}
+                      emissiveIntensity={isSelected ? 2.2 : 0.4}
                       roughness={0.2}
                     />
                   </mesh>
@@ -363,20 +368,20 @@ const ObjetoSujeto = ({
             </group>
           )}
 
-          {/* Glowing Green 3D Spheres for Selected Pre-Inspection Points (halo removed) */}
+          {/* Glowing Dark Emerald Green 3D Spheres for Selected Pre-Inspection Points */}
           {Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.map((pointIdx, slotIdx) => {
             const pt = Array.isArray(globalSequence) && globalSequence[pointIdx];
             if (!pt || typeof pt.x !== 'number' || typeof pt.y !== 'number' || typeof pt.z !== 'number') return null;
 
-            const selectedRadius = 0.075 * responsiveScale;
+            const selectedRadius = Math.max(0.020, 0.028 * spheroidScale);
 
             return (
               <mesh key={`sel_pt_${pointIdx}_${slotIdx}`} position={[pt.x, pt.y, pt.z]} castShadow>
                 <sphereGeometry args={[selectedRadius, 20, 20]} />
                 <meshStandardMaterial
-                  color="#00ff88"
-                  emissive="#00cc66"
-                  emissiveIntensity={2.8}
+                  color="#059669"
+                  emissive="#047857"
+                  emissiveIntensity={2.5}
                   roughness={0.1}
                   metalness={0.3}
                 />

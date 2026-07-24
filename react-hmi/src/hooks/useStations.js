@@ -113,40 +113,18 @@ export function useStations() {
   };
 
   const handlePlayStationQueue = (stationId) => {
+    setStations(stPrev => stPrev.map(st =>
+      st.id === stationId ? { ...st, status: 'running' } : st
+    ));
     setStationQueueStatus(prev => {
       const current = prev[stationId] || { isPlaying: false, currentIndex: 0, phase: 'idle' };
       const queue = stationQueues[stationId] || [];
-      if (queue.length === 0) return prev;
-
       let nextPhase = current.phase;
 
       if (current.phase === 'waiting') {
-        // Segundo clic en PLAY: Reanudar para la ejecución completa de la secuencia
         nextPhase = 'full';
-        setStations(stPrev => stPrev.map(st =>
-          st.id === stationId ? {
-            ...st,
-            status: 'running',
-            progress: 0,
-            photoCount: 0,
-            maxPhotos: 100,
-            speed: queue[current.currentIndex]?.robotSpeed || 0.5,
-          } : st
-        ));
       } else if (current.phase === 'idle' || !current.phase) {
-        // Primer clic en PLAY: Iniciar la inspección previa de 4 fotos en el primer gajo
         nextPhase = 'inspection';
-        setStations(stPrev => stPrev.map(st =>
-          st.id === stationId ? {
-            ...st,
-            status: 'running',
-            progress: 0,
-            photoCount: 0,
-            maxPhotos: 4, // 4 fotos del primer gajo
-            product: queue[current.currentIndex]?.productName || st.product,
-            speed: queue[current.currentIndex]?.robotSpeed || 0.5,
-          } : st
-        ));
       }
 
       return {
@@ -157,10 +135,23 @@ export function useStations() {
   };
 
   const handlePauseStationQueue = (stationId) => {
+    setStations(stPrev => stPrev.map(st =>
+      st.id === stationId ? { ...st, status: 'idle' } : st
+    ));
     setStationQueueStatus(prev => ({
       ...prev,
       [stationId]: { ...(prev[stationId] || {}), isPlaying: false },
     }));
+  };
+
+  const handleStopStation = (stationId) => {
+    setStationQueueStatus(prev => ({
+      ...prev,
+      [stationId]: { isPlaying: false, currentIndex: 0, phase: 'idle' }
+    }));
+    setStations(stPrev => stPrev.map(st =>
+      st.id === stationId ? { ...st, status: 'idle', progress: 0, photoCount: 0, speed: 0.0 } : st
+    ));
   };
 
   const handleRemoveQueueItem = (stationId, itemId) => {
@@ -418,6 +409,7 @@ export function useStations() {
     handleAddToQueue,
     handlePlayStationQueue,
     handlePauseStationQueue,
+    handleStopStation,
     handleRemoveQueueItem,
     handleEditQueueItem,
     handleMoveQueueItem,

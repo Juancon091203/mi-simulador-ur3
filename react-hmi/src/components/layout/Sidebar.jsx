@@ -108,23 +108,53 @@ const Sidebar = ({
             </option>
           ))}
         </select>
+
+        {activeStationTab !== 'general' && (
+          <button
+            onClick={() => {
+              setActiveStationTab('general');
+              setActiveSubView('dashboard');
+              if (setIsSidebarOpen) setIsSidebarOpen(false);
+            }}
+            style={{
+              padding: '8px 12px',
+              borderRadius: '8px',
+              background: 'rgba(0, 210, 255, 0.08)',
+              border: '1px solid var(--accent-blue)',
+              color: 'var(--accent-blue)',
+              fontSize: '0.78rem',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              marginTop: '4px',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            ← {t('back_to_general_overview') || 'Volver a Vista General'}
+          </button>
+        )}
       </div>
 
       <div style={{ ...styles.divider, opacity: 0.15, margin: '14px 0' }} />
 
       {/* Vertical Navigation Menu */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
-        <button
-          className={`sidebar-subview-btn ${activeStationTab === 'general' && activeSubView === 'dashboard' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveStationTab('general');
-            setActiveSubView('dashboard');
-            if (setIsSidebarOpen) setIsSidebarOpen(false);
-          }}
-          style={activeStationTab === 'general' && activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
-        >
-          🌐 {t('general_view')}
-        </button>
+        {activeStationTab === 'general' && (
+          <button
+            className={`sidebar-subview-btn ${activeSubView === 'dashboard' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveStationTab('general');
+              setActiveSubView('dashboard');
+              if (setIsSidebarOpen) setIsSidebarOpen(false);
+            }}
+            style={activeStationTab === 'general' && activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
+          >
+            🌐 {t('general_view')}
+          </button>
+        )}
 
         {activeStationTab !== 'general' && (
           <>

@@ -3,9 +3,10 @@ import React, { createContext, useContext, useState } from 'react';
 const translations = {
   es: {
     // Header & Navigation
-    app_title: "Estudio de Fotografía Automatizado",
+    app_title: "Automated Photography Studio",
     app_subtitle: "",
     general_view: "Vista General",
+    back_to_general_overview: "Volver a Vista General",
     general_view_subtitle: "",
     active_station_label: "Estación Activa / Área",
     general_view_option: "🌐 Vista General (4 Estaciones)",
@@ -60,8 +61,9 @@ const translations = {
     local_path: "RUTA LOCAL",
     photo_save_path: "RUTA DE GUARDADO DE FOTOS",
     robot_speed_ms: "VELOCIDAD DEL ROBOT (M/S)",
+    robot_speed_limit: "VELOCIDAD DEL ROBOT (M/S)",
     cancel: "Cancelar",
-    next_tab: "Siguiente →",
+    next_tab: "Siguiente",
     save_changes: "Guardar Cambios",
     select_target_station: "SELECCIONAR ESTACIÓN DESTINO",
     select_a_station: "Selecciona una estación...",
@@ -242,7 +244,7 @@ const translations = {
     photo_save_path: "PHOTO SAVE PATH",
     robot_speed_ms: "ROBOT SPEED (M/S)",
     cancel: "Cancel",
-    next_tab: "Next →",
+    next_tab: "Next",
     save_changes: "Save Changes",
     select_target_station: "SELECT TARGET STATION",
     select_a_station: "Select a station...",

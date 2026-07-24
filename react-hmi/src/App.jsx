@@ -71,7 +71,7 @@ const App = () => {
   const [activeSubView, setActiveSubView] = useState('dashboard');
 
   // ── Robot Connection ─────────────────────────────────────────────────────
-  const [modelType] = useState('UR8L_con_garra');
+  const [modelType] = useState('ur8l_con_camara');
   const [connectionMode] = useState('websocket');
   const [ipAddress] = useState('192.168.60.10');
   const [manualMode] = useState(false);
@@ -224,8 +224,8 @@ const App = () => {
         handleEditQueueItem={stationsHook.handleEditQueueItem}
         handleRemoveQueueItem={stationsHook.handleRemoveQueueItem}
         onNewExecution={(stationId) => {
-          stationsHook.setConfigStationId(stationId);
-          stationsHook.setIsConfigModalOpen(true);
+          if (stationId) stationsHook.setConfigStationId(stationId);
+          setActiveSubView('config_execution');
         }}
         currentUser={isDeveloperMode ? (currentUser || t('developer_user')) : t('anonymous_user')}
         userRole={isDeveloperMode ? 'admin' : 'operator'}
@@ -313,18 +313,23 @@ const App = () => {
         {/* Scrollable content container (Scrollbar único principal con amplio margen inferior) */}
         <div className="main-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* GENERAL VIEW ──────────────────────────────────────────────────── */}
-          {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && (
+          {activeStationTab === 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && activeSubView !== 'config_execution' && (
             <GeneralOverview
               stations={stationsHook.stations}
               userRole={userRole}
-              onOpenConfigModal={() => {
-                stationsHook.setConfigStationId(stationsHook.stations[0]?.id || null);
-                stationsHook.setIsConfigModalOpen(true);
+              onOpenConfigModal={(stId) => {
+                const validId = (typeof stId === 'number') ? stId : null;
+                stationsHook.setConfigStationId(validId || stationsHook.stations[0]?.id || 1);
+                setActiveSubView('config_execution');
               }}
               onSelectStation={(id) => {
                 setActiveStationTab(id);
                 setActiveSubView('dashboard');
               }}
+              onPlayStation={stationsHook.handlePlayStationQueue}
+              onPauseStation={stationsHook.handlePauseStationQueue}
+              onStopStation={stationsHook.handleStopStation}
+              stationQueueStatus={stationsHook.stationQueueStatus}
             />
           )}
 
@@ -411,7 +416,54 @@ const App = () => {
             </main>
           )}
 
-          {activeStationTab !== 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && currentStation && (
+          {/* CONFIG EXECUTION (top-level, works from general AND station views) */}
+          {activeSubView === 'config_execution' && (
+            <main className="stations-container">
+              <ConfigExecutionModal
+                isView={true}
+                isOpen={true}
+                onClose={() => {
+                  if (activeStationTab !== 'general') {
+                    setActiveSubView('dashboard');
+                  } else {
+                    setActiveSubView('dashboard');
+                  }
+                }}
+                configActiveTab={stationsHook.configActiveTab}
+                setConfigActiveTab={stationsHook.setConfigActiveTab}
+                configFormData={stationsHook.configFormData}
+                setConfigFormData={stationsHook.setConfigFormData}
+                configStationId={stationsHook.configStationId}
+                setConfigStationId={stationsHook.setConfigStationId}
+                presets={presetsHook.presets}
+                stations={stationsHook.stations}
+                onSubmit={() => {
+                  const targetStation = stationsHook.configStationId;
+                  stationsHook.handleAddToQueue();
+                  if (typeof targetStation === 'number' && targetStation) {
+                    setActiveStationTab(targetStation);
+                  } else {
+                    setActiveStationTab(stationsHook.stations[0]?.id || 1);
+                  }
+                  setActiveSubView('dashboard');
+                }}
+                editingQueueItem={stationsHook.editingQueueItem}
+                onCreateNewPreset={() => {
+                  calibration.setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
+                  calibration.setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
+                  calibration.setZBounds({ min: -1.0, max: 1.0 });
+                  calibration.setPointCount(100);
+                  calibration.setColumnHeight(0.5);
+                  calibration.setOrbitRadius(1.6);
+                  presetsHook.setEditingPresetName('__new__');
+                  presetsHook.setEditingPresetForm('');
+                  setActiveSubView('calibration');
+                }}
+              />
+            </main>
+          )}
+
+          {activeStationTab !== 'general' && activeSubView !== 'presets' && activeSubView !== 'calibration' && activeSubView !== 'config_execution' && currentStation && (
             <main className="stations-container">
               {/* Sub-views */}
               {activeSubView === 'dashboard' && (
@@ -438,6 +490,11 @@ const App = () => {
                   onRearmStation={onRearmStation}
                   isRobotConnected={isRobotConnected}
                   setIsRobotConnected={setIsRobotConnected}
+                  onNewExecution={(stId) => {
+                    const validId = (typeof stId === 'number') ? stId : null;
+                    stationsHook.setConfigStationId(validId || stationsHook.stations[0]?.id || 1);
+                    setActiveSubView('config_execution');
+                  }}
                 />
               )}
 
@@ -463,33 +520,6 @@ const App = () => {
       </div>
 
       {/* ── Modals ──────────────────────────────────────────────────────── */}
-      <ConfigExecutionModal
-        isOpen={stationsHook.isConfigModalOpen}
-        onClose={() => stationsHook.setIsConfigModalOpen(false)}
-        configActiveTab={stationsHook.configActiveTab}
-        setConfigActiveTab={stationsHook.setConfigActiveTab}
-        configFormData={stationsHook.configFormData}
-        setConfigFormData={stationsHook.setConfigFormData}
-        configStationId={stationsHook.configStationId}
-        setConfigStationId={stationsHook.setConfigStationId}
-        presets={presetsHook.presets}
-        stations={stationsHook.stations}
-        onSubmit={stationsHook.handleAddToQueue}
-        editingQueueItem={stationsHook.editingQueueItem}
-        onCreateNewPreset={() => {
-          stationsHook.setIsConfigModalOpen(false);
-          setActiveStationTab('general');
-          calibration.setSpheroidSize({ x: 0.6, y: 0.6, z: 0.6 });
-          calibration.setObjectCenter({ x: 0.0, y: 1.0, z: 0.0 });
-          calibration.setZBounds({ min: -1.0, max: 1.0 });
-          calibration.setPointCount(100);
-          calibration.setColumnHeight(0.5);
-          calibration.setOrbitRadius(1.6);
-          presetsHook.setEditingPresetName('__new__');
-          presetsHook.setEditingPresetForm('');
-          setActiveSubView('calibration');
-        }}
-      />
 
       <EmergencyAlertModal
         alert={stationsHook.emergencyAlert}

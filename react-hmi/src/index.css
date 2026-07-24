@@ -295,6 +295,33 @@ select option {
   background: rgba(0, 210, 255, 0.3);
 }
 
+.station-card-btn-play {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.station-card-btn-play:hover {
+  transform: translateY(-2px);
+  background: rgba(0, 210, 255, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3) !important;
+}
+
+.station-card-btn-pause {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.station-card-btn-pause:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 157, 0, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(255, 157, 0, 0.3) !important;
+}
+
+.station-card-btn-abort {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.station-card-btn-abort:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 75, 43, 0.22) !important;
+  box-shadow: 0 4px 12px rgba(255, 75, 43, 0.35) !important;
+}
+
 /* Custom premium range slider styling */
 input[type="range"] {
   -webkit-appearance: none;

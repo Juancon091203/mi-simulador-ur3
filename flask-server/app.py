@@ -382,6 +382,24 @@ def camera_clear_photos():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+import subprocess
+
+@app.route('/api/open_folder', methods=['POST'])
+def open_folder():
+    try:
+        data = request.get_json() or {}
+        folder_path = data.get('path') or data.get('save_path') or backend_dir
+        win_path = os.path.normpath(folder_path)
+        if not os.path.exists(win_path):
+            os.makedirs(win_path, exist_ok=True)
+        if sys.platform == 'win32':
+            subprocess.Popen(f'explorer "{win_path}"')
+        else:
+            subprocess.Popen(['xdg-open', win_path])
+        return jsonify({"status": "success", "path": win_path})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 # Run the Flask app on localhost '127.0.0.1' and port 5005 with multithreading active
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5005, threaded=True)

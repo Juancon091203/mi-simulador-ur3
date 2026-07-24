@@ -91,23 +91,6 @@ const PhotoSimulationPanel = ({
         <span>📂</span>
         <span><strong>{t('save_directory')}:</strong> {savePath}</span>
       </div>
-
-      {/* Notification Toast when clicked */}
-      {showNotification && (
-        <div style={{
-          padding: '8px 12px',
-          background: 'rgba(0, 255, 136, 0.15)',
-          border: '1px solid var(--accent-green)',
-          borderRadius: '8px',
-          fontSize: '0.7rem',
-          fontWeight: 'bold',
-          color: 'var(--accent-green)',
-          animation: 'fadeIn 0.3s ease-in-out',
-          textAlign: 'center',
-        }}>
-          ✓ Abriendo explorador en: {savePath}
-        </div>
-      )}
     </div>
   );
 };

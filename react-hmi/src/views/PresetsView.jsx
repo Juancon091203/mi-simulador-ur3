@@ -32,15 +32,27 @@ const PresetsView = ({ presets, onCreateNew, onEditPreset, onDeletePreset }) => 
         <button
           onClick={onCreateNew}
           style={{
-            ...styles.button,
-            backgroundColor: 'var(--accent-blue)',
-            color: '#000000',
-            fontWeight: 'bold',
-            width: '180px',
+            padding: '10px 18px',
+            borderRadius: '10px',
+            backgroundColor: '#0284c7',
+            color: '#ffffff',
+            fontWeight: '700',
+            fontSize: '0.85rem',
+            border: 'none',
             cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+            transition: 'all 0.2s ease',
+            width: 'auto',
           }}
         >
-          {t('create_preset')}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>{t('create_preset')}</span>
         </button>
       </div>
 
