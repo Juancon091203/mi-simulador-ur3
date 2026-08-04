@@ -329,65 +329,7 @@ const ObjetoSujeto = ({
             <ActiveTargetPoint position={[activePoint.x, activePoint.y, activePoint.z]} />
           )}
 
-          {/* Interactive Clickable Point Spheres in Selection Mode */}
-          {isPointSelectionMode && Array.isArray(globalSequence) && globalSequence.length > 0 && (
-            <group>
-              {globalSequence.map((pt, idx) => {
-                if (!pt || typeof pt.x !== 'number') return null;
-                const isSelected = Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.includes(idx);
-                const radius = Math.max(0.012, (isSelected ? 0.026 : 0.015) * spheroidScale);
-                return (
-                  <mesh
-                    key={idx}
-                    position={[pt.x, pt.y, pt.z]}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const targetIdx = idx;
-                      setTimeout(() => {
-                        if (onToggleSelectPoint) onToggleSelectPoint(targetIdx);
-                      }, 0);
-                    }}
-                    onPointerOver={(e) => {
-                      e.stopPropagation();
-                      document.body.style.cursor = 'pointer';
-                    }}
-                    onPointerOut={() => {
-                      document.body.style.cursor = 'auto';
-                    }}
-                  >
-                    <sphereGeometry args={[radius, 16, 16]} />
-                    <meshStandardMaterial
-                      color={isSelected ? "#059669" : "#00d2ff"}
-                      emissive={isSelected ? "#047857" : "#004466"}
-                      emissiveIntensity={isSelected ? 2.2 : 0.4}
-                      roughness={0.2}
-                    />
-                  </mesh>
-                );
-              })}
-            </group>
-          )}
 
-          {/* Glowing Dark Emerald Green 3D Spheres for Selected Pre-Inspection Points */}
-          {Array.isArray(selectedPreInspectionPoints) && selectedPreInspectionPoints.map((pointIdx, slotIdx) => {
-            const pt = Array.isArray(globalSequence) && globalSequence[pointIdx];
-            if (!pt || typeof pt.x !== 'number' || typeof pt.y !== 'number' || typeof pt.z !== 'number') return null;
-
-            const selectedRadius = Math.max(0.020, 0.028 * spheroidScale);
-
-            return (
-              <mesh key={`sel_pt_${pointIdx}_${slotIdx}`} position={[pt.x, pt.y, pt.z]} castShadow>
-                <sphereGeometry args={[selectedRadius, 20, 20]} />
-                <meshStandardMaterial
-                  color="#059669"
-                  emissive="#047857"
-                  emissiveIntensity={2.5}
-                  roughness={0.1}
-                  metalness={0.3}
-                />
-              </mesh>
-            );
-          })}
         </group>
       )}
     </group>
