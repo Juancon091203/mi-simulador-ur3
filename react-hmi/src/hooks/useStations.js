@@ -51,6 +51,7 @@ export function useStations() {
     cameraShutterMs: 5.0,
     cameraGain: 64,
     presetName: '',
+    executePreviewPhotos: true,
   });
 
   // ── Station CRUD ──────────────────────────────────────────────────────────
@@ -109,6 +110,7 @@ export function useStations() {
       productName: '', savePath: FRAMOS_PHOTOS_PATH,
       robotSpeed: 0.5, cameraAutoExposure: true,
       cameraShutterMs: 5.0, cameraGain: 64, presetName: '',
+      executePreviewPhotos: true,
     });
   };
 

@@ -1,15 +1,12 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import styles from '../../styles/appStyles';
 import { useLanguage } from '../../context/LanguageContext';
 
 /**
- * App sidebar — navigation with vertical subview buttons and bottom toolbar.
+ * App sidebar — navigation for a single station focus using React Router DOM.
  */
 const Sidebar = ({
-  // Navigation
-  activeStationTab, setActiveStationTab,
-  activeSubView, setActiveSubView,
-  stations,
   currentStation,
   // User / auth / theme
   currentUser, userRole,
@@ -31,7 +28,9 @@ const Sidebar = ({
     }
   };
 
-  const navBtnBaseStyle = {
+  const navBtnBaseClass = "sidebar-subview-btn";
+
+  const getNavLinkStyle = ({ isActive }) => ({
     ...styles.button,
     width: '100%',
     textAlign: 'left',
@@ -41,8 +40,10 @@ const Sidebar = ({
     fontWeight: '600',
     borderRadius: '10px',
     border: '1px solid var(--border-glass)',
-    background: 'rgba(255, 255, 255, 0.03)',
-    color: 'var(--text-color)',
+    background: isActive ? 'var(--accent-blue)' : 'rgba(255, 255, 255, 0.03)',
+    color: isActive ? '#ffffff' : 'var(--text-color)',
+    borderColor: isActive ? 'var(--accent-blue)' : 'var(--border-glass)',
+    boxShadow: isActive ? '0 0 10px rgba(0, 210, 255, 0.3)' : 'none',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -50,20 +51,18 @@ const Sidebar = ({
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'all 0.2s ease',
+    textDecoration: 'none',
+  });
+
+  const closeSidebar = () => {
+    if (setIsSidebarOpen) setIsSidebarOpen(false);
   };
 
-  const navBtnActiveStyle = {
-    ...navBtnBaseStyle,
-    background: 'var(--accent-blue)',
-    color: '#ffffff',
-    fontWeight: '600',
-    borderColor: 'var(--accent-blue)',
-    boxShadow: '0 0 10px rgba(0, 210, 255, 0.3)',
-  };
+  const st = currentStation || { name: 'Station 1', status: 'idle', ip: '192.168.1.100' };
 
   return (
     <aside className={`sidebar glass ${className || ''}`} style={styles.sidebar}>
-      {/* Header (Subtitle removed as requested) */}
+      {/* Header */}
       <header style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1 className="text-gradient" style={{ fontSize: '1.15rem', fontWeight: '800' }}>
@@ -72,7 +71,7 @@ const Sidebar = ({
         </div>
         <button
           className="sidebar-close-btn"
-          onClick={() => setIsSidebarOpen && setIsSidebarOpen(false)}
+          onClick={closeSidebar}
           style={{
             display: 'none',
             background: 'none',
@@ -88,138 +87,97 @@ const Sidebar = ({
         </button>
       </header>
 
-      {/* Station / View selector with color dot status indicators */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label style={styles.label}>{t('active_station_label')}</label>
-        <select
-          value={activeStationTab}
-          onChange={(e) => {
-            const val = e.target.value;
-            setActiveStationTab(val === 'general' ? 'general' : parseInt(val));
-            setActiveSubView('dashboard');
-            if (setIsSidebarOpen) setIsSidebarOpen(false);
-          }}
-          style={styles.select}
-        >
-          <option value="general">{t('general_view_option')}</option>
-          {stations.map(st => (
-            <option key={st.id} value={st.id}>
-              {getStatusDot(st.status)} {st.name.replace('Station', t('station_name'))} ({st.ip})
-            </option>
-          ))}
-        </select>
-
-        {activeStationTab !== 'general' && (
-          <button
-            onClick={() => {
-              setActiveStationTab('general');
-              setActiveSubView('dashboard');
-              if (setIsSidebarOpen) setIsSidebarOpen(false);
-            }}
-            style={{
-              padding: '8px 12px',
-              borderRadius: '8px',
-              background: 'rgba(0, 210, 255, 0.08)',
-              border: '1px solid var(--accent-blue)',
-              color: 'var(--accent-blue)',
-              fontSize: '0.78rem',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              marginTop: '4px',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            ← {t('back_to_general_overview') || 'Volver a Vista General'}
-          </button>
-        )}
+      {/* Station Header Badge (Single station focus) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '10px 14px',
+        borderRadius: '10px',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border-glass)',
+      }}>
+        <span style={{ fontSize: '1.1rem' }}>{getStatusDot(st.status)}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+          <span style={{ fontSize: '0.88rem', fontWeight: '800', color: 'var(--text-color)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {st.name ? st.name.replace('Station', t('station_name')) : t('station_name')}
+          </span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+            IP: {st.ip || '192.168.1.100'}
+          </span>
+        </div>
       </div>
 
       <div style={{ ...styles.divider, opacity: 0.15, margin: '14px 0' }} />
 
-      {/* Vertical Navigation Menu */}
+      {/* Vertical Navigation Menu with React Router NavLinks */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, overflowY: 'auto' }}>
-        {activeStationTab === 'general' && (
-          <button
-            className={`sidebar-subview-btn ${activeSubView === 'dashboard' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveStationTab('general');
-              setActiveSubView('dashboard');
-              if (setIsSidebarOpen) setIsSidebarOpen(false);
-            }}
-            style={activeStationTab === 'general' && activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
-          >
-            🌐 {t('general_view')}
-          </button>
-        )}
-
-        {activeStationTab !== 'general' && (
-          <>
-            <button
-              className={`sidebar-subview-btn ${activeSubView === 'dashboard' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveSubView('dashboard');
-                if (setIsSidebarOpen) setIsSidebarOpen(false);
-              }}
-              style={activeSubView === 'dashboard' ? navBtnActiveStyle : navBtnBaseStyle}
-            >
-              {t('dashboard_3d')}
-            </button>
-
-            {/* VNC Viewer restricted to Developer Mode */}
-            {userRole === 'admin' && (
-              <button
-                className={`sidebar-subview-btn ${activeSubView === 'vnc' ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveSubView('vnc');
-                  if (setIsSidebarOpen) setIsSidebarOpen(false);
-                }}
-                style={activeSubView === 'vnc' ? navBtnActiveStyle : navBtnBaseStyle}
-              >
-                {t('vnc_viewer')}
-              </button>
-            )}
-
-            <button
-              className={`sidebar-subview-btn ${activeSubView === 'camera' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveSubView('camera');
-                if (setIsSidebarOpen) setIsSidebarOpen(false);
-              }}
-              style={activeSubView === 'camera' ? navBtnActiveStyle : navBtnBaseStyle}
-            >
-              {t('camera_2d')}
-            </button>
-
-            <button
-              className={`sidebar-subview-btn ${activeSubView === 'config' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveSubView('config');
-                if (setIsSidebarOpen) setIsSidebarOpen(false);
-              }}
-              style={activeSubView === 'config' ? navBtnActiveStyle : navBtnBaseStyle}
-            >
-              {t('station_settings')}
-            </button>
-          </>
-        )}
-
-        <button
-          className={`sidebar-subview-btn ${activeSubView === 'presets' || activeSubView === 'calibration' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveSubView('presets');
-            if (setIsSidebarOpen) setIsSidebarOpen(false);
-          }}
-          style={(activeSubView === 'presets' || activeSubView === 'calibration') ? navBtnActiveStyle : navBtnBaseStyle}
+        <NavLink
+          to="/"
+          end
+          className={navBtnBaseClass}
+          style={getNavLinkStyle}
+          onClick={closeSidebar}
         >
-          {t('presets_calibration')}
-        </button>
+          <span>🖥️</span>
+          <span>{t('dashboard_3d')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/config-execution"
+          className={navBtnBaseClass}
+          style={getNavLinkStyle}
+          onClick={closeSidebar}
+        >
+          <span>➕</span>
+          <span>{t('add_execution')}</span>
+        </NavLink>
+
+        {/* VNC Viewer restricted to Developer Mode */}
+        {userRole === 'admin' && (
+          <NavLink
+            to="/vnc"
+            className={navBtnBaseClass}
+            style={getNavLinkStyle}
+            onClick={closeSidebar}
+          >
+            <span>🎮</span>
+            <span>{t('vnc_viewer')}</span>
+          </NavLink>
+        )}
+
+        <NavLink
+          to="/camera"
+          className={navBtnBaseClass}
+          style={getNavLinkStyle}
+          onClick={closeSidebar}
+        >
+          <span>📷</span>
+          <span>{t('camera_2d')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/settings"
+          className={navBtnBaseClass}
+          style={getNavLinkStyle}
+          onClick={closeSidebar}
+        >
+          <span>⚙️</span>
+          <span>{t('station_settings')}</span>
+        </NavLink>
+
+        <NavLink
+          to="/presets"
+          className={navBtnBaseClass}
+          style={getNavLinkStyle}
+          onClick={closeSidebar}
+        >
+          <span>📐</span>
+          <span>{t('presets_calibration')}</span>
+        </NavLink>
       </div>
 
-      {/* Footer Toolbar: 3 Botones Cuadrados Horizontales Estéticamente Unificados */}
+      {/* Footer Toolbar: 3 Square Buttons */}
       <div style={{
         marginTop: 'auto',
         paddingTop: '14px',
@@ -229,7 +187,7 @@ const Sidebar = ({
         justifyContent: 'space-between',
         gap: '8px',
       }}>
-        {/* Botón 1: Modo Claro / Oscuro (Sol / Luna) */}
+        {/* Button 1: Dark/Light Mode */}
         <button
           className="sidebar-toolbar-btn"
           onClick={() => setDarkMode && setDarkMode(!darkMode)}
@@ -239,7 +197,7 @@ const Sidebar = ({
           {darkMode ? '☀️' : '🌙'}
         </button>
 
-        {/* Botón 2: Idioma (ES / EN) */}
+        {/* Button 2: Language (ES/EN) */}
         <button
           className="sidebar-toolbar-btn"
           onClick={toggleLanguage}
@@ -249,7 +207,7 @@ const Sidebar = ({
           {language === 'es' ? 'ES' : 'EN'}
         </button>
 
-        {/* Botón 3: Autenticación / Modo Desarrollador */}
+        {/* Button 3: Auth / Dev Mode */}
         <button
           className="sidebar-toolbar-btn"
           onClick={() => {

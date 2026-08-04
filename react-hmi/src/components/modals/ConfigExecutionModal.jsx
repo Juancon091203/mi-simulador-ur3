@@ -158,6 +158,22 @@ const ConfigExecutionModal = ({
                 style={{ width: '100%' }}
               />
             </div>
+
+            {/* Execute Preview Photos Toggle */}
+            <div className="form-field" style={{ gridColumn: 'span 2', marginTop: '4px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: '600' }}>
+                <input
+                  type="checkbox"
+                  checked={configFormData.executePreviewPhotos !== false}
+                  onChange={(e) => setConfigFormData(prev => ({ ...prev, executePreviewPhotos: e.target.checked }))}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                />
+                <span>{t('execute_preview_photos')}</span>
+              </label>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: '28px', marginTop: '2px' }}>
+                {t('execute_preview_photos_desc')}
+              </div>
+            </div>
           </div>
         )}
 
