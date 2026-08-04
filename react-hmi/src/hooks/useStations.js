@@ -39,6 +39,17 @@ export function useStations() {
   const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
   const [completionStationId, setCompletionStationId] = useState(null);
 
+  // Dark/Light theme mode state (default to dark mode)
+  const [darkMode, setDarkMode] = useState(true);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.remove('light-mode');
+    } else {
+      document.body.classList.add('light-mode');
+    }
+  }, [darkMode]);
+
   // Config modal state (lifted here so queue operations can open it)
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [configStationId, setConfigStationId] = useState(null);
@@ -432,5 +443,7 @@ export function useStations() {
     configStationId, setConfigStationId,
     configActiveTab, setConfigActiveTab,
     configFormData, setConfigFormData,
+    // Theme
+    darkMode, setDarkMode,
   };
 }
