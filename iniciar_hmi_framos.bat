@@ -7,14 +7,18 @@ echo   INICIANDO HMI DE ROBOT Y CONTROL DE CAMARA FRAMOS
 echo ==========================================================
 echo.
 
-:: 1. Verificar si Docker Desktop esta corriendo
-echo [1/4] Comprobando estado de Docker...
+:: 1. Verificar si Docker Desktop esta corriendo y arrancar motor
+echo [1/4] Comprobando estado de Docker Desktop...
 docker ps >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [WARN] Docker no parece estar iniciado. Intentando arrancar Docker Desktop...
+    echo [WARN] Docker Desktop no parece estar iniciado. Arrancando Docker Desktop...
     start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-    echo Esperando a que Docker se inicialice - 30 segundos...
-    timeout /t 30 /nobreak
+    echo Esperando a que el motor de Docker este listo...
+    :wait_docker
+    timeout /t 3 /nobreak >nul
+    docker ps >nul 2>&1
+    if %errorlevel% neq 0 goto wait_docker
+    echo [INFO] Motor de Docker iniciado correctamente.
 )
 
 :: 2. Arrancar contenedores Docker (Server y URSim) en segundo plano
@@ -25,7 +29,7 @@ docker compose up -d server ursim
 echo Esperando 3 segundos a que inicien los servicios de Docker...
 timeout /t 3 /nobreak >nul
 
-:: Detener el contenedor de flask-server en Docker para liberar el puerto 5000 en el host
+:: Detener el contenedor de flask-server en Docker para liberar el puerto 5000/5005 en el host
 docker compose stop flask-server >nul 2>&1
 
 :: 3. Iniciar el servidor Flask nativo para la camara FRAMOS
