@@ -136,7 +136,7 @@ const App = () => {
         />
 
         {/* Main Content View */}
-        <main className="main-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+        <div className="main-content-scroll" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           {/* Header */}
           <header style={{
             padding: '16px 24px',
@@ -193,7 +193,7 @@ const App = () => {
           <Routes>
             {/* Dashboard (3D) */}
             <Route path="/" element={
-              <main className="stations-container">
+              <div className="stations-container">
                 <StationDashboard
                   {...robotViewerProps}
                   stabilityThreshold={cameraHook.stabilityThreshold}
@@ -223,12 +223,12 @@ const App = () => {
                     navigate('/config-execution');
                   }}
                 />
-              </main>
+              </div>
             } />
 
             {/* Configurar Nueva Ejecución */}
             <Route path="/config-execution" element={
-              <main className="stations-container">
+              <div className="stations-container">
                 <ConfigExecutionModal
                   isView={true}
                   isOpen={true}
@@ -258,42 +258,42 @@ const App = () => {
                     navigate('/calibration');
                   }}
                 />
-              </main>
+              </div>
             } />
 
             {/* VNC Viewer */}
             {userRole === 'admin' && (
               <Route path="/vnc" element={
-                <main className="stations-container">
+                <div className="stations-container">
                   <VncView />
-                </main>
+                </div>
               } />
             )}
 
             {/* Cámara 2D */}
             <Route path="/camera" element={
-              <main className="stations-container">
+              <div className="stations-container">
                 <CameraView
                   cameraConnected={cameraHook.cameraConnected}
                   stabilityThreshold={cameraHook.stabilityThreshold}
                   setStabilityThreshold={cameraHook.setStabilityThreshold}
                 />
-              </main>
+              </div>
             } />
 
             {/* Ajustes de Estación */}
             <Route path="/settings" element={
-              <main className="stations-container">
+              <div className="stations-container">
                 <StationConfigView
                   currentStation={currentStation}
                   handleUpdateStationConfig={stationsHook.handleUpdateStationConfig}
                 />
-              </main>
+              </div>
             } />
 
             {/* Presets List */}
             <Route path="/presets" element={
-              <main className="stations-container">
+              <div className="stations-container">
                 <PresetsView
                   presets={presetsHook.presets}
                   onCreateNew={() => {
@@ -323,12 +323,12 @@ const App = () => {
                   }}
                   onDeletePreset={presetsHook.handleDeletePreset}
                 />
-              </main>
+              </div>
             } />
 
             {/* Calibración / Preset Editor */}
             <Route path="/calibration" element={
-              <main className="stations-container" style={{ flex: 1, overflow: 'hidden', padding: '12px 24px 16px 24px', height: 'calc(100vh - 145px)', boxSizing: 'border-box' }}>
+              <div className="stations-container" style={{ flex: 1, overflow: 'hidden', padding: '12px 24px 16px 24px', height: 'calc(100vh - 145px)', boxSizing: 'border-box' }}>
                 <CalibrationView
                   {...robotViewerProps}
                   stabilityThreshold={cameraHook.stabilityThreshold}
@@ -371,13 +371,13 @@ const App = () => {
                   }}
                   onBackToPresets={() => navigate('/presets')}
                 />
-              </main>
+              </div>
             } />
 
             {/* Fallback to Dashboard */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
+        </div>
 
       {/* Modals */}
       <EmergencyAlertModal

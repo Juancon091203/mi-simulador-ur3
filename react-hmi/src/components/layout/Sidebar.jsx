@@ -61,7 +61,7 @@ const Sidebar = ({
   const st = currentStation || { name: 'Station 1', status: 'idle', ip: '192.168.1.100' };
 
   return (
-    <aside className={`sidebar glass ${className || ''}`} style={styles.sidebar}>
+    <aside className={`sidebar sidebar-responsive glass ${className || ''}`} style={styles.sidebar}>
       {/* Header */}
       <header style={{ ...styles.header, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
