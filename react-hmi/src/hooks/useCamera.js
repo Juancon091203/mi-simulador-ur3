@@ -11,7 +11,8 @@ const API = 'http://localhost:5005';
  * @param {number} options.pointCount     - Total number of capture points
  * @param {function} options.setRobotPositionIndex - Sync robot sector position
  */
-export function useCamera({ globalSequence, pointCount, setRobotPositionIndex }) {
+export function useCamera(options = {}) {
+  const { globalSequence = [], pointCount = 100, setRobotPositionIndex = () => {} } = options || {};
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPhotoStep, setCurrentPhotoStep] = useState(0);
   const [photos, setPhotos] = useState([]);
