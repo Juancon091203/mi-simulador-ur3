@@ -101,8 +101,12 @@ export function useCalibration() {
           }, remaining);
         }
       } catch (err) {
-        console.error('Failed to fetch trajectory from backend:', err);
-        if (active) { setBackendSequence([]); setIsCalculating(false); }
+        console.error('Failed to fetch trajectory from backend, using local Fibonacci fallback:', err);
+        if (active) {
+          const fallback = generateLocalFibonacciPoints(pointCount, reqCenter.x, reqCenter.y, reqCenter.z, reqBounds.min, reqBounds.max);
+          setBackendSequence(fallback);
+          setIsCalculating(false);
+        }
       }
     };
 
@@ -171,4 +175,31 @@ export function useCalibration() {
     robotPositionIndex,
     setRobotPositionIndex,
   };
+}
+
+function generateLocalFibonacciPoints(n, cx = 0, cy = 0, cz = 0, minZ = -1, maxZ = 1) {
+  const points = [];
+  const phi = (1 + Math.sqrt(5)) / 2;
+
+  for (let i = 0; i < n; i++) {
+    const z = maxZ - (i / (n - 1 || 1)) * (maxZ - minZ);
+    const radiusAtZ = Math.sqrt(Math.max(0, 1 - z * z));
+    const theta = 2 * Math.PI * i / phi;
+
+    const x = radiusAtZ * Math.cos(theta);
+    const y = radiusAtZ * Math.sin(theta);
+
+    let angleDeg = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    const sector = Math.floor(angleDeg / 60) % 6;
+
+    points.push({
+      unitX: x,
+      unitY: y,
+      unitZ: z,
+      sector,
+      rx: 0, ry: 0, rz: 0,
+      originalIndex: i,
+    });
+  }
+  return points;
 }

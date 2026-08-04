@@ -54,7 +54,6 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Custom Hooks
-  const cameraHook = useCamera();
   const stationsHook = useStations();
   const presetsHook = usePresets();
 
@@ -96,18 +95,24 @@ const App = () => {
     setActiveSpeed: robotConn.setActiveSpeed,
   });
 
+  const cameraHook = useCamera({
+    globalSequence: calibration.globalSequence,
+    pointCount: calibration.pointCount,
+    setRobotPositionIndex: calibration.setRobotPositionIndex,
+  });
+
   const robotViewerProps = {
     modelType: robotConn.modelType,
     currentJointAngles: robotConn.currentJointAngles,
     spheroidSize: calibration.spheroidSize,
     showSpheroid: calibration.showSpheroid,
-    pendingPointsPositions: calibration.pendingPointsPositions,
-    activePoint: calibration.activePoint,
+    pendingPointsPositions: cameraHook.pendingPointsPositions,
+    activePoint: cameraHook.activePoint,
     robotPositionIndex: calibration.robotPositionIndex,
     setRobotPositionIndex: calibration.setRobotPositionIndex,
     robotPosition: calibration.robotPosition,
     robotRotationY: calibration.robotRotationY,
-    nextFivePoints: calibration.nextFivePoints,
+    nextFivePoints: cameraHook.nextFivePoints,
     objectCenter: calibration.objectCenter,
     zBounds: calibration.zBounds,
     showSectors: calibration.showSectors,
