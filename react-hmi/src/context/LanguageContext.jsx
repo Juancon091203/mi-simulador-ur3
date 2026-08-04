@@ -11,11 +11,11 @@ const translations = {
     active_station_label: "Estación Activa / Área",
     general_view_option: "🌐 Vista General (4 Estaciones)",
     back_to_stations: "← Volver a Estaciones",
-    dashboard_3d: "🖥️ Dashboard (3D)",
-    vnc_viewer: "🎮 Visor VNC (TeachPendant)",
-    camera_2d: "📷 Cámara (2D)",
-    station_settings: "⚙️ Ajustes de Estación",
-    presets_calibration: "📐 Presets (Calibración 3D)",
+    dashboard_3d: "Dashboard (3D)",
+    vnc_viewer: "Visor VNC (TeachPendant)",
+    camera_2d: "Cámara (2D)",
+    station_settings: "Ajustes de Estación",
+    presets_calibration: "Presets (Calibración 3D)",
 
     // Statuses
     status_idle: "INACTIVO",
@@ -195,11 +195,11 @@ const translations = {
     active_station_label: "Active Station / Area",
     general_view_option: "🌐 General View (4 Stations)",
     back_to_stations: "← Back to Stations",
-    dashboard_3d: "🖥️ Dashboard (3D)",
-    vnc_viewer: "🎮 VNC Viewer (TeachPendant)",
-    camera_2d: "📷 Camera (2D)",
-    station_settings: "⚙️ Station Settings",
-    presets_calibration: "📐 Presets (3D Calibration)",
+    dashboard_3d: "Dashboard (3D)",
+    vnc_viewer: "VNC Viewer (TeachPendant)",
+    camera_2d: "Camera (2D)",
+    station_settings: "Station Settings",
+    presets_calibration: "Presets (3D Calibration)",
 
     // Statuses
     status_idle: "IDLE",
@@ -374,14 +374,25 @@ const translations = {
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [language, setLanguage] = useState('es'); // Español por defecto
+  const [language, setLanguageState] = useState(() => {
+    return localStorage.getItem('app_language') || 'en';
+  });
+
+  const setLanguage = (lang) => {
+    localStorage.setItem('app_language', lang);
+    setLanguageState(lang);
+  };
 
   const toggleLanguage = () => {
-    setLanguage(prev => (prev === 'es' ? 'en' : 'es'));
+    setLanguageState(prev => {
+      const nextLang = prev === 'es' ? 'en' : 'es';
+      localStorage.setItem('app_language', nextLang);
+      return nextLang;
+    });
   };
 
   const t = (key) => {
-    return translations[language]?.[key] || translations['es']?.[key] || key;
+    return translations[language]?.[key] || translations['en']?.[key] || translations['es']?.[key] || key;
   };
 
   return (

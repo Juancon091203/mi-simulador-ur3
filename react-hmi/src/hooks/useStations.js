@@ -39,10 +39,14 @@ export function useStations() {
   const [showCompletionPrompt, setShowCompletionPrompt] = useState(false);
   const [completionStationId, setCompletionStationId] = useState(null);
 
-  // Dark/Light theme mode state (default to dark mode)
-  const [darkMode, setDarkMode] = useState(true);
+  // Dark/Light theme mode state (default to Light Mode: false)
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('app_dark_mode');
+    return saved !== null ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
+    localStorage.setItem('app_dark_mode', JSON.stringify(darkMode));
     if (darkMode) {
       document.body.classList.remove('light-mode');
     } else {
