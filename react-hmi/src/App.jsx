@@ -371,7 +371,7 @@ const App = () => {
                   handleToggleSelectPoint={calibration.handleToggleSelectPoint}
                   globalSequence={calibration.globalSequence}
                   onSavePreset={async (name) => {
-                    await presetsHook.handleSavePreset(name, calibration.selectedPreInspectionPoints);
+                    await presetsHook.handleSavePreset(name, calibration);
                     navigate('/presets');
                   }}
                   onBackToPresets={() => navigate('/presets')}

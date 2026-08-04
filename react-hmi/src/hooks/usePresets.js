@@ -30,37 +30,41 @@ export function usePresets(calibrationState) {
     fetchPresets();
   }, []);
 
-  const handleSavePreset = async (name, selectedPoints = []) => {
-    const {
-      spheroidSize, objectCenter, zBounds,
-      pointCount, columnHeight, orbitRadius,
-      objectModel, objectScale,
-    } = calibrationState;
-    const pointsToSave = selectedPoints.length > 0
-      ? selectedPoints
-      : (calibrationState.selectedPreInspectionPoints || []);
+  const handleSavePreset = async (name, currentCalibration = {}) => {
+    if (!name || typeof name !== 'string' || !name.trim()) return;
+
+    const source = (currentCalibration && currentCalibration.spheroidSize)
+      ? currentCalibration
+      : (calibrationState || {});
 
     const config = {
-      spheroidSize, objectCenter, zBounds, pointCount, columnHeight, orbitRadius,
-      objectModel, objectScale,
-      selectedPreInspectionPoints: pointsToSave,
+      spheroidSize: source.spheroidSize || { x: 0.6, y: 0.6, z: 0.6 },
+      objectCenter: source.objectCenter || { x: 0.0, y: 1.0, z: 0.0 },
+      zBounds: source.zBounds || { min: -1.0, max: 1.0 },
+      pointCount: source.pointCount || 100,
+      columnHeight: source.columnHeight || 0.5,
+      orbitRadius: source.orbitRadius || 1.6,
+      objectModel: source.objectModel || 'zapato',
+      objectScale: source.objectScale || 1.0,
     };
+
+    const presetName = name.trim();
+
     try {
-      // TODO: BACKEND_ENDPOINT_REQUIRED
-      // ENDPOINT: POST /save_preset
-      // DESCRIPCIÓN: Guarda o actualiza un preset en el servidor con su geometría, modelo 3D y 4 puntos de pre-inspección.
-      // PAYLOAD: { name: "Preset 1", config: { pointCount, spheroidSize, objectCenter, zBounds, objectModel, objectScale, selectedPreInspectionPoints } }
       const response = await fetch(`${API}/save_preset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, config }),
+        body: JSON.stringify({ name: presetName, config }),
       });
       const data = await response.json();
-      if (data.status === 'success') setPresets(data.presets);
-      else setPresets(prev => ({ ...prev, [name]: config }));
+      if (data.status === 'success' && data.presets) {
+        setPresets(data.presets);
+      } else {
+        setPresets(prev => ({ ...prev, [presetName]: config }));
+      }
     } catch (err) {
-      console.error('Failed to save preset:', err);
-      setPresets(prev => ({ ...prev, [name]: config }));
+      console.error('Failed to save preset to backend, saving locally:', err);
+      setPresets(prev => ({ ...prev, [presetName]: config }));
     }
   };
 
